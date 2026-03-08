@@ -59,6 +59,17 @@ cd bjorq_asset_wizard
 docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t bjorq-wizard-test .
 ```
 
+## Troubleshooting: HA Shows Wrong Version
+
+If Home Assistant still shows an old version (e.g. 0.1.0) or reports "dockerfile is missing":
+
+1. Go to **Settings → Add-ons → Add-on Store** (⋮ menu → **Repositories**)
+2. **Remove** the repository URL
+3. Click **Reload** (top-right ⋮ menu)
+4. **Re-add** the repository URL
+5. Verify the correct version (currently **0.1.6**) appears before clicking Install
+6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
+
 ## Configuration
 
 See [DOCS.md](DOCS.md) for configuration options and usage details.

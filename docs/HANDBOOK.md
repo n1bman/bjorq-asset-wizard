@@ -301,6 +301,18 @@ User uploads a larger project file (SketchUp, IFC, OBJ, FBX) → backend convert
 
 ---
 
+## Troubleshooting: HA Shows Wrong Version
+
+If Home Assistant still shows an old version or reports "dockerfile is missing", the Supervisor is reading a stale cached snapshot:
+
+1. **Settings → Add-ons → Add-on Store** → ⋮ → **Repositories** → remove the repo URL
+2. Click **Reload** in the Add-on Store
+3. Re-add the repository URL
+4. Verify the correct version appears before installing
+5. If still stale: **Settings → System → Restart** (Supervisor or Core)
+
+---
+
 ## What Should NOT Be Changed
 
 - **Catalog format** — `model.glb` / `thumb.webp` / `meta.json` structure is a contract between frontend and backend
