@@ -52,7 +52,6 @@ const defaultOptions: OptimizeOptions = {
 
 export default function OptimizePage() {
   const { toast } = useToast();
-  const { isConnected } = useConnection();
   const [importType] = useState<ImportType>("direct-upload");
   const [step, setStep] = useState(0);
   const [file, setFile] = useState<File | null>(null);
