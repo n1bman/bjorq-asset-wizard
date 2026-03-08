@@ -44,7 +44,7 @@ bjorq-asset-wizard/
 │   ├── tsconfig.json
 │   └── .env.example
 ├── .github/workflows/          # CI, Docker build, release
-├── ha-addon/                   # Home Assistant add-on packaging
+├── bjorq_asset_wizard/          # Home Assistant add-on (self-contained)
 ├── Dockerfile                  # Backend production container
 ├── docker-compose.yml          # Local dev (backend)
 ├── package.json                # Frontend dependencies
