@@ -1,18 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getCatalogIndex } from "@/services/api";
 import { AssetGrid } from "@/components/catalog/AssetGrid";
 import { CategoryFilter } from "@/components/catalog/CategoryFilter";
-import type { AssetMetadata, CatalogIndex } from "@/types/api";
+import { AssetDetailDrawer } from "@/components/catalog/AssetDetailDrawer";
+import { SyncStatusBar } from "@/components/sync/SyncStatusBar";
+import type { AssetMetadata } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useApi } from "@/hooks/use-api";
 
 export default function CatalogPage() {
-  const [catalog, setCatalog] = useState<CatalogIndex | null>(null);
+  const { data: catalog, loading } = useApi(getCatalogIndex);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getCatalogIndex().then((c) => { setCatalog(c); setLoading(false); });
-  }, []);
+  const [selectedAsset, setSelectedAsset] = useState<AssetMetadata | null>(null);
 
   const allAssets: AssetMetadata[] = catalog
     ? catalog.categories.flatMap((c) => c.subcategories.flatMap((s) => s.assets))
@@ -42,9 +41,16 @@ export default function CatalogPage() {
       ) : (
         <>
           <CategoryFilter categories={categories} active={activeCategory} onSelect={setActiveCategory} />
-          <AssetGrid assets={filtered} />
+          <AssetGrid assets={filtered} onAssetClick={setSelectedAsset} />
+          <SyncStatusBar assets={allAssets} />
         </>
       )}
+
+      <AssetDetailDrawer
+        asset={selectedAsset}
+        open={!!selectedAsset}
+        onOpenChange={(open) => { if (!open) setSelectedAsset(null); }}
+      />
     </div>
   );
 }

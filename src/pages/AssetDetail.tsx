@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCatalogIndex } from "@/services/api";
+import { getCatalogIndex, syncToBjorq } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Box, Download } from "lucide-react";
+import { ArrowLeft, Box, Download, Wand2, FolderPlus, RefreshCw } from "lucide-react";
+import { SourceBadge, SyncDot, OptimizationBadge, IngestBadge } from "@/components/catalog/AssetStatusBadge";
+import { useToast } from "@/hooks/use-toast";
+import { useConnection } from "@/contexts/ConnectionContext";
 import type { AssetMetadata } from "@/types/api";
 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isConnected } = useConnection();
   const [asset, setAsset] = useState<AssetMetadata | null>(null);
 
   useEffect(() => {
@@ -22,6 +27,20 @@ export default function AssetDetailPage() {
       }
     });
   }, [id]);
+
+  const handleSync = async () => {
+    if (!asset) return;
+    if (!isConnected) {
+      toast({ title: "Sync unavailable", description: "Backend not connected", variant: "destructive" });
+      return;
+    }
+    try {
+      await syncToBjorq([asset.id]);
+      toast({ title: "Synced to Bjorq", description: `${asset.name} synced successfully` });
+    } catch (e: any) {
+      toast({ title: "Sync failed", description: e.message, variant: "destructive" });
+    }
+  };
 
   if (!asset) {
     return <p className="text-muted-foreground">Loading…</p>;
@@ -39,10 +58,14 @@ export default function AssetDetailPage() {
 
       <div>
         <h1 className="text-2xl font-bold text-foreground">{asset.name}</h1>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
           <Badge variant="outline">{asset.category}</Badge>
           {asset.subcategory && <Badge variant="secondary">{asset.subcategory}</Badge>}
           {asset.style && <Badge variant="secondary">{asset.style}</Badge>}
+          <SourceBadge source={asset.source} />
+          <SyncDot status={asset.syncStatus} />
+          <OptimizationBadge status={asset.optimizationStatus} />
+          <IngestBadge status={asset.ingestStatus} />
         </div>
       </div>
 
@@ -119,9 +142,27 @@ export default function AssetDetailPage() {
         </Card>
       )}
 
-      <Button variant="outline" className="gap-2">
-        <Download className="h-4 w-4" /> Download Model
-      </Button>
+      {asset.lastSyncedAt && (
+        <p className="text-xs text-muted-foreground">
+          Last synced: {new Date(asset.lastSyncedAt).toLocaleString()}
+        </p>
+      )}
+
+      {/* Actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <Button variant="outline" className="gap-1.5">
+          <Wand2 className="h-4 w-4" /> Optimize
+        </Button>
+        <Button variant="outline" className="gap-1.5">
+          <FolderPlus className="h-4 w-4" /> Ingest
+        </Button>
+        <Button variant="outline" className="gap-1.5">
+          <Download className="h-4 w-4" /> Export
+        </Button>
+        <Button variant="outline" className="gap-1.5" onClick={handleSync}>
+          <RefreshCw className="h-4 w-4" /> Sync
+        </Button>
+      </div>
     </div>
   );
 }
