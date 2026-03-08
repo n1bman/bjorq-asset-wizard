@@ -19,9 +19,7 @@ const REQUIRED_DIRS = [
   join(STORAGE_PATH, "optimized"),
   join(STORAGE_PATH, "thumbs"),
   join(STORAGE_PATH, "catalog"),
-  join(CATALOG_PATH, "furniture"),
-  join(CATALOG_PATH, "devices"),
-  join(CATALOG_PATH, "decor"),
+  CATALOG_PATH,
 ];
 
 /** Create all required storage directories. Safe to call multiple times. */

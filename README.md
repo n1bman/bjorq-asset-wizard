@@ -11,11 +11,14 @@ A monorepo containing a React frontend dashboard and a Node.js backend service f
 | Component | Status | Notes |
 |-----------|--------|-------|
 | **Frontend dashboard** | ✅ Complete | All views, routing, mock fallback, API client |
-| **Backend scaffolding** | 🔧 Scaffolded | Fastify server, route stubs, storage helpers |
+| **Backend scaffolding** | 🔧 Scaffolded | Fastify server, storage helpers |
 | **CI/CD** | 🔧 Scaffolded | GitHub Actions for lint, build, test, Docker |
 | **Docker** | 🔧 Scaffolded | Dockerfile, docker-compose, .dockerignore |
 | **HA add-on** | 🔧 Scaffolded | config.yaml, run.sh, DOCS.md |
-| **Backend engine** | ⬜ Not started | Analysis, optimization, catalog logic |
+| **Backend: Analyze** | ✅ Implemented | Real GLB/glTF analysis via gltf-transform |
+| **Backend: Optimize** | ✅ Implemented | V1 conservative cleanup pipeline |
+| **Backend: Catalog** | ✅ Implemented | Browse, ingest, reindex with persistent storage |
+| **Backend: Sync** | ⬜ Not started | Dashboard sync to Bjorq/HA |
 
 ### What "Scaffolded" Means
 
@@ -130,11 +133,11 @@ docker compose up -d    # Backend on port 3500
 |--------|------|--------|
 | `GET` | `/health` | ✅ Implemented |
 | `GET` | `/version` | ✅ Implemented |
-| `POST` | `/analyze` | 🔧 Stub (501) |
-| `POST` | `/optimize` | 🔧 Stub (501) |
-| `GET` | `/catalog/index` | 🔧 Stub (501) |
-| `POST` | `/catalog/ingest` | 🔧 Stub (501) |
-| `POST` | `/catalog/reindex` | 🔧 Stub (501) |
+| `POST` | `/analyze` | ✅ Implemented |
+| `POST` | `/optimize` | ✅ Implemented |
+| `GET` | `/catalog/index` | ✅ Implemented |
+| `POST` | `/catalog/ingest` | ✅ Implemented |
+| `POST` | `/catalog/reindex` | ✅ Implemented |
 | `POST` | `/sync` | 🔧 Stub (501) |
 | `POST` | `/import/direct` | 🔧 Stub (501) |
 | `POST` | `/import/convert` | 🔧 Stub (501) |
