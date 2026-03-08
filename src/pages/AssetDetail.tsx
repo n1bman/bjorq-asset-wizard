@@ -47,6 +47,17 @@ export default function AssetDetailPage() {
     }
   };
 
+  if (!asset && notFound) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/catalog")} className="gap-1">
+          <ArrowLeft className="h-4 w-4" /> Back to Catalog
+        </Button>
+        <p className="text-muted-foreground">Asset not found. It may have been removed or the ID is invalid.</p>
+      </div>
+    );
+  }
+
   if (!asset) {
     return <p className="text-muted-foreground">Loading…</p>;
   }
