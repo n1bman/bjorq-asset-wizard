@@ -209,12 +209,19 @@ GitHub Actions workflows in `.github/workflows/`:
 
 ### Home Assistant Add-on
 
-The `ha-addon/` directory contains the packaging scaffold:
+The `bjorq_asset_wizard/` directory contains the complete add-on package:
 - `config.yaml` — Add-on manifest with options schema
+- `build.yaml` — Architecture-specific base images for HA builder
+- `Dockerfile` — Multi-stage build (compiles TypeScript, bundles frontend)
 - `run.sh` — Entry point that maps HA options to environment variables
 - `DOCS.md` — User-facing documentation
+- `prepare-addon.sh` — Stages `server/` source into the add-on directory before build
 
 The add-on uses the same Docker image with HA-specific storage paths (`/data/storage`, `/data/catalog`).
+
+#### Wizard vs Dashboard packaging
+
+The **Wizard** add-on builds locally from `Dockerfile` + `build.yaml` — HA's Supervisor compiles the image on the host. The **Dashboard** add-on uses a prebuilt `image:` field pointing to a container registry. Because Wizard is built locally, it is more sensitive to HA's repository cache: the Supervisor may keep using a stale snapshot of `config.yaml` and `Dockerfile` even after the GitHub repo is updated. See "Troubleshooting: HA Shows Wrong Version" below for the required refresh steps.
 
 ---
 

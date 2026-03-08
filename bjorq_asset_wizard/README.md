@@ -59,6 +59,10 @@ cd bjorq_asset_wizard
 docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t bjorq-wizard-test .
 ```
 
+## Wizard vs Dashboard Packaging
+
+The **Wizard** add-on builds locally from `Dockerfile` + `build.yaml` — HA compiles the image on the host machine. The **Dashboard** add-on uses a prebuilt `image:` field from a container registry. Because Wizard is built locally, it is more sensitive to HA's repository cache (see troubleshooting below).
+
 ## Troubleshooting: HA Shows Wrong Version
 
 If Home Assistant still shows an old version (e.g. 0.1.0) or reports "dockerfile is missing":
@@ -67,7 +71,7 @@ If Home Assistant still shows an old version (e.g. 0.1.0) or reports "dockerfile
 2. **Remove** the repository URL
 3. Click **Reload** (top-right ⋮ menu)
 4. **Re-add** the repository URL
-5. Verify the correct version (currently **0.1.6**) appears before clicking Install
+5. Verify the correct version (currently **0.2.0**) appears before clicking Install
 6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
 
 ## Configuration

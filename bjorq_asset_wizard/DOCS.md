@@ -48,6 +48,16 @@ The add-on exposes an HTTP API on port 3500. Key endpoints:
 - **Upload fails**: Verify file is `.glb` or `.gltf` and within size limit.
 - **Panel not showing**: Ensure ingress is enabled in add-on settings.
 
+### HA Shows Wrong Version or "Dockerfile Missing"
+
+Home Assistant's Supervisor caches repository metadata. If it shows an old version or reports a missing Dockerfile:
+
+1. **Settings → Add-ons → Add-on Store** → ⋮ → **Repositories** → remove the repo URL
+2. Click **Reload** in the Add-on Store
+3. Re-add the repository URL
+4. Verify the correct version (currently **0.2.0**) appears before installing
+5. If still stale: **Settings → System → Restart** (Supervisor or Core)
+
 ## Support
 
 For issues and feature requests, visit the [GitHub repository](https://github.com/n1bman/bjorq-asset-wizard).
