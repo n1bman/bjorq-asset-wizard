@@ -8,6 +8,16 @@
  * - Thumbnail generation via sharp
  *
  * See docs/bjorq-asset-optimizer/API_SPEC.md for full request/response schema.
+ *
+ * Job logging example:
+ * ```ts
+ * import { createJobLogger, generateJobId } from "../lib/logger.js";
+ *
+ * const jobId = generateJobId();
+ * const log = createJobLogger(request.log, jobId, "optimize");
+ * log.info({ options }, "Starting optimization");
+ * log.info({ before: 5_200_000, after: 1_100_000 }, "Optimization complete");
+ * ```
  */
 
 import type { FastifyInstance } from "fastify";

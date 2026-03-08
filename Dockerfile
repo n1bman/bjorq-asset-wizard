@@ -53,6 +53,7 @@ RUN mkdir -p \
     storage/originals \
     storage/optimized \
     storage/thumbs \
+    storage/logs \
     storage/catalog \
     public/catalog/furniture \
     public/catalog/devices \

@@ -8,6 +8,16 @@
  *
  * See docs/bjorq-asset-optimizer/API_SPEC.md for full schemas.
  * See docs/bjorq-asset-optimizer/STRUCTURE.md for catalog format.
+ *
+ * Job logging example (for ingest):
+ * ```ts
+ * import { createJobLogger, generateJobId } from "../lib/logger.js";
+ *
+ * const jobId = generateJobId();
+ * const log = createJobLogger(request.log, jobId, "ingest");
+ * log.info({ category, assetName }, "Starting catalog ingest");
+ * log.info("Asset ingested successfully");
+ * ```
  */
 
 import type { FastifyInstance } from "fastify";
