@@ -1,6 +1,6 @@
 # Bjorq Asset Wizard — Developer Handbook
 
-Practical reference for developing and extending the Bjorq Asset Wizard frontend.
+Practical reference for developing and extending the Bjorq Asset Wizard.
 
 ---
 
