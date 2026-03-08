@@ -1,5 +1,19 @@
 // Bjorq Asset Optimizer — API Types
 
+// --- Connection & System ---
+
+export type ConnectionStatus = "connected" | "disconnected" | "checking";
+
+export type AssetSource = "uploaded" | "optimized" | "catalog" | "synced";
+
+export type SyncStatus = "not_synced" | "syncing" | "synced" | "error";
+
+export type IngestStatus = "not_ingested" | "ingesting" | "ingested" | "error";
+
+export type OptimizationStatus = "not_optimized" | "optimizing" | "optimized" | "error";
+
+// --- Textures ---
+
 export interface TextureDetail {
   name: string;
   width: number;
@@ -8,6 +22,8 @@ export interface TextureDetail {
   sizeBytes: number;
   type: string;
 }
+
+// --- Analysis ---
 
 export interface AnalysisResponse {
   success: boolean;
@@ -75,6 +91,8 @@ export interface Recommendation {
   target: string | null;
 }
 
+// --- Optimize ---
+
 export interface OptimizeOptions {
   removeEmptyNodes?: boolean;
   removeUnusedNodes?: boolean;
@@ -135,6 +153,8 @@ export interface StatsSnapshot {
   maxTextureRes: number;
 }
 
+// --- Asset / Catalog ---
+
 export interface AssetMetadata {
   id: string;
   name: string;
@@ -159,6 +179,13 @@ export interface AssetMetadata {
     materials: number;
     fileSizeKB: number;
   };
+  // Phase 2 fields
+  source?: AssetSource;
+  syncStatus?: SyncStatus;
+  ingestStatus?: IngestStatus;
+  optimizationStatus?: OptimizationStatus;
+  lastSyncedAt?: string | null;
+  optimizedAt?: string | null;
 }
 
 export interface CatalogIndex {
@@ -175,6 +202,8 @@ export interface CatalogCategory {
     assets: AssetMetadata[];
   }[];
 }
+
+// --- Ingest ---
 
 export interface IngestMeta {
   id: string;
@@ -209,6 +238,8 @@ export interface IngestResponse {
   catalogReindexed: boolean;
 }
 
+// --- System ---
+
 export interface HealthResponse {
   status: string;
   uptime: number;
@@ -225,4 +256,13 @@ export interface VersionResponse {
   node: string;
   typescript: string;
   environment: string;
+}
+
+// --- Sync ---
+
+export interface SyncResponse {
+  success: boolean;
+  synced: number;
+  failed: number;
+  timestamp: string;
 }
