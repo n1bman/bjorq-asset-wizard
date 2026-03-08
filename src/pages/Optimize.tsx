@@ -360,12 +360,23 @@ function ReviewSection({
       </Card>
 
       <div className="flex gap-3">
-        <Button className="flex-1 gap-1.5" variant="outline" onClick={onSave}>
-          <FolderPlus className="h-4 w-4" /> Save to Catalog
+        <Button className="flex-1 gap-1.5" onClick={onSave} disabled={saving}>
+          <FolderPlus className="h-4 w-4" /> {saving ? "Saving…" : "Save to Catalog"}
         </Button>
-        <Button className="flex-1 gap-1.5" onClick={onSync}>
-          <RefreshCw className="h-4 w-4" /> Sync to Bjorq
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex-1">
+                <Button className="w-full gap-1.5" variant="outline" disabled>
+                  <RefreshCw className="h-4 w-4" /> Sync to Bjorq
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">Dashboard sync not yet available</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
