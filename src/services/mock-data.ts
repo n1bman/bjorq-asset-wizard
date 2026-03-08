@@ -80,6 +80,10 @@ export const mockOptimize: OptimizeResponse = {
     placement: "floor",
     ha: { mappable: false, defaultDomain: null, defaultKind: null },
     performance: { triangles: 148230, materials: 5, fileSizeKB: 1180 },
+    source: "optimized",
+    syncStatus: "not_synced",
+    ingestStatus: "not_ingested",
+    optimizationStatus: "optimized",
   },
 };
 
@@ -94,14 +98,14 @@ export const mockCatalog: CatalogIndex = {
         {
           name: "sofas",
           assets: [
-            { id: "nordic-sofa-01", name: "Nordic Sofa", category: "furniture", subcategory: "sofas", style: "modern", model: "furniture/sofas/nordic-sofa-01/model.glb", thumbnail: "furniture/sofas/nordic-sofa-01/thumb.webp", dimensions: { width: 1.8, depth: 0.85, height: 0.75 }, placement: "floor", performance: { triangles: 48210, materials: 3, fileSizeKB: 820 } },
-            { id: "minimalist-couch", name: "Minimalist Couch", category: "furniture", subcategory: "sofas", style: "minimal", model: "furniture/sofas/minimalist-couch/model.glb", thumbnail: "furniture/sofas/minimalist-couch/thumb.webp", dimensions: { width: 2.1, depth: 0.9, height: 0.7 }, placement: "floor", performance: { triangles: 32100, materials: 2, fileSizeKB: 640 } },
+            { id: "nordic-sofa-01", name: "Nordic Sofa", category: "furniture", subcategory: "sofas", style: "modern", model: "furniture/sofas/nordic-sofa-01/model.glb", thumbnail: "furniture/sofas/nordic-sofa-01/thumb.webp", dimensions: { width: 1.8, depth: 0.85, height: 0.75 }, placement: "floor", performance: { triangles: 48210, materials: 3, fileSizeKB: 820 }, source: "catalog", syncStatus: "synced", ingestStatus: "ingested", optimizationStatus: "optimized", lastSyncedAt: "2026-03-07T10:00:00Z" },
+            { id: "minimalist-couch", name: "Minimalist Couch", category: "furniture", subcategory: "sofas", style: "minimal", model: "furniture/sofas/minimalist-couch/model.glb", thumbnail: "furniture/sofas/minimalist-couch/thumb.webp", dimensions: { width: 2.1, depth: 0.9, height: 0.7 }, placement: "floor", performance: { triangles: 32100, materials: 2, fileSizeKB: 640 }, source: "optimized", syncStatus: "not_synced", ingestStatus: "ingested", optimizationStatus: "optimized" },
           ],
         },
         {
           name: "tables",
           assets: [
-            { id: "oak-dining-table", name: "Oak Dining Table", category: "furniture", subcategory: "tables", style: "scandinavian", model: "furniture/tables/oak-dining-table/model.glb", thumbnail: "furniture/tables/oak-dining-table/thumb.webp", dimensions: { width: 1.6, depth: 0.9, height: 0.76 }, placement: "floor", performance: { triangles: 18400, materials: 2, fileSizeKB: 420 } },
+            { id: "oak-dining-table", name: "Oak Dining Table", category: "furniture", subcategory: "tables", style: "scandinavian", model: "furniture/tables/oak-dining-table/model.glb", thumbnail: "furniture/tables/oak-dining-table/thumb.webp", dimensions: { width: 1.6, depth: 0.9, height: 0.76 }, placement: "floor", performance: { triangles: 18400, materials: 2, fileSizeKB: 420 }, source: "catalog", syncStatus: "synced", ingestStatus: "ingested", optimizationStatus: "optimized", lastSyncedAt: "2026-03-06T08:15:00Z" },
           ],
         },
       ],
@@ -112,7 +116,7 @@ export const mockCatalog: CatalogIndex = {
         {
           name: "speakers",
           assets: [
-            { id: "google-home-mini", name: "Google Home Mini", category: "devices", subcategory: "speakers", style: "modern", model: "devices/speakers/google-home-mini/model.glb", thumbnail: "devices/speakers/google-home-mini/thumb.webp", dimensions: { width: 0.1, depth: 0.1, height: 0.04 }, placement: "table", ha: { mappable: true, defaultDomain: "media_player", defaultKind: "speaker" }, performance: { triangles: 12400, materials: 2, fileSizeKB: 340 } },
+            { id: "google-home-mini", name: "Google Home Mini", category: "devices", subcategory: "speakers", style: "modern", model: "devices/speakers/google-home-mini/model.glb", thumbnail: "devices/speakers/google-home-mini/thumb.webp", dimensions: { width: 0.1, depth: 0.1, height: 0.04 }, placement: "table", ha: { mappable: true, defaultDomain: "media_player", defaultKind: "speaker" }, performance: { triangles: 12400, materials: 2, fileSizeKB: 340 }, source: "uploaded", syncStatus: "not_synced", ingestStatus: "not_ingested", optimizationStatus: "not_optimized" },
           ],
         },
       ],
@@ -123,8 +127,8 @@ export const mockCatalog: CatalogIndex = {
         {
           name: "plants",
           assets: [
-            { id: "potted-monstera", name: "Potted Monstera", category: "decor", subcategory: "plants", style: "organic", model: "decor/plants/potted-monstera/model.glb", thumbnail: "decor/plants/potted-monstera/thumb.webp", dimensions: { width: 0.4, depth: 0.4, height: 0.8 }, placement: "floor", performance: { triangles: 24500, materials: 4, fileSizeKB: 560 } },
-            { id: "succulent-trio", name: "Succulent Trio", category: "decor", subcategory: "plants", style: "modern", model: "decor/plants/succulent-trio/model.glb", thumbnail: "decor/plants/succulent-trio/thumb.webp", dimensions: { width: 0.25, depth: 0.12, height: 0.15 }, placement: "table", performance: { triangles: 8200, materials: 3, fileSizeKB: 210 } },
+            { id: "potted-monstera", name: "Potted Monstera", category: "decor", subcategory: "plants", style: "organic", model: "decor/plants/potted-monstera/model.glb", thumbnail: "decor/plants/potted-monstera/thumb.webp", dimensions: { width: 0.4, depth: 0.4, height: 0.8 }, placement: "floor", performance: { triangles: 24500, materials: 4, fileSizeKB: 560 }, source: "catalog", syncStatus: "synced", ingestStatus: "ingested", optimizationStatus: "optimized", lastSyncedAt: "2026-03-05T12:00:00Z" },
+            { id: "succulent-trio", name: "Succulent Trio", category: "decor", subcategory: "plants", style: "modern", model: "decor/plants/succulent-trio/model.glb", thumbnail: "decor/plants/succulent-trio/thumb.webp", dimensions: { width: 0.25, depth: 0.12, height: 0.15 }, placement: "table", performance: { triangles: 8200, materials: 3, fileSizeKB: 210 }, source: "optimized", syncStatus: "syncing", ingestStatus: "ingested", optimizationStatus: "optimized" },
           ],
         },
       ],

@@ -7,6 +7,7 @@ import type {
   IngestResponse,
   HealthResponse,
   VersionResponse,
+  SyncResponse,
 } from "@/types/api";
 import {
   mockAnalysis,
@@ -16,94 +17,129 @@ import {
   mockHealth,
   mockVersion,
 } from "./mock-data";
+import { apiClient, ApiError } from "./api-client";
 
-// Toggle this to false when connecting to the real backend
-const USE_MOCK = true;
+// When true, always use mock data. When false, try real API first, fall back to mock on network error.
+const FORCE_MOCK = false;
 
-// Configure this to point to the real backend
-const BASE_URL = "http://localhost:3500";
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, init);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: { message: res.statusText } }));
-    throw new Error(err.error?.message ?? "Request failed");
+/** Try real API, fall back to mock on connection error */
+async function withFallback<T>(apiFn: () => Promise<T>, mockFn: () => T | Promise<T>): Promise<{ data: T; isMock: boolean }> {
+  if (FORCE_MOCK) {
+    await fakeDel();
+    return { data: await mockFn(), isMock: true };
   }
-  return res.json();
+  try {
+    const data = await apiFn();
+    return { data, isMock: false };
+  } catch (err) {
+    if (err instanceof ApiError && err.status > 0) throw err; // real API error — don't mask
+    console.warn("[api] Backend unreachable, using mock data");
+    await fakeDel(300);
+    return { data: await mockFn(), isMock: true };
+  }
 }
 
 // --- Analyze ---
 
 export async function analyzeModel(file: File): Promise<AnalysisResponse> {
-  if (USE_MOCK) {
-    await fakeDel();
-    return { ...mockAnalysis, analysis: { ...mockAnalysis.analysis, fileName: file.name, fileSizeBytes: file.size, fileSizeKB: Math.round(file.size / 1024), fileSizeMB: +(file.size / 1048576).toFixed(2) } };
-  }
-  const fd = new FormData();
-  fd.append("file", file);
-  return request("/analyze", { method: "POST", body: fd });
+  const { data } = await withFallback(
+    () => {
+      const fd = new FormData();
+      fd.append("file", file);
+      return apiClient.request<AnalysisResponse>("/analyze", { method: "POST", body: fd });
+    },
+    () => ({
+      ...mockAnalysis,
+      analysis: {
+        ...mockAnalysis.analysis,
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        fileSizeKB: Math.round(file.size / 1024),
+        fileSizeMB: +(file.size / 1048576).toFixed(2),
+      },
+    }),
+  );
+  return data;
 }
 
 // --- Optimize ---
 
 export async function optimizeModel(file: File, options?: OptimizeOptions): Promise<OptimizeResponse> {
-  if (USE_MOCK) {
-    await fakeDel();
-    return mockOptimize;
-  }
-  const fd = new FormData();
-  fd.append("file", file);
-  if (options) fd.append("options", JSON.stringify(options));
-  return request("/optimize", { method: "POST", body: fd });
+  const { data } = await withFallback(
+    () => {
+      const fd = new FormData();
+      fd.append("file", file);
+      if (options) fd.append("options", JSON.stringify(options));
+      return apiClient.request<OptimizeResponse>("/optimize", { method: "POST", body: fd });
+    },
+    () => mockOptimize,
+  );
+  return data;
 }
 
 // --- Catalog ---
 
 export async function getCatalogIndex(): Promise<CatalogIndex> {
-  if (USE_MOCK) {
-    await fakeDel();
-    return mockCatalog;
-  }
-  return request("/catalog/index");
+  const { data } = await withFallback(
+    () => apiClient.request<CatalogIndex>("/catalog/index"),
+    () => mockCatalog,
+  );
+  return data;
 }
 
 export async function ingestAsset(meta: IngestMeta, file?: File, thumbnail?: File, jobId?: string): Promise<IngestResponse> {
-  if (USE_MOCK) {
-    await fakeDel();
-    return mockIngest;
-  }
-  const fd = new FormData();
-  fd.append("meta", JSON.stringify(meta));
-  if (file) fd.append("file", file);
-  if (thumbnail) fd.append("thumbnail", thumbnail);
-  if (jobId) fd.append("jobId", jobId);
-  return request("/catalog/ingest", { method: "POST", body: fd });
+  const { data } = await withFallback(
+    () => {
+      const fd = new FormData();
+      fd.append("meta", JSON.stringify(meta));
+      if (file) fd.append("file", file);
+      if (thumbnail) fd.append("thumbnail", thumbnail);
+      if (jobId) fd.append("jobId", jobId);
+      return apiClient.request<IngestResponse>("/catalog/ingest", { method: "POST", body: fd });
+    },
+    () => mockIngest,
+  );
+  return data;
 }
 
 export async function reindexCatalog(): Promise<{ success: boolean }> {
-  if (USE_MOCK) {
-    await fakeDel();
-    return { success: true };
-  }
-  return request("/catalog/reindex", { method: "POST" });
+  const { data } = await withFallback(
+    () => apiClient.request<{ success: boolean }>("/catalog/reindex", { method: "POST" }),
+    () => ({ success: true }),
+  );
+  return data;
+}
+
+// --- Sync ---
+
+export async function syncToBjorq(assetIds?: string[]): Promise<SyncResponse> {
+  const { data } = await withFallback(
+    () => apiClient.request<SyncResponse>("/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assetIds }),
+    }),
+    () => ({ success: true, synced: assetIds?.length ?? 0, failed: 0, timestamp: new Date().toISOString() }),
+  );
+  return data;
 }
 
 // --- System ---
 
 export async function getHealth(): Promise<HealthResponse> {
-  if (USE_MOCK) {
-    await fakeDel();
-    return { ...mockHealth, timestamp: new Date().toISOString() };
-  }
-  return request("/health");
+  const { data } = await withFallback(
+    () => apiClient.request<HealthResponse>("/health"),
+    () => ({ ...mockHealth, timestamp: new Date().toISOString() }),
+  );
+  return data;
 }
 
 export async function getVersion(): Promise<VersionResponse> {
-  if (USE_MOCK) {
-    await fakeDel();
-    return mockVersion;
-  }
-  return request("/version");
+  const { data } = await withFallback(
+    () => apiClient.request<VersionResponse>("/version"),
+    () => mockVersion,
+  );
+  return data;
 }
 
 // Simulate network delay

@@ -15,12 +15,18 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const navItems = [
+const pipelineItems = [
   { title: "Upload & Analyze", url: "/", icon: Upload },
   { title: "Optimize", url: "/optimize", icon: Wand2 },
-  { title: "Catalog", url: "/catalog", icon: LayoutGrid },
+];
+
+const catalogItems = [
+  { title: "Browse", url: "/catalog", icon: LayoutGrid },
   { title: "Ingest", url: "/ingest", icon: FolderPlus },
-  { title: "System", url: "/system", icon: Activity },
+];
+
+const systemItems = [
+  { title: "Status", url: "/system", icon: Activity },
 ];
 
 export function AppSidebar() {
@@ -29,6 +35,31 @@ export function AppSidebar() {
   const location = useLocation();
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+
+  const renderGroup = (label: string, items: typeof pipelineItems) => (
+    <SidebarGroup key={label}>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                <NavLink
+                  to={item.url}
+                  end={item.url === "/"}
+                  className="hover:bg-accent/50"
+                  activeClassName="bg-accent text-accent-foreground font-medium"
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {!collapsed && <span>{item.title}</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -43,31 +74,9 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Pipeline</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                  >
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className="hover:bg-accent/50"
-                      activeClassName="bg-accent text-accent-foreground font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {renderGroup("Pipeline", pipelineItems)}
+        {renderGroup("Catalog", catalogItems)}
+        {renderGroup("System", systemItems)}
       </SidebarContent>
     </Sidebar>
   );
