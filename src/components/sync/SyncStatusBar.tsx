@@ -29,8 +29,8 @@ export function SyncStatusBar({ assets }: Props) {
       const ids = assets.filter((a) => a.syncStatus !== "synced").map((a) => a.id);
       await syncToBjorq(ids);
       toast({ title: "Sync started", description: `Syncing ${ids.length} assets to Bjorq` });
-    } catch (e: any) {
-      toast({ title: "Sync failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Sync failed", description: e instanceof Error ? e.message : "Unknown error", variant: "destructive" });
     }
   };
 

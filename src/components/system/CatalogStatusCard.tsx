@@ -14,8 +14,8 @@ export function CatalogStatusCard() {
       await reindexCatalog();
       toast({ title: "Catalog reindexed" });
       refetch();
-    } catch (e: any) {
-      toast({ title: "Reindex failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Reindex failed", description: e instanceof Error ? e.message : "Unknown error", variant: "destructive" });
     }
   };
 
