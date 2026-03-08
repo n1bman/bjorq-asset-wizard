@@ -4,7 +4,7 @@ import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { OptimizeOptionsPanel } from "@/components/optimize/OptimizeOptions";
 import { StatsComparison } from "@/components/optimize/StatsComparison";
 import { PipelineStepper } from "@/components/optimize/PipelineStepper";
-import { analyzeModel, optimizeModel, syncToBjorq } from "@/services/api";
+import { analyzeModel, optimizeModel, ingestAsset } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
