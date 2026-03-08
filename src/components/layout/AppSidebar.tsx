@@ -1,6 +1,7 @@
-import { Upload, Wand2, LayoutGrid, FolderPlus, Activity, Box } from "lucide-react";
+import { Upload, Wand2, LayoutGrid, FolderPlus, Activity } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import bjorqLogo from "@/assets/bjorq-wizard-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -33,10 +34,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <Box className="h-6 w-6 text-primary" />
+          <img src={bjorqLogo} alt="Bjorq Wizard" className="h-8 w-8 rounded object-cover" />
           {!collapsed && (
-            <span className="font-bold text-lg tracking-tight text-foreground">
-              Bjorq
+            <span className="font-bold text-base tracking-tight text-foreground">
+              Bjorq Wizard
             </span>
           )}
         </div>
