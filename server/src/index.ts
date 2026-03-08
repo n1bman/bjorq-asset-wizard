@@ -8,7 +8,8 @@
  * Only /health and /version are fully functional.
  */
 
-import Fastify, { FastifyError }mport cors from "@fastify/cors";
+import Fastify, { FastifyError } from "fastify";
+import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { createLoggerConfig } from "./lib/logger.js";
 import { initStorage } from "./lib/storage.js";
