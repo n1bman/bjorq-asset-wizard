@@ -17,7 +17,11 @@ export default function AssetDetailPage() {
   const { isConnected } = useConnection();
   const [asset, setAsset] = useState<AssetMetadata | null>(null);
 
+  const [notFound, setNotFound] = useState(false);
+
   useEffect(() => {
+    setNotFound(false);
+    setAsset(null);
     getCatalogIndex().then((catalog) => {
       for (const cat of catalog.categories) {
         for (const sub of cat.subcategories) {
@@ -25,6 +29,7 @@ export default function AssetDetailPage() {
           if (found) { setAsset(found); return; }
         }
       }
+      setNotFound(true);
     });
   }, [id]);
 
