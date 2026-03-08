@@ -95,3 +95,58 @@ The UI provides:
 | `/catalog/:id` | Full asset detail page with actions |
 | `/ingest` | Submit an asset to the catalog |
 | `/system` | Connection status, storage, catalog stats, health, version |
+| `/wizard` | Wizard integration: settings, status, catalog browser, import flow |
+
+## Wizard Integration Architecture
+
+The Bjorq Dashboard can connect to a separate **Bjorq Asset Wizard** service (local HA add-on or standalone) for browsing and importing optimized 3D assets.
+
+### How It Works
+
+```text
+Bjorq Dashboard  ──►  WizardClient (src/services/wizard-client.ts)
+                         │
+                         ├─ GET /health      → connection check (polled every 30s)
+                         ├─ GET /version      → version info
+                         ├─ GET /catalog/index → browse assets
+                         └─ GET /catalog/asset/:id → asset detail
+                         │
+                      Falls back to mock data when unreachable
+```
+
+### Configuration
+
+- **Base URL**: Stored in `localStorage` under `bjorq_wizard_url`, default `http://localhost:3500`
+- **Enable/Disable**: Toggle via the Wizard Integration page, persisted to `bjorq_wizard_enabled`
+- **Connection polling**: Every 30s when enabled, via `WizardContext`
+
+### Asset Sources
+
+Assets in the catalog can have these sources:
+- `uploaded` (blue) — manually uploaded
+- `optimized` (orange/primary) — processed by optimizer
+- `catalog` (green) — from curated catalog
+- `synced` (purple) — synced to Bjorq dashboard
+- `wizard` (cyan) — imported from Wizard service
+
+### Import Flow
+
+1. Navigate to `/wizard`
+2. Enable integration and configure Wizard URL
+3. Browse the Wizard catalog with category filtering
+4. Click an asset to inspect full metadata in a detail sheet
+5. Click "Import to Bjorq" to add the asset to the local catalog with `source: "wizard"`
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `src/services/wizard-client.ts` | HTTP client for Wizard API with fallback |
+| `src/services/wizard-mock-data.ts` | Mock Wizard catalog/health/version |
+| `src/contexts/WizardContext.tsx` | Global Wizard connection state |
+| `src/components/wizard/WizardSettingsCard.tsx` | URL config, enable toggle, status |
+| `src/components/wizard/WizardStatusWidget.tsx` | Health/version/availability |
+| `src/components/wizard/WizardCatalogBrowser.tsx` | Asset grid with category filter |
+| `src/components/wizard/WizardAssetCard.tsx` | Asset card for Wizard assets |
+| `src/components/wizard/WizardAssetDetail.tsx` | Detail sheet with import action |
+| `src/pages/WizardIntegration.tsx` | Integration page |
