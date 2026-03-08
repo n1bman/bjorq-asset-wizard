@@ -1,42 +1,43 @@
 # ============================================
 # Bjorq Asset Wizard — Home Assistant Add-on
 # ============================================
-# Build context: bjorq_asset_wizard/ (after prepare-addon.sh)
-#
-# The prepare-addon.sh script copies server/ into this directory
-# so the HA add-on builder can access it.
-#
-# For local testing from repo root:
-#   ./bjorq_asset_wizard/prepare-addon.sh
-#   docker build -t bjorq-addon bjorq_asset_wizard/
+# Self-contained build: clones repo to access server/ source.
+# HA add-on builder uses this directory as Docker context.
 
 ARG BUILD_FROM=node:20-alpine
-FROM ${BUILD_FROM} AS builder
+FROM node:20-alpine AS builder
 
-# Install Node.js + build dependencies for sharp
-RUN apk add --no-cache nodejs npm python3 make g++ vips-dev
+# Install build dependencies
+RUN apk add --no-cache git python3 make g++ vips-dev
 
-WORKDIR /app
+WORKDIR /src
 
-# Copy server package files
-COPY server/package.json server/package-lock.json* ./
+# Clone the repo to get server source
+RUN git clone --depth 1 https://github.com/n1bman/bjorq-asset-wizard.git .
+
+# Build server
+WORKDIR /src/server
 RUN npm ci --ignore-scripts && npm rebuild sharp
-
-COPY server/tsconfig.json ./
-COPY server/src/ ./src/
-
 RUN npm run build
 
 # --- Production stage ---
 FROM ${BUILD_FROM}
 
-RUN apk add --no-cache nodejs npm vips bash
+# Install Node.js, runtime deps, and bashio
+RUN apk add --no-cache nodejs npm vips bash curl jq
+
+# Install bashio
+RUN curl -sL https://github.com/hassio-addons/bashio/archive/refs/tags/v0.16.2.tar.gz | tar xz \
+    && mv bashio-0.16.2/lib /usr/lib/bashio \
+    && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
+    && rm -rf bashio-0.16.2
 
 WORKDIR /app
 
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+# Copy built artifacts from builder
+COPY --from=builder /src/server/package.json ./
+COPY --from=builder /src/server/node_modules ./node_modules
+COPY --from=builder /src/server/dist ./dist
 
 # Create storage directories
 RUN mkdir -p \
@@ -50,7 +51,7 @@ RUN mkdir -p \
     /data/catalog/devices \
     /data/catalog/decor
 
-# Copy run script
+# Copy run script from build context
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
