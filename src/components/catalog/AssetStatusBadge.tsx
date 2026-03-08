@@ -61,3 +61,29 @@ export function IngestBadge({ status }: { status?: IngestStatus }) {
   };
   return <Badge variant="secondary" className="text-xs">{labels[status]}</Badge>;
 }
+
+const importTypeConfig: Record<ImportType, { label: string; className: string }> = {
+  "direct-upload":     { label: "Direct Upload",     className: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  "converted-project": { label: "Converted Project", className: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
+  catalog:             { label: "Catalog",            className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  synced:              { label: "Synced",             className: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
+};
+
+export function ImportTypeBadge({ importType }: { importType?: ImportType }) {
+  if (!importType) return null;
+  const cfg = importTypeConfig[importType];
+  return <Badge variant="outline" className={cn("text-xs", cfg.className)}>{cfg.label}</Badge>;
+}
+
+const conversionConfig: Record<ConversionStatus, { label: string; className: string }> = {
+  not_converted: { label: "Not converted", className: "text-muted-foreground" },
+  converting:    { label: "Converting…",   className: "text-amber-400" },
+  converted:     { label: "Converted",     className: "text-primary" },
+  error:         { label: "Conversion error", className: "text-destructive" },
+};
+
+export function ConversionBadge({ status }: { status?: ConversionStatus }) {
+  if (!status || status === "not_converted") return null;
+  const cfg = conversionConfig[status];
+  return <span className={cn("text-xs", cfg.className)}>{cfg.label}</span>;
+}

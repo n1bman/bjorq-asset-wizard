@@ -190,6 +190,8 @@ export interface AssetMetadata {
   optimizationStatus?: OptimizationStatus;
   lastSyncedAt?: string | null;
   optimizedAt?: string | null;
+  importType?: ImportType;
+  conversionStatus?: ConversionStatus;
 }
 
 export interface CatalogIndex {
