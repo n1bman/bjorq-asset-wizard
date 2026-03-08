@@ -1,0 +1,39 @@
+{
+  "name": "bjorq-asset-wizard-server",
+  "version": "0.1.0",
+  "description": "Bjorq Asset Wizard — Backend service for 3D asset analysis, optimization, and catalog management",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "init-storage": "node -e \"const fs=require('fs');['storage/uploads','storage/jobs','storage/originals','storage/optimized','storage/thumbs','storage/catalog','public/catalog/furniture','public/catalog/devices','public/catalog/decor'].forEach(d=>fs.mkdirSync(d,{recursive:true}));console.log('Storage initialized')\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "fastify": "^5.1.0",
+    "@fastify/cors": "^10.0.1",
+    "@fastify/multipart": "^9.0.1",
+    "@fastify/static": "^8.0.3",
+    "@gltf-transform/core": "^4.1.0",
+    "@gltf-transform/extensions": "^4.1.0",
+    "@gltf-transform/functions": "^4.1.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^22.10.0",
+    "vitest": "^2.1.0",
+    "eslint": "^9.0.0",
+    "@eslint/js": "^9.32.0",
+    "typescript-eslint": "^8.38.0",
+    "globals": "^15.15.0"
+  }
+}
