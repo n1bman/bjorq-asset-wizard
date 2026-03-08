@@ -133,11 +133,11 @@ docker compose up -d    # Backend on port 3500
 |--------|------|--------|
 | `GET` | `/health` | ✅ Implemented |
 | `GET` | `/version` | ✅ Implemented |
-| `POST` | `/analyze` | 🔧 Stub (501) |
-| `POST` | `/optimize` | 🔧 Stub (501) |
-| `GET` | `/catalog/index` | 🔧 Stub (501) |
-| `POST` | `/catalog/ingest` | 🔧 Stub (501) |
-| `POST` | `/catalog/reindex` | 🔧 Stub (501) |
+| `POST` | `/analyze` | ✅ Implemented |
+| `POST` | `/optimize` | ✅ Implemented |
+| `GET` | `/catalog/index` | ✅ Implemented |
+| `POST` | `/catalog/ingest` | ✅ Implemented |
+| `POST` | `/catalog/reindex` | ✅ Implemented |
 | `POST` | `/sync` | 🔧 Stub (501) |
 | `POST` | `/import/direct` | 🔧 Stub (501) |
 | `POST` | `/import/convert` | 🔧 Stub (501) |

@@ -4,13 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ingestAsset } from "@/services/api";
-import type { IngestMeta } from "@/types/api";
+import type { IngestMeta, IngestResponse } from "@/types/api";
 import { useToast } from "@/hooks/use-toast";
+import { CheckCircle, FolderOpen, FileText } from "lucide-react";
 
 export function IngestForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<IngestResponse | null>(null);
   const [meta, setMeta] = useState<IngestMeta>({
     id: "",
     name: "",
@@ -33,12 +36,14 @@ export function IngestForm() {
       return;
     }
     setLoading(true);
+    setResult(null);
     try {
       const payload: IngestMeta = { ...meta };
       if (hasMappable) {
         payload.ha = { mappable: true, defaultDomain: haDomain, defaultKind: haKind };
       }
       const res = await ingestAsset(payload, undefined, undefined, jobId || undefined);
+      setResult(res);
       toast({ title: "Asset ingested", description: `Path: ${res.catalogEntry.path}` });
     } catch (e: unknown) {
       toast({ title: "Ingest failed", description: e instanceof Error ? e.message : "Unknown error", variant: "destructive" });
@@ -48,66 +53,106 @@ export function IngestForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Ingest to Catalog</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Asset ID *</Label>
-            <Input value={meta.id} onChange={(e) => update("id", e.target.value)} placeholder="google-home-mini" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Name *</Label>
-            <Input value={meta.name} onChange={(e) => update("name", e.target.value)} placeholder="Google Home Mini" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Category *</Label>
-            <Input value={meta.category} onChange={(e) => update("category", e.target.value)} placeholder="devices" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Subcategory</Label>
-            <Input value={meta.subcategory ?? ""} onChange={(e) => update("subcategory", e.target.value)} placeholder="speakers" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Style</Label>
-            <Input value={meta.style ?? ""} onChange={(e) => update("style", e.target.value)} placeholder="modern" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Placement</Label>
-            <Input value={meta.placement ?? ""} onChange={(e) => update("placement", e.target.value)} placeholder="table" />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Job ID (optional, references previous optimize job)</Label>
-          <Input value={jobId} onChange={(e) => setJobId(e.target.value)} placeholder="opt_a1b2c3d4" />
-        </div>
-
-        <div className="space-y-3 border-t border-border pt-3">
-          <div className="flex items-center gap-2">
-            <Switch checked={hasMappable} onCheckedChange={setHaMappable} />
-            <Label className="text-sm">HA Mappable</Label>
-          </div>
-          {hasMappable && (
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Default Domain</Label>
-                <Input value={haDomain} onChange={(e) => setHaDomain(e.target.value)} placeholder="media_player" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Default Kind</Label>
-                <Input value={haKind} onChange={(e) => setHaKind(e.target.value)} placeholder="speaker" />
-              </div>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Ingest to Catalog</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Asset ID *</Label>
+              <Input value={meta.id} onChange={(e) => update("id", e.target.value)} placeholder="google-home-mini" />
             </div>
-          )}
-        </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Name *</Label>
+              <Input value={meta.name} onChange={(e) => update("name", e.target.value)} placeholder="Google Home Mini" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Category *</Label>
+              <Input value={meta.category} onChange={(e) => update("category", e.target.value)} placeholder="devices" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Subcategory</Label>
+              <Input value={meta.subcategory ?? ""} onChange={(e) => update("subcategory", e.target.value)} placeholder="speakers" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Style</Label>
+              <Input value={meta.style ?? ""} onChange={(e) => update("style", e.target.value)} placeholder="modern" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Placement</Label>
+              <Input value={meta.placement ?? ""} onChange={(e) => update("placement", e.target.value)} placeholder="table" />
+            </div>
+          </div>
 
-        <Button onClick={handleSubmit} disabled={loading} className="w-full">
-          {loading ? "Ingesting…" : "Ingest Asset"}
-        </Button>
-      </CardContent>
-    </Card>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Job ID (optional, references previous optimize job)</Label>
+            <Input value={jobId} onChange={(e) => setJobId(e.target.value)} placeholder="opt_a1b2c3d4" />
+          </div>
+
+          <div className="space-y-3 border-t border-border pt-3">
+            <div className="flex items-center gap-2">
+              <Switch checked={hasMappable} onCheckedChange={setHaMappable} />
+              <Label className="text-sm">HA Mappable</Label>
+            </div>
+            {hasMappable && (
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Default Domain</Label>
+                  <Input value={haDomain} onChange={(e) => setHaDomain(e.target.value)} placeholder="media_player" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Default Kind</Label>
+                  <Input value={haKind} onChange={(e) => setHaKind(e.target.value)} placeholder="speaker" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Button onClick={handleSubmit} disabled={loading} className="w-full">
+            {loading ? "Ingesting…" : "Ingest Asset"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Ingest result details */}
+      {result && (
+        <Card className="border-primary/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-primary">
+              <CheckCircle className="h-4 w-4" /> Ingest Successful
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="font-mono text-xs">{result.catalogEntry.id}</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground">Path:</span>
+              <code className="text-xs font-mono text-foreground">{result.catalogEntry.path}</code>
+            </div>
+            {result.catalogEntry.files.model && (
+              <div className="flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground">Model:</span>
+                <code className="text-xs font-mono text-foreground">{result.catalogEntry.files.model}</code>
+              </div>
+            )}
+            {result.catalogEntry.files.metadata && (
+              <div className="flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground">Metadata:</span>
+                <code className="text-xs font-mono text-foreground">{result.catalogEntry.files.metadata}</code>
+              </div>
+            )}
+            {result.catalogReindexed && (
+              <p className="text-xs text-muted-foreground">Catalog index regenerated ✓</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
