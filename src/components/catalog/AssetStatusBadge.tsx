@@ -1,4 +1,4 @@
-import type { AssetSource, SyncStatus, OptimizationStatus, IngestStatus } from "@/types/api";
+import type { AssetSource, SyncStatus, OptimizationStatus, IngestStatus, ImportType, ConversionStatus } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
