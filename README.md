@@ -1,31 +1,79 @@
 # Bjorq Asset Wizard
 
-**3D asset optimization dashboard for the Bjorq ecosystem.**
+**3D asset optimization dashboard and backend service for the Bjorq ecosystem.**
 
-Bjorq Asset Wizard is a React-based frontend application for analyzing, optimizing, cataloging, and managing 3D assets (GLB/glTF). It provides a complete pipeline UI — from file upload through optimization to catalog ingest — and is designed to connect to a dedicated backend service for processing.
-
-> **Current status:** The frontend dashboard is fully implemented with an API-ready architecture. All views work standalone using mock/demo data when the backend is unavailable. The backend service is the next implementation phase.
+A monorepo containing a React frontend dashboard and a Node.js backend service for analyzing, optimizing, cataloging, and managing 3D assets (GLB/glTF). The dashboard provides a complete pipeline UI — from file upload through optimization to catalog ingest — and connects to the backend service for processing.
 
 ---
 
-## What's Implemented
+## Project Status
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Upload & Analyze page | ✅ Complete | File upload, analysis results, performance badges |
-| Optimize pipeline | ✅ Complete | Multi-step stepper, configuration options, stats comparison |
-| Catalog browser | ✅ Complete | Grid view, category filters, asset detail drawer |
-| Catalog ingest | ✅ Complete | Metadata form, file attachment, ingest submission |
-| Asset detail page | ✅ Complete | Full metadata display, pipeline status, action buttons |
-| System status | ✅ Complete | Health check, version info, connection status, storage stats |
-| Wizard integration | ✅ Complete | Remote wizard connection settings, status widget, catalog browser |
-| Import type selector | ✅ UI ready | Direct GLB/glTF upload works; conversion path prepared (coming soon) |
-| API client with fallback | ✅ Complete | Auto-falls back to mock data when backend is offline |
-| Status badges | ✅ Complete | Source, sync, optimization, ingest, import type, conversion |
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Frontend dashboard** | ✅ Complete | All views, routing, mock fallback, API client |
+| **Backend scaffolding** | 🔧 Scaffolded | Fastify server, route stubs, storage helpers |
+| **CI/CD** | 🔧 Scaffolded | GitHub Actions for lint, build, test, Docker |
+| **Docker** | 🔧 Scaffolded | Dockerfile, docker-compose, .dockerignore |
+| **HA add-on** | 🔧 Scaffolded | config.yaml, run.sh, DOCS.md |
+| **Backend engine** | ⬜ Not started | Analysis, optimization, catalog logic |
+
+### What "Scaffolded" Means
+
+Route stubs exist and return HTTP 501 with descriptive messages. The server starts, responds to `/health` and `/version`, and is ready for real endpoint implementation. No fake processing logic.
 
 ### Mock / Demo Fallback
 
-When the backend is unreachable, all API calls automatically fall back to realistic mock data. A banner in the header indicates demo mode. This allows full UI development and testing without running the backend.
+When the backend is unreachable, all frontend API calls automatically fall back to realistic mock data. A banner in the header indicates demo mode.
+
+---
+
+## Repository Structure
+
+```
+bjorq-asset-wizard/
+├── src/                        # Frontend (React + Vite + TypeScript)
+├── server/                     # Backend (Node.js + Fastify + TypeScript)
+│   ├── src/
+│   │   ├── index.ts            # Fastify entry point
+│   │   ├── routes/             # Route handlers
+│   │   └── lib/                # Storage helpers
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── .env.example
+├── .github/workflows/          # CI, Docker build, release
+├── ha-addon/                   # Home Assistant add-on packaging
+├── Dockerfile                  # Backend production container
+├── docker-compose.yml          # Local dev (backend)
+├── package.json                # Frontend dependencies
+└── docs/                       # Documentation
+```
+
+---
+
+## Quick Start
+
+### Frontend (dashboard)
+
+```bash
+npm install
+npm run dev          # Vite dev server on port 8080
+```
+
+The frontend works standalone with mock data — no backend needed.
+
+### Backend (when implementing)
+
+```bash
+cd server
+npm install
+npm run dev          # Fastify on port 3500 (tsx watch)
+```
+
+### Docker
+
+```bash
+docker compose up -d    # Backend on port 3500
+```
 
 ---
 
@@ -44,9 +92,8 @@ When the backend is unreachable, all API calls automatically fall back to realis
 │  - Wizard Integration│         │  - POST /sync                │
 └──────────────────────┘         └──────────────────────────────┘
         │                                     │
-        │ Static site                         │ Deployed as
-        │ (any host)                          │ Docker container
-        │                                     │ or HA add-on
+        │ Static site                         │ Docker container
+        │ (any host)                          │ or HA add-on
         ▼                                     ▼
    Vercel / Netlify /              Docker / Home Assistant
    any static host                 add-on (port 3500)
@@ -54,47 +101,96 @@ When the backend is unreachable, all API calls automatically fall back to realis
 
 ### Tech Stack
 
-- **React 18** + **TypeScript** — UI framework
-- **Vite** — Build tool and dev server
-- **Tailwind CSS** — Utility-first styling
-- **shadcn/ui** — Component library (Radix UI primitives)
-- **React Router** — Client-side routing
-- **React Query** — Server state management (available, used selectively)
-- **Recharts** — Data visualization
+**Frontend:** React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, React Query, Recharts
+
+**Backend:** Node.js 20, TypeScript, Fastify, sharp, @gltf-transform/* (scaffolded)
 
 ---
 
-## Local Development
+## Frontend Features
 
-```sh
-# Install dependencies
-npm install
+| Feature | Status |
+|---------|--------|
+| Upload & Analyze page | ✅ Complete |
+| Optimize pipeline (multi-step) | ✅ Complete |
+| Catalog browser with filters | ✅ Complete |
+| Catalog ingest form | ✅ Complete |
+| Asset detail page | ✅ Complete |
+| System status dashboard | ✅ Complete |
+| Wizard integration (remote connection) | ✅ Complete |
+| Import type selector | ✅ UI ready |
+| API client with mock fallback | ✅ Complete |
+| Status badges (source, sync, optimization, ingest) | ✅ Complete |
 
-# Start dev server (port 8080)
-npm run dev
+---
 
-# Build for production
-npm run build
+## Backend Route Status
 
-# Run tests
-npm test
+| Method | Path | Status |
+|--------|------|--------|
+| `GET` | `/health` | ✅ Implemented |
+| `GET` | `/version` | ✅ Implemented |
+| `POST` | `/analyze` | 🔧 Stub (501) |
+| `POST` | `/optimize` | 🔧 Stub (501) |
+| `GET` | `/catalog/index` | 🔧 Stub (501) |
+| `POST` | `/catalog/ingest` | 🔧 Stub (501) |
+| `POST` | `/catalog/reindex` | 🔧 Stub (501) |
+| `POST` | `/sync` | 🔧 Stub (501) |
+| `POST` | `/import/direct` | 🔧 Stub (501) |
+| `POST` | `/import/convert` | 🔧 Stub (501) |
+
+See `docs/bjorq-asset-optimizer/API_SPEC.md` for full request/response schemas.
+
+---
+
+## CI/CD
+
+GitHub Actions workflows in `.github/workflows/`:
+
+| Workflow | Trigger | What it does |
+|----------|---------|--------------|
+| `ci.yml` | Push/PR to main | Lint, typecheck, build, test (frontend + backend) |
+| `docker.yml` | Version tags (v*) | Multi-arch Docker build, push to GHCR |
+| `release.yml` | Manual dispatch | Create semver tag + GitHub release |
+
+---
+
+## Docker
+
+```bash
+# Build
+docker build -t bjorq-asset-wizard .
+
+# Run with persistent storage
+docker run -p 3500:3500 \
+  -v wizard-storage:/app/storage \
+  -v wizard-catalog:/app/public/catalog \
+  bjorq-asset-wizard
+
+# Local development
+docker compose up -d
 ```
 
-### Environment Variables
+### Storage
 
-The frontend connects to the backend via a configurable base URL stored in `localStorage`. The default is `http://localhost:3500`.
+All runtime data is stored under configurable paths:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| API Base URL | `http://localhost:3500` | Configured in Wizard Integration settings or via `localStorage` key `bjorq_api_base_url` |
-
-No `.env` file is needed for the frontend — the backend URL is set through the UI.
+| Path | Default | Contents |
+|------|---------|----------|
+| `STORAGE_PATH` | `./storage` | Uploads, jobs, originals, optimized, thumbnails |
+| `CATALOG_PATH` | `./public/catalog` | Final catalog output (furniture/, devices/, decor/) |
 
 ---
 
-## Catalog Concept
+## Home Assistant Add-on
 
-Assets in the Bjorq catalog follow a standardized format:
+The `ha-addon/` directory contains packaging scaffolding for running the backend as an HA add-on. Configuration is managed through the HA UI. Storage persists under `/data/`.
+
+> **Status:** Scaffolded — requires a working backend before the add-on is functional.
+
+---
+
+## Catalog Format
 
 ```
 catalog/
@@ -106,40 +202,11 @@ catalog/
         meta.json          # Asset metadata
 ```
 
-Each asset has metadata including dimensions, triangle count, material count, file size, placement rules, and optional Home Assistant entity mappings.
-
-### Import Paths
-
-1. **Direct Import** (implemented) — Upload GLB/glTF files directly for analysis and optimization
-2. **Conversion Import** (UI prepared, backend pending) — Upload larger project formats (SketchUp, IFC, OBJ, FBX) for automatic conversion to GLB before entering the pipeline
-
-Both paths produce the same standardized catalog output.
-
 ---
 
-## API Endpoints
+## Environment Variables
 
-The frontend expects these backend endpoints:
-
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/analyze` | Analyze uploaded 3D model (FormData) |
-| `POST` | `/optimize` | Optimize model with options (FormData) |
-| `GET` | `/catalog/index` | Get full catalog index |
-| `POST` | `/catalog/ingest` | Ingest asset into catalog (FormData) |
-| `POST` | `/catalog/reindex` | Rebuild catalog index |
-| `POST` | `/sync` | Sync assets to Bjorq Dashboard |
-| `GET` | `/health` | Health check (returns `{ status: "ok" }`) |
-| `GET` | `/version` | Version info |
-| `POST` | `/import/convert` | Convert project file to GLB (future) |
-
-See `docs/bjorq-asset-optimizer/API_SPEC.md` for full request/response schemas.
-
----
-
-## Future: Home Assistant Add-on
-
-The backend is designed to run as a Home Assistant add-on, allowing users to manage 3D assets for their smart home visualization directly from the HA interface. Infrastructure scaffolding (Dockerfile, HA add-on config, CI workflows) is available in `docs/bjorq-asset-wizard-infra/`.
+See `server/.env.example` for the full list. The frontend connects to the backend via a configurable URL stored in `localStorage` (default: `http://localhost:3500`).
 
 ---
 
@@ -153,7 +220,6 @@ The backend is designed to run as a Home Assistant add-on, allowing users to man
 | `docs/bjorq-asset-optimizer/ROADMAP.md` | Feature roadmap |
 | `docs/bjorq-asset-optimizer/STRUCTURE.md` | Catalog structure specification |
 | `docs/bjorq-asset-optimizer/UI_README.md` | UI component reference |
-| `docs/bjorq-asset-wizard-infra/README.md` | Infrastructure overview |
 | `docs/bjorq-asset-wizard-infra/INTEGRATION.md` | Integration architecture |
 
 ---

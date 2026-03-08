@@ -149,6 +149,75 @@ The backend URL can be changed in the Wizard Integration settings page or by set
 
 ---
 
+## Backend Development
+
+### Structure
+
+The backend lives in `server/` with its own `package.json`, `tsconfig.json`, and `src/` directory.
+
+```
+server/src/
+├── index.ts            # Fastify entry point — registers plugins and routes
+├── routes/
+│   ├── health.ts       # GET /health, GET /version (✅ implemented)
+│   ├── analyze.ts      # POST /analyze (stub — returns 501)
+│   ├── optimize.ts     # POST /optimize (stub — returns 501)
+│   ├── catalog.ts      # GET /catalog/index, POST /catalog/ingest, POST /catalog/reindex (stubs)
+│   ├── sync.ts         # POST /sync (stub)
+│   └── import.ts       # POST /import/direct, POST /import/convert (stubs)
+└── lib/
+    └── storage.ts      # Storage path helpers and directory initialization
+```
+
+### Getting started
+
+```bash
+cd server
+npm install
+npm run dev    # Starts with tsx watch on port 3500
+```
+
+### Implementing an endpoint
+
+Each route file exports an async function that registers Fastify routes. To implement a stub:
+
+1. Replace the 501 response with actual logic
+2. Use `@gltf-transform/core` for GLB/glTF parsing (listed as optional dependency)
+3. Use `sharp` for thumbnail generation
+4. Follow the response schemas in `docs/bjorq-asset-optimizer/API_SPEC.md`
+5. The frontend will automatically use real responses when the backend is running
+
+### Docker
+
+```bash
+# Build the backend container
+docker build -t bjorq-asset-wizard .
+
+# Run with persistent storage
+docker run -p 3500:3500 -v wizard-data:/app/storage bjorq-asset-wizard
+
+# Or use docker-compose for local development
+docker compose up -d
+```
+
+### CI/CD
+
+GitHub Actions workflows in `.github/workflows/`:
+- `ci.yml` — Runs lint, typecheck, build, and test for both frontend and backend
+- `docker.yml` — Builds and pushes Docker image on version tags (v*)
+- `release.yml` — Manual workflow to create semver tags and GitHub releases
+
+### Home Assistant Add-on
+
+The `ha-addon/` directory contains the packaging scaffold:
+- `config.yaml` — Add-on manifest with options schema
+- `run.sh` — Entry point that maps HA options to environment variables
+- `DOCS.md` — User-facing documentation
+
+The add-on uses the same Docker image with HA-specific storage paths (`/data/storage`, `/data/catalog`).
+
+---
+
 ## Conventions
 
 ### Do
@@ -177,7 +246,7 @@ User uploads a GLB/glTF file → analysis → optimization → catalog ingest. T
 
 ### Conversion Import (UI prepared, backend pending)
 
-User uploads a larger project file (SketchUp, IFC, OBJ, FBX) → backend converts to GLB → standard pipeline. The UI shows a "coming soon" panel for this path. The `POST /import/convert` endpoint stub exists in `api.ts` but requires the backend implementation.
+User uploads a larger project file (SketchUp, IFC, OBJ, FBX) → backend converts to GLB → standard pipeline. The UI shows a "coming soon" panel for this path. The `POST /import/convert` endpoint stub exists in both `api.ts` and `server/src/routes/import.ts` but requires the backend implementation.
 
 ---
 

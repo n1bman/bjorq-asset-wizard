@@ -1,31 +1,25 @@
-# Bjorq Asset Wizard — Infrastructure Scaffolding
+# Bjorq Asset Wizard — Infrastructure Reference
 
-Ready-to-copy infrastructure files for the backend repository.
+> **Note:** Infrastructure files have been moved to their production locations in the monorepo.
+> This directory is kept as historical reference for the scaffolding origin.
 
-> **These files live in the dashboard repo as reference scaffolding.**
-> Copy them into the backend repo when setting it up.
+## Where Files Live Now
 
-## File Index
+| Original Location | New Location | Status |
+|-------------------|--------------|--------|
+| `github-actions/ci.yml` | `.github/workflows/ci.yml` | ✅ Moved |
+| `github-actions/docker.yml` | `.github/workflows/docker.yml` | ✅ Moved |
+| `github-actions/release.yml` | `.github/workflows/release.yml` | ✅ Moved |
+| `docker/Dockerfile` | `Dockerfile` (root) | ✅ Moved |
+| `docker/.dockerignore` | `.dockerignore` (root) | ✅ Moved |
+| `docker/docker-compose.yml` | `docker-compose.yml` (root) | ✅ Moved |
+| `ha-addon/config.yaml` | `ha-addon/config.yaml` (root) | ✅ Moved |
+| `ha-addon/run.sh` | `ha-addon/run.sh` (root) | ✅ Moved |
+| `ha-addon/DOCS.md` | `ha-addon/DOCS.md` (root) | ✅ Moved |
+| `repo/tsconfig.json` | `server/tsconfig.json` | ✅ Moved |
+| `repo/.gitignore` | Merged into root `.gitignore` | ✅ Applied |
 
-| Path | Purpose | Copy to |
-|------|---------|---------|
-| `github-actions/ci.yml` | CI: install, lint, typecheck, test, build | `.github/workflows/ci.yml` |
-| `github-actions/docker.yml` | Docker image build on release tags | `.github/workflows/docker.yml` |
-| `github-actions/release.yml` | Semantic release scaffold | `.github/workflows/release.yml` |
-| `docker/Dockerfile` | Production multi-stage container | `Dockerfile` |
-| `docker/.dockerignore` | Docker build excludes | `.dockerignore` |
-| `docker/docker-compose.yml` | Local dev compose | `docker-compose.yml` |
-| `ha-addon/config.yaml` | Home Assistant add-on manifest | `config.yaml` |
-| `ha-addon/run.sh` | HA entry point script | `run.sh` |
-| `ha-addon/DOCS.md` | HA add-on user documentation | `DOCS.md` |
-| `repo/tsconfig.json` | Backend TypeScript config | `tsconfig.json` |
-| `repo/.gitignore` | Backend-specific ignores | `.gitignore` |
-| `INTEGRATION.md` | Architecture & status overview | `docs/INTEGRATION.md` |
+## See Also
 
-## Status Legend
-
-- ✅ **Implemented** — Working code exists
-- 🔧 **Scaffolded** — Config/infra ready, needs backend code
-- ⬜ **TODO** — Not yet started
-
-See [INTEGRATION.md](./INTEGRATION.md) for full status breakdown.
+- [INTEGRATION.md](./INTEGRATION.md) — Integration architecture overview
+- [Root README](../../README.md) — Full project documentation

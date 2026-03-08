@@ -25,12 +25,16 @@ How the frontend dashboard, backend wizard, Docker container, and Home Assistant
    (Vercel, Netlify, etc.)
 ```
 
-## Repositories
+## Repository
 
-| Repo | Contents | Status |
-|------|----------|--------|
-| `bjorq-dashboard` (this repo) | React frontend, Wizard Integration UI, mock data | ✅ Implemented |
-| `bjorq-asset-wizard` (separate) | Node.js backend, Fastify API, glTF Transform | 🔧 In progress |
+This is a monorepo containing both frontend and backend:
+
+| Directory | Contents | Status |
+|-----------|----------|--------|
+| `src/` | React frontend, Wizard Integration UI, mock data | ✅ Implemented |
+| `server/` | Node.js backend, Fastify API, route stubs | 🔧 Scaffolded |
+| `.github/workflows/` | CI, Docker build, release workflows | 🔧 Scaffolded |
+| `ha-addon/` | Home Assistant add-on packaging | 🔧 Scaffolded |
 
 ---
 
