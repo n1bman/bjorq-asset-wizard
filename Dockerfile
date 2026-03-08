@@ -16,8 +16,8 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ vips-dev
 
 # Copy backend package files
-COPY server/package.json server/package-lock.json* ./
-RUN npm ci --ignore-scripts
+COPY server/package.json ./
+RUN npm install --ignore-scripts
 RUN npm rebuild sharp
 
 COPY server/tsconfig.json ./
