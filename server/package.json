@@ -10,7 +10,7 @@
     "start": "node dist/index.js",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --config vitest.config.ts",
     "init-storage": "node -e \"const fs=require('fs');['storage/uploads','storage/jobs','storage/originals','storage/optimized','storage/thumbs','storage/catalog','public/catalog/furniture','public/catalog/devices','public/catalog/decor'].forEach(d=>fs.mkdirSync(d,{recursive:true}));console.log('Storage initialized')\""
   },
   "engines": {
