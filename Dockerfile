@@ -17,8 +17,7 @@ RUN apk add --no-cache python3 make g++ vips-dev
 
 # Copy backend package files
 COPY server/package.json ./
-RUN npm install --ignore-scripts
-RUN npm rebuild sharp
+RUN npm install
 
 COPY server/tsconfig.json ./
 COPY server/src/ ./src/
