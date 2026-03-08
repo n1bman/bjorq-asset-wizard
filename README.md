@@ -11,11 +11,14 @@ A monorepo containing a React frontend dashboard and a Node.js backend service f
 | Component | Status | Notes |
 |-----------|--------|-------|
 | **Frontend dashboard** | ✅ Complete | All views, routing, mock fallback, API client |
-| **Backend scaffolding** | 🔧 Scaffolded | Fastify server, route stubs, storage helpers |
+| **Backend scaffolding** | 🔧 Scaffolded | Fastify server, storage helpers |
 | **CI/CD** | 🔧 Scaffolded | GitHub Actions for lint, build, test, Docker |
 | **Docker** | 🔧 Scaffolded | Dockerfile, docker-compose, .dockerignore |
 | **HA add-on** | 🔧 Scaffolded | config.yaml, run.sh, DOCS.md |
-| **Backend engine** | ⬜ Not started | Analysis, optimization, catalog logic |
+| **Backend: Analyze** | ✅ Implemented | Real GLB/glTF analysis via gltf-transform |
+| **Backend: Optimize** | ✅ Implemented | V1 conservative cleanup pipeline |
+| **Backend: Catalog** | ✅ Implemented | Browse, ingest, reindex with persistent storage |
+| **Backend: Sync** | ⬜ Not started | Dashboard sync to Bjorq/HA |
 
 ### What "Scaffolded" Means
 
