@@ -21,6 +21,7 @@ export PORT=3500
 export HOST=0.0.0.0
 export STORAGE_PATH=/data/storage
 export CATALOG_PATH=/data/catalog
+export LOG_FILE=/data/storage/logs/wizard.log
 
 # --- CORS: Allow HA ingress ---
 export CORS_ORIGINS="*"
@@ -32,6 +33,7 @@ mkdir -p \
     /data/storage/originals \
     /data/storage/optimized \
     /data/storage/thumbs \
+    /data/storage/logs \
     /data/catalog/furniture \
     /data/catalog/devices \
     /data/catalog/decor
