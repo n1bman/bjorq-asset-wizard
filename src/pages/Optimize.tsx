@@ -105,8 +105,8 @@ export default function OptimizePage() {
       setResult(res);
       setStep(reviewStep);
       toast({ title: "Optimization complete", description: `Job ID: ${res.jobId}` });
-    } catch (e: any) {
-      toast({ title: "Optimization failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Optimization failed", description: e instanceof Error ? e.message : "Optimization error", variant: "destructive" });
       setStep(configStep);
     } finally {
       setLoading(false);
