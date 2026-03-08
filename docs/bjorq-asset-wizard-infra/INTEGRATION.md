@@ -21,8 +21,8 @@ How the frontend dashboard, backend wizard, Docker container, and Home Assistant
         │ Published as                        │ Deployed as
         │ static site                         │
         ▼                                     ▼
-   Lovable / any                    Docker container
-   static host                      or HA add-on
+   Any static host
+   (Vercel, Netlify, etc.)
 ```
 
 ## Repositories

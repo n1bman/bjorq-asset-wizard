@@ -21,7 +21,7 @@ export function AppLayout() {
           <header className="h-12 flex items-center border-b border-border px-4 shrink-0">
             <SidebarTrigger />
             <span className="ml-3 text-sm text-muted-foreground font-medium">
-              Asset Optimizer
+              Asset Wizard
             </span>
           </header>
           <main className="flex-1 overflow-auto p-6">

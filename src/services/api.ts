@@ -1,3 +1,18 @@
+/**
+ * Bjorq Asset Wizard — API Service Layer
+ *
+ * Every public function tries the real backend first via `apiClient.request()`.
+ * If the backend is unreachable (network error, timeout), it falls back to mock
+ * data from `./mock-data.ts` so the UI remains fully functional offline.
+ *
+ * Real API errors (4xx, 5xx) are NOT masked — they propagate to the caller.
+ * Only connection failures trigger the mock fallback.
+ *
+ * To add a new endpoint:
+ *   1. Define types in src/types/api.ts
+ *   2. Add mock data in src/services/mock-data.ts
+ *   3. Add a service function here using withFallback()
+ */
 import type {
   AnalysisResponse,
   OptimizeResponse,
