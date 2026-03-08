@@ -10,40 +10,35 @@ Bjorq Asset Wizard is a dashboard for managing 3D assets in the Bjorq ecosystem.
 
 ---
 
-## Folder Structure
+## Repository Structure
+
+This is a monorepo containing both the frontend dashboard and backend service scaffolding.
 
 ```
-src/
-├── pages/              # Route-level page components
-├── components/
-│   ├── layout/         # AppLayout, AppSidebar
-│   ├── analysis/       # Analysis results, performance badges
-│   ├── optimize/       # Pipeline stepper, options, stats comparison
-│   ├── catalog/        # Asset cards, grid, filters, detail drawer, status badges
-│   ├── wizard/         # Wizard integration components (settings, status, catalog browser)
-│   ├── system/         # Health status, connection card, version info, storage stats
-│   ├── upload/         # File uploader (drag & drop)
-│   ├── ingest/         # Ingest metadata form
-│   ├── sync/           # Sync status bar
-│   └── ui/             # shadcn/ui base components (do not modify directly)
-├── contexts/
-│   ├── ConnectionContext.tsx   # Backend connection state (connected/disconnected/mock)
-│   └── WizardContext.tsx       # Wizard integration state
-├── services/
-│   ├── api-client.ts          # HTTP client singleton with timeout, error handling
-│   ├── api.ts                 # Service functions with mock fallback
-│   ├── mock-data.ts           # Mock responses for offline development
-│   ├── wizard-client.ts       # Wizard-specific API client
-│   └── wizard-mock-data.ts    # Wizard mock data
-├── hooks/
-│   ├── use-api.ts             # Generic API call hook (loading/error/data)
-│   ├── use-mobile.tsx         # Mobile breakpoint detection
-│   └── use-toast.ts           # Toast notification hook
-├── types/
-│   └── api.ts                 # All TypeScript types for API requests/responses
-├── lib/
-│   └── utils.ts               # Utility functions (cn, etc.)
-└── assets/                    # Static assets (logo, etc.)
+bjorq-asset-wizard/
+├── src/                        # Frontend (React + Vite)
+│   ├── pages/                  # Route-level page components
+│   ├── components/             # UI components by domain
+│   ├── contexts/               # React context providers
+│   ├── services/               # API client, service functions, mock data
+│   ├── hooks/                  # Custom React hooks
+│   ├── types/                  # TypeScript type definitions
+│   ├── lib/                    # Utilities
+│   └── assets/                 # Static assets (logo, etc.)
+├── server/                     # Backend (Node.js + Fastify) — scaffolded
+│   ├── src/
+│   │   ├── index.ts            # Fastify entry point
+│   │   ├── routes/             # Route handlers (stubs)
+│   │   └── lib/                # Storage helpers, utilities
+│   ├── package.json            # Backend dependencies
+│   ├── tsconfig.json           # Backend TypeScript config
+│   └── .env.example            # Environment variable reference
+├── .github/workflows/          # CI, Docker, release workflows
+├── ha-addon/                   # Home Assistant add-on packaging
+├── Dockerfile                  # Backend production container
+├── docker-compose.yml          # Local development
+├── package.json                # Frontend dependencies
+└── docs/                       # Documentation
 ```
 
 ---
