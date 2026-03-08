@@ -142,6 +142,26 @@ export async function getVersion(): Promise<VersionResponse> {
   return data;
 }
 
+// --- Import endpoints (future) ---
+
+/** Direct model import — currently delegates to analyzeModel */
+export async function importDirect(file: File): Promise<AnalysisResponse> {
+  return analyzeModel(file);
+}
+
+/** Conversion-based import — stub for future backend endpoint */
+export async function importConvert(file: File): Promise<{ success: boolean; jobId: string; status: string }> {
+  const { data } = await withFallback(
+    () => {
+      const fd = new FormData();
+      fd.append("file", file);
+      return apiClient.request<{ success: boolean; jobId: string; status: string }>("/import/convert", { method: "POST", body: fd });
+    },
+    () => ({ success: true, jobId: `conv_${Date.now()}`, status: "pending" }),
+  );
+  return data;
+}
+
 // Simulate network delay
 function fakeDel(ms = 600): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
