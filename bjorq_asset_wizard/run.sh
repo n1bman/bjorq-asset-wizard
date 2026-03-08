@@ -17,7 +17,7 @@ export JOB_RETENTION_HOURS=$(bashio::config 'job_retention_hours')
 
 # --- Fixed paths for HA add-on environment ---
 export NODE_ENV=production
-export PORT=3500
+export PORT=3000
 export HOST=0.0.0.0
 export STORAGE_PATH=/data/storage
 export CATALOG_PATH=/data/catalog

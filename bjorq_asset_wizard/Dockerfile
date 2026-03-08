@@ -1,20 +1,29 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19
 FROM ${BUILD_FROM}
 
+# Install Node.js and native build deps for sharp
+RUN apk add --no-cache nodejs npm python3 make g++ vips-dev
+
 WORKDIR /app
 
-# Copy full repository
-COPY . /app
+# Install dependencies (staged by prepare-addon.sh)
+COPY server/package.json server/package-lock.json* ./
+RUN npm ci --ignore-scripts && npm rebuild sharp
 
-# Install Node
-RUN apk add --no-cache nodejs npm python3 make g++
+# Build TypeScript → dist/
+COPY server/tsconfig.json ./
+COPY server/src/ ./src/
+RUN npx tsc
 
-# Install dependencies
-RUN npm install
+# Copy HA entry point
+COPY run.sh /run.sh
+RUN chmod +x /run.sh
 
-# Build backend
-RUN npm run build || true
+# Runtime environment
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOST=0.0.0.0
 
 EXPOSE 3000
 
-CMD ["node", "server/dist/index.js"]
+CMD ["/run.sh"]
