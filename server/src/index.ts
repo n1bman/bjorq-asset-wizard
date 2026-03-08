@@ -30,7 +30,7 @@ async function start() {
   });
 
   // --- Global error handler ---
-  server.setE: FastifyErrorrrorrrorHandler((error: FastifyEly) => {
+  server.setErrorHandler((error: FastifyError, request, reply) => {
     request.log.error(
       {
         err: error,
