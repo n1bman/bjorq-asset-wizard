@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies (staged by prepare-addon.sh)
 COPY server/package.json server/package-lock.json* ./
-RUN npm ci --ignore-scripts && npm rebuild sharp
+RUN npm install
 
 # Build TypeScript → dist/
 COPY server/tsconfig.json ./
