@@ -1,0 +1,60 @@
+# ============================================
+# Bjorq Asset Wizard — Home Assistant Add-on
+# ============================================
+# Reference: https://developers.home-assistant.io/docs/add-ons/configuration
+
+name: Bjorq Asset Wizard
+version: "0.1.0"
+slug: bjorq_asset_wizard
+description: "3D asset analysis, optimization, and catalog service for Bjorq"
+url: "https://github.com/n1bman/bjorq-asset-wizard"
+
+# Supported architectures
+arch:
+  - amd64
+  - aarch64
+  - armv7
+
+# Network
+ports:
+  3500/tcp: 3500
+ports_description:
+  3500/tcp: "Asset Wizard API"
+
+# Ingress — enables iframe panel in HA sidebar
+ingress: true
+ingress_port: 3500
+panel_icon: mdi:cube-scan
+panel_title: Bjorq Wizard
+
+# Persistent data directory (mapped to /data in container)
+map:
+  - share:rw
+  - media:rw
+
+# User-configurable options (shown in HA UI)
+options:
+  log_level: info
+  max_file_size_mb: 100
+  thumbnail_size: 512
+  thumbnail_quality: 80
+  max_texture_size: 2048
+  texture_quality: 85
+  job_retention_hours: 24
+
+# Schema for validating options
+schema:
+  log_level: list(debug|info|warn|error)
+  max_file_size_mb: int(10,500)
+  thumbnail_size: int(128,1024)
+  thumbnail_quality: int(50,100)
+  max_texture_size: int(512,4096)
+  texture_quality: int(50,100)
+  job_retention_hours: int(0,168)
+
+# Resource usage
+startup: services
+boot: auto
+
+# Minimum Home Assistant version
+homeassistant: "2024.1.0"
