@@ -29,6 +29,10 @@ const systemItems = [
   { title: "Status", url: "/system", icon: Activity },
 ];
 
+const integrationItems = [
+  { title: "Wizard", url: "/wizard", icon: Plug },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
