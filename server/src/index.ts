@@ -106,8 +106,12 @@ async function start() {
   try {
     await server.listen({ port: PORT, host: HOST });
     server.log.info(`Bjorq Asset Wizard listening on ${HOST}:${PORT}`);
-  } catch (err) {
-    server.log.error(err);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      server.log.error(err);
+    } else {
+      server.log.error(String(err));
+    }
     process.exit(1);
   }
 }
