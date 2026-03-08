@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, LayoutGrid, RefreshCw } from "lucide-react";
 
 export function WizardCatalogBrowser() {
-  const { enabled, status } = useWizard();
+  const { enabled } = useWizard();
   const [catalog, setCatalog] = useState<CatalogIndex | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AssetMetadata | null>(null);

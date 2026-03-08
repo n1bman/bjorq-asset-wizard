@@ -81,6 +81,7 @@ export function AppSidebar() {
         {renderGroup("Pipeline", pipelineItems)}
         {renderGroup("Catalog", catalogItems)}
         {renderGroup("System", systemItems)}
+        {renderGroup("Integration", integrationItems)}
       </SidebarContent>
     </Sidebar>
   );

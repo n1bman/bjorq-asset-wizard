@@ -21,21 +21,24 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ConnectionProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<UploadAnalyze />} />
-              <Route path="/optimize" element={<Optimize />} />
-              <Route path="/catalog" element={<Catalog />} />
-              <Route path="/catalog/:id" element={<AssetDetail />} />
-              <Route path="/ingest" element={<CatalogIngest />} />
-              <Route path="/system" element={<SystemStatus />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <WizardProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<UploadAnalyze />} />
+                <Route path="/optimize" element={<Optimize />} />
+                <Route path="/catalog" element={<Catalog />} />
+                <Route path="/catalog/:id" element={<AssetDetail />} />
+                <Route path="/ingest" element={<CatalogIngest />} />
+                <Route path="/system" element={<SystemStatus />} />
+                <Route path="/wizard" element={<WizardIntegration />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </WizardProvider>
       </ConnectionProvider>
     </TooltipProvider>
   </QueryClientProvider>
