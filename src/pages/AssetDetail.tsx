@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Box, Download, Wand2, FolderPlus, RefreshCw } from "lucide-react";
-import { SourceBadge, SyncDot, OptimizationBadge, IngestBadge } from "@/components/catalog/AssetStatusBadge";
+import { SourceBadge, SyncDot, OptimizationBadge, IngestBadge, ImportTypeBadge, ConversionBadge } from "@/components/catalog/AssetStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
 import type { AssetMetadata } from "@/types/api";
@@ -63,11 +63,42 @@ export default function AssetDetailPage() {
           {asset.subcategory && <Badge variant="secondary">{asset.subcategory}</Badge>}
           {asset.style && <Badge variant="secondary">{asset.style}</Badge>}
           <SourceBadge source={asset.source} />
+          <ImportTypeBadge importType={asset.importType} />
           <SyncDot status={asset.syncStatus} />
           <OptimizationBadge status={asset.optimizationStatus} />
           <IngestBadge status={asset.ingestStatus} />
+          <ConversionBadge status={asset.conversionStatus} />
         </div>
       </div>
+
+      {/* Import & Pipeline Status */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Import & Pipeline</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Import Source</span>
+            <span className="text-foreground">{asset.importType ?? asset.source ?? "—"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Conversion</span>
+            <span className="text-foreground">{asset.conversionStatus ?? "n/a"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Optimization</span>
+            <OptimizationBadge status={asset.optimizationStatus} />
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Ingest</span>
+            <span className="text-foreground">{asset.ingestStatus ?? "n/a"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Sync</span>
+            <SyncDot status={asset.syncStatus} />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid sm:grid-cols-2 gap-4">
         <Card>

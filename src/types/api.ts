@@ -12,6 +12,10 @@ export type IngestStatus = "not_ingested" | "ingesting" | "ingested" | "error";
 
 export type OptimizationStatus = "not_optimized" | "optimizing" | "optimized" | "error";
 
+export type ImportType = "direct-upload" | "converted-project" | "catalog" | "synced";
+
+export type ConversionStatus = "not_converted" | "converting" | "converted" | "error";
+
 // --- Textures ---
 
 export interface TextureDetail {
@@ -186,6 +190,8 @@ export interface AssetMetadata {
   optimizationStatus?: OptimizationStatus;
   lastSyncedAt?: string | null;
   optimizedAt?: string | null;
+  importType?: ImportType;
+  conversionStatus?: ConversionStatus;
 }
 
 export interface CatalogIndex {

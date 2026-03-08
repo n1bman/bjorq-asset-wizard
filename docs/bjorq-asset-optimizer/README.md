@@ -104,6 +104,8 @@ The server starts on `http://localhost:3500` by default.
 |--------|------|-------------|
 | `POST` | `/analyze` | Analyze a model file |
 | `POST` | `/optimize` | Analyze + optimize + thumbnail + metadata |
+| `POST` | `/import/direct` | Direct GLB/GLTF import (delegates to analyze) |
+| `POST` | `/import/convert` | Convert raw source to GLB before pipeline |
 | `POST` | `/catalog/ingest` | Add optimized asset to catalog |
 | `POST` | `/catalog/reindex` | Rebuild `index.json` manifest |
 | `GET` | `/catalog/index` | Get catalog manifest |
@@ -111,6 +113,39 @@ The server starts on `http://localhost:3500` by default.
 | `GET` | `/version` | Version and build info |
 
 See [API_SPEC.md](./API_SPEC.md) for full request/response schemas and examples.
+
+---
+
+## Import Paths
+
+The Wizard supports two import paths. Both produce the same optimized catalog output.
+
+### Direct Model Import (GLB/GLTF)
+
+```
+GLB / GLTF → Upload → Analyze → Optimize → Review → Save / Ingest
+```
+
+This is the standard path for models already in GLB or GLTF format.
+
+### Conversion-based Import (Future)
+
+```
+Raw Source (SketchUp, IFC, OBJ, FBX) → Upload → Convert to GLB → Analyze → Optimize → Review → Save / Ingest
+```
+
+This path adds a conversion step before the standard pipeline. Supported source formats will include SketchUp (.skp), IFC (.ifc), OBJ (.obj), FBX (.fbx), and STEP (.step).
+
+After conversion, the model enters the exact same pipeline and produces the same catalog output:
+
+```
+catalog/<category>/<subcategory>/<asset-id>/
+  ├── model.glb
+  ├── thumb.webp
+  └── meta.json
+```
+
+The conversion backend is **not yet implemented**. The frontend UI is prepared to support this flow when the backend is ready.
 
 ---
 

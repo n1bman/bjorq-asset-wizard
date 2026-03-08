@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FileUploader } from "@/components/upload/FileUploader";
 import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { OptimizeOptionsPanel } from "@/components/optimize/OptimizeOptions";
@@ -10,11 +10,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
-import type { OptimizeOptions, OptimizeResponse, AnalysisResponse } from "@/types/api";
+import type { OptimizeOptions, OptimizeResponse, AnalysisResponse, ImportType } from "@/types/api";
 import { Download, FolderPlus, RefreshCw } from "lucide-react";
 
-const STEPS = [
+const DIRECT_STEPS = [
   { label: "Upload" },
+  { label: "Analyze" },
+  { label: "Configure" },
+  { label: "Optimize" },
+  { label: "Review" },
+  { label: "Save" },
+];
+
+const CONVERT_STEPS = [
+  { label: "Upload" },
+  { label: "Convert" },
   { label: "Analyze" },
   { label: "Configure" },
   { label: "Optimize" },
@@ -43,6 +53,7 @@ const defaultOptions: OptimizeOptions = {
 export default function OptimizePage() {
   const { toast } = useToast();
   const { isConnected } = useConnection();
+  const [importType] = useState<ImportType>("direct-upload");
   const [step, setStep] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
@@ -50,9 +61,24 @@ export default function OptimizePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<OptimizeResponse | null>(null);
 
+  const isConversion = importType === "converted-project";
+  const steps = useMemo(() => (isConversion ? CONVERT_STEPS : DIRECT_STEPS), [isConversion]);
+
+  // For conversion imports, step offsets shift by 1 after Upload
+  const analyzeStep = isConversion ? 2 : 1;
+  const configStep = isConversion ? 3 : 2;
+  const optimizeStep = isConversion ? 4 : 3;
+  const reviewStep = isConversion ? 5 : 4;
+  const doneStep = isConversion ? 6 : 5;
+
   const handleFileSelected = (f: File) => {
     setFile(f);
-    setStep(1);
+    if (isConversion) {
+      // Future: trigger conversion step here
+      setStep(analyzeStep);
+    } else {
+      setStep(analyzeStep);
+    }
     handleAnalyze(f);
   };
 
@@ -61,7 +87,7 @@ export default function OptimizePage() {
     try {
       const res = await analyzeModel(f);
       setAnalysis(res);
-      setStep(2);
+      setStep(configStep);
     } catch (e: any) {
       toast({ title: "Analysis failed", description: e.message, variant: "destructive" });
       setStep(0);
@@ -72,16 +98,16 @@ export default function OptimizePage() {
 
   const handleOptimize = async () => {
     if (!file) return;
-    setStep(3);
+    setStep(optimizeStep);
     setLoading(true);
     try {
       const res = await optimizeModel(file, options);
       setResult(res);
-      setStep(4);
+      setStep(reviewStep);
       toast({ title: "Optimization complete", description: `Job ID: ${res.jobId}` });
     } catch (e: any) {
       toast({ title: "Optimization failed", description: e.message, variant: "destructive" });
-      setStep(2);
+      setStep(configStep);
     } finally {
       setLoading(false);
     }
@@ -96,7 +122,7 @@ export default function OptimizePage() {
     try {
       await syncToBjorq([result.metadata.id]);
       toast({ title: "Synced to Bjorq" });
-      setStep(5);
+      setStep(doneStep);
     } catch (e: any) {
       toast({ title: "Sync failed", description: e.message, variant: "destructive" });
     }
@@ -119,15 +145,25 @@ export default function OptimizePage() {
         </p>
       </div>
 
-      <PipelineStepper steps={STEPS} currentStep={step} />
+      <PipelineStepper steps={steps} currentStep={step} />
 
       {/* Step 0: Upload */}
       {step === 0 && (
         <FileUploader onFileSelected={handleFileSelected} isLoading={loading} />
       )}
 
-      {/* Step 1: Analyzing */}
-      {step === 1 && loading && (
+      {/* Conversion step (future — only shown for converted-project imports) */}
+      {isConversion && step === 1 && (
+        <Card>
+          <CardContent className="py-10 text-center text-muted-foreground space-y-2">
+            <p>Converting source model to GLB…</p>
+            <p className="text-xs italic">Conversion backend not yet available.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Analyzing */}
+      {step === analyzeStep && loading && (
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground">
             Analyzing model…
@@ -135,8 +171,8 @@ export default function OptimizePage() {
         </Card>
       )}
 
-      {/* Step 2: Configure */}
-      {step === 2 && analysis && (
+      {/* Configure */}
+      {step === configStep && analysis && (
         <div className="space-y-4">
           <AnalysisResults data={analysis.analysis} />
           <OptimizeOptionsPanel options={options} onChange={setOptions} />
@@ -146,8 +182,8 @@ export default function OptimizePage() {
         </div>
       )}
 
-      {/* Step 3: Optimizing */}
-      {step === 3 && loading && (
+      {/* Optimizing */}
+      {step === optimizeStep && loading && (
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground">
             Optimizing…
@@ -155,8 +191,8 @@ export default function OptimizePage() {
         </Card>
       )}
 
-      {/* Step 4: Review */}
-      {step === 4 && result && (
+      {/* Review */}
+      {step === reviewStep && result && (
         <div className="space-y-4">
           <StatsComparison stats={result.stats} />
 
@@ -203,7 +239,7 @@ export default function OptimizePage() {
           </Card>
 
           <div className="flex gap-3">
-            <Button className="flex-1 gap-1.5" variant="outline" onClick={() => setStep(5)}>
+            <Button className="flex-1 gap-1.5" variant="outline" onClick={() => setStep(doneStep)}>
               <FolderPlus className="h-4 w-4" /> Save to Catalog
             </Button>
             <Button className="flex-1 gap-1.5" onClick={handleSync}>
@@ -213,8 +249,8 @@ export default function OptimizePage() {
         </div>
       )}
 
-      {/* Step 5: Done */}
-      {step === 5 && (
+      {/* Done */}
+      {step === doneStep && (
         <Card>
           <CardContent className="py-10 text-center space-y-3">
             <p className="text-foreground font-medium">Pipeline complete!</p>
