@@ -1,4 +1,4 @@
-import { Upload, Wand2, LayoutGrid, FolderPlus, Activity } from "lucide-react";
+import { Upload, Wand2, LayoutGrid, FolderPlus, Activity, Plug } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import bjorqLogo from "@/assets/bjorq-wizard-logo.png";
