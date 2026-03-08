@@ -197,8 +197,8 @@ export default function OptimizePage() {
       {step === reviewStep && result && (
         <ReviewSection
           result={result}
-          onSave={() => setStep(doneStep)}
-          onSync={handleSync}
+          onSave={handleSaveToCatalog}
+          saving={loading}
         />
       )}
 
