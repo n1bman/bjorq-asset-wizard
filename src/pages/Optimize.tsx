@@ -88,8 +88,8 @@ export default function OptimizePage() {
       const res = await analyzeModel(f);
       setAnalysis(res);
       setStep(configStep);
-    } catch (e: any) {
-      toast({ title: "Analysis failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Analysis failed", description: e instanceof Error ? e.message : "Analysis error", variant: "destructive" });
       setStep(0);
     } finally {
       setLoading(false);
