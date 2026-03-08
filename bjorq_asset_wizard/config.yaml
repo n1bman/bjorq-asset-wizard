@@ -4,7 +4,7 @@
 # Reference: https://developers.home-assistant.io/docs/add-ons/configuration
 
 name: Bjorq Asset Wizard
-version: "0.1.4"
+version: "0.1.5"
 slug: bjorq_asset_wizard
 description: "3D asset analysis, optimization, and catalog service for Bjorq"
 url: "https://github.com/n1bman/bjorq-asset-wizard"
@@ -16,13 +16,13 @@ arch:
 
 # Network
 ports:
-  3000/tcp: null
+  3500/tcp: null
 ports_description:
-  3000/tcp: "Asset Wizard API (ingress only)"
+  3500/tcp: "Asset Wizard API (ingress only)"
 
 # Ingress — enables iframe panel in HA sidebar
 ingress: true
-ingress_port: 3000
+ingress_port: 3500
 panel_icon: mdi:cube-scan
 panel_title: Bjorq Wizard
 

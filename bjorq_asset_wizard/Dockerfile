@@ -21,9 +21,9 @@ RUN chmod +x /run.sh
 
 # Runtime environment
 ENV NODE_ENV=production \
-    PORT=3000 \
+    PORT=3500 \
     HOST=0.0.0.0
 
-EXPOSE 3000
+EXPOSE 3500
 
 CMD ["/run.sh"]
