@@ -25,8 +25,8 @@ export default function UploadAnalyze() {
     try {
       const res = await analyzeModel(file);
       setResult(res);
-    } catch (e: any) {
-      toast({ title: "Analysis failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Analysis failed", description: e instanceof Error ? e.message : "Analysis error", variant: "destructive" });
     } finally {
       setLoading(false);
     }

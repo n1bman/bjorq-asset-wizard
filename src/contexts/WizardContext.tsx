@@ -1,3 +1,4 @@
+// eslint-disable-next-line react-refresh/only-export-components
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import type { ConnectionStatus, HealthResponse, VersionResponse } from "@/types/api";
 import { wizardClient } from "@/services/wizard-client";

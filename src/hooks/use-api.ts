@@ -28,8 +28,9 @@ export function useApi<T>(
     try {
       const data = await fnRef.current();
       setState({ data, loading: false, error: null });
-    } catch (e: any) {
-      setState((s) => ({ ...s, loading: false, error: e.message ?? "Unknown error" }));
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Unknown error";
+      setState((s) => ({ ...s, loading: false, error: message }));
     }
   }, []);
 

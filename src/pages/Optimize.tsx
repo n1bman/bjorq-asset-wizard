@@ -123,8 +123,8 @@ export default function OptimizePage() {
       await syncToBjorq([result.metadata.id]);
       toast({ title: "Synced to Bjorq" });
       setStep(doneStep);
-    } catch (e: any) {
-      toast({ title: "Sync failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Sync failed", description: e instanceof Error ? e.message : "Sync error", variant: "destructive" });
     }
   };
 
