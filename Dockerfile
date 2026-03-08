@@ -16,8 +16,8 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ vips-dev
 
 # Copy backend package files
-COPY server/package.json server/package-lock.json* ./
-RUN npm ci --ignore-scripts
+COPY server/package.json ./
+RUN npm install --ignore-scripts
 RUN npm rebuild sharp
 
 COPY server/tsconfig.json ./
@@ -38,8 +38,8 @@ RUN addgroup -g 1001 -S bjorq && \
     adduser -S bjorq -u 1001 -G bjorq
 
 # Copy built output and production deps
-COPY server/package.json server/package-lock.json* ./
-RUN npm ci --omit=dev --ignore-scripts
+COPY server/package.json ./
+RUN npm install --omit=dev --ignore-scripts
 
 # Copy sharp native bindings from builder
 COPY --from=builder /app/node_modules/sharp /app/node_modules/sharp
