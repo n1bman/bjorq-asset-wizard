@@ -17,8 +17,7 @@ RUN apk add --no-cache python3 make g++ vips-dev
 
 # Copy backend package files
 COPY server/package.json ./
-RUN npm install --ignore-scripts
-RUN npm rebuild sharp
+RUN npm install
 
 COPY server/tsconfig.json ./
 COPY server/src/ ./src/
@@ -39,10 +38,7 @@ RUN addgroup -g 1001 -S bjorq && \
 
 # Copy built output and production deps
 COPY server/package.json ./
-RUN npm install --omit=dev --ignore-scripts
-
-# Copy sharp native bindings from builder
-COPY --from=builder /app/node_modules/sharp /app/node_modules/sharp
+RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 
