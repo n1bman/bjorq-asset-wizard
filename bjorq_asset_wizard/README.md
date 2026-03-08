@@ -18,60 +18,48 @@
 
 ## Add-on Packaging
 
-Home Assistant builds the add-on only from this directory (`bjorq_asset_wizard/`).
-The backend server source lives at `server/` in the repo root, so it must be staged
-into this directory before the HA builder runs.
+The Wizard add-on uses a **prebuilt GHCR image**, the same approach as the Dashboard add-on.
+Home Assistant pulls the image directly from `ghcr.io/n1bman/bjorq-asset-wizard-{arch}` —
+no local Docker build is required during installation or updates.
 
-### Preparing the add-on
+### How it works
 
-From the repo root:
+1. A GitHub Actions workflow (`.github/workflows/docker.yml`) builds per-architecture images on each `v*` tag
+2. Images are pushed to GHCR as `ghcr.io/n1bman/bjorq-asset-wizard-amd64` and `ghcr.io/n1bman/bjorq-asset-wizard-aarch64`
+3. `config.yaml` contains `image: ghcr.io/n1bman/bjorq-asset-wizard-{arch}` — HA resolves `{arch}` at install time
+4. Version updates are controlled by bumping the version in `config.yaml` and publishing a matching tagged image
 
-```bash
-./bjorq_asset_wizard/prepare-addon.sh
-```
+### Releasing a new version
 
-This copies the following into `bjorq_asset_wizard/server/`:
+1. Update the `version` field in `bjorq_asset_wizard/config.yaml`
+2. Commit and push
+3. Create a git tag matching the version: `git tag v0.2.1 && git push origin v0.2.1`
+4. GitHub Actions builds and pushes the per-arch images
+5. HA picks up the new version on next add-on store refresh
 
-| File | Purpose |
-|------|---------|
-| `server/package.json` | Backend dependencies |
-| `server/package-lock.json` | Lockfile (if present) |
-| `server/tsconfig.json` | TypeScript config |
-| `server/src/` | Backend source code |
+### Local development / testing
 
-The staged `server/` directory is git-ignored — it is only needed at build time.
-
-### Build flow
-
-1. `prepare-addon.sh` stages server files into this directory
-2. HA builder runs `Dockerfile` with this directory as context
-3. Dockerfile installs deps, compiles TypeScript, sets up runtime
-4. `run.sh` reads HA config options and starts the Node.js server
-
-### Testing locally
+The `Dockerfile` and `prepare-addon.sh` in this directory are retained for local testing only.
+They are **not used** by Home Assistant during installation.
 
 ```bash
-# Stage files
+# Stage server source into this directory
 ./bjorq_asset_wizard/prepare-addon.sh
 
-# Build Docker image
+# Build locally
 cd bjorq_asset_wizard
 docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t bjorq-wizard-test .
 ```
 
-## Wizard vs Dashboard Packaging
-
-The **Wizard** add-on builds locally from `Dockerfile` + `build.yaml` — HA compiles the image on the host machine. The **Dashboard** add-on uses a prebuilt `image:` field from a container registry. Because Wizard is built locally, it is more sensitive to HA's repository cache (see troubleshooting below).
-
 ## Troubleshooting: HA Shows Wrong Version
 
-If Home Assistant still shows an old version (e.g. 0.1.0) or reports "dockerfile is missing":
+If Home Assistant still shows an old version after a release:
 
 1. Go to **Settings → Add-ons → Add-on Store** (⋮ menu → **Repositories**)
 2. **Remove** the repository URL
 3. Click **Reload** (top-right ⋮ menu)
 4. **Re-add** the repository URL
-5. Verify the correct version (currently **0.2.0**) appears before clicking Install
+5. Verify the correct version (currently **0.2.1**) appears before clicking Install
 6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
 
 ## Configuration

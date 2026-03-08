@@ -4,10 +4,13 @@
 # Reference: https://developers.home-assistant.io/docs/add-ons/configuration
 
 name: Bjorq Asset Wizard
-version: "0.2.0"
+version: "0.2.1"
 slug: bjorq_asset_wizard
 description: "3D asset analysis, optimization, and catalog service for Bjorq"
 url: "https://github.com/n1bman/bjorq-asset-wizard"
+
+# Prebuilt image — HA pulls from GHCR instead of building locally
+image: "ghcr.io/n1bman/bjorq-asset-wizard-{arch}"
 
 # Supported architectures
 arch:
