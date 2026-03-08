@@ -37,6 +37,9 @@ no local Docker build is required during installation or updates.
 4. GitHub Actions builds and pushes the per-arch images
 5. HA picks up the new version on next add-on store refresh
 
+> **Important**: Home Assistant cannot install a version until the matching GHCR image exists. All three steps (version bump in `config.yaml` → git tag → successful Docker workflow) must complete before the add-on is installable. If the workflow fails, HA will show the version but fail to pull the image.
+
+
 ### Local development / testing
 
 The `Dockerfile` and `prepare-addon.sh` in this directory are retained for local testing only.
