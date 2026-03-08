@@ -108,18 +108,25 @@ export default function OptimizePage() {
     }
   };
 
-  const handleSync = async () => {
+  const handleSaveToCatalog = async () => {
     if (!result) return;
-    if (!isConnected) {
-      toast({ title: "Sync unavailable", description: "Backend not connected", variant: "destructive" });
-      return;
-    }
+    setLoading(true);
     try {
-      await syncToBjorq([result.metadata.id]);
-      toast({ title: "Synced to Bjorq" });
+      const meta: IngestMeta = {
+        id: result.metadata.id,
+        name: result.metadata.name || result.metadata.id,
+        category: result.metadata.category || "uncategorized",
+        subcategory: result.metadata.subcategory || "general",
+        style: result.metadata.style || "",
+        dimensions: result.metadata.dimensions,
+      };
+      await ingestAsset(meta, undefined, undefined, result.jobId);
+      toast({ title: "Saved to catalog", description: `Asset ${meta.name} ingested successfully.` });
       setStep(doneStep);
     } catch (e: unknown) {
-      toast({ title: "Sync failed", description: e instanceof Error ? e.message : "Sync error", variant: "destructive" });
+      toast({ title: "Save failed", description: e instanceof Error ? e.message : "Ingest error", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
