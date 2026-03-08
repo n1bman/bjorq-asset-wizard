@@ -4,14 +4,13 @@ import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { OptimizeOptionsPanel } from "@/components/optimize/OptimizeOptions";
 import { StatsComparison } from "@/components/optimize/StatsComparison";
 import { PipelineStepper } from "@/components/optimize/PipelineStepper";
-import { analyzeModel, optimizeModel, syncToBjorq } from "@/services/api";
+import { analyzeModel, optimizeModel, ingestAsset } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { useConnection } from "@/contexts/ConnectionContext";
-import type { OptimizeOptions, OptimizeResponse, AnalysisResponse, ImportType } from "@/types/api";
+import type { OptimizeOptions, OptimizeResponse, AnalysisResponse, ImportType, IngestMeta } from "@/types/api";
 import { Download, FolderPlus, RefreshCw, AlertTriangle, Hash, Tag, Briefcase } from "lucide-react";
 
 const DIRECT_STEPS = [
@@ -53,7 +52,6 @@ const defaultOptions: OptimizeOptions = {
 
 export default function OptimizePage() {
   const { toast } = useToast();
-  const { isConnected } = useConnection();
   const [importType] = useState<ImportType>("direct-upload");
   const [step, setStep] = useState(0);
   const [file, setFile] = useState<File | null>(null);
@@ -108,18 +106,25 @@ export default function OptimizePage() {
     }
   };
 
-  const handleSync = async () => {
+  const handleSaveToCatalog = async () => {
     if (!result) return;
-    if (!isConnected) {
-      toast({ title: "Sync unavailable", description: "Backend not connected", variant: "destructive" });
-      return;
-    }
+    setLoading(true);
     try {
-      await syncToBjorq([result.metadata.id]);
-      toast({ title: "Synced to Bjorq" });
+      const meta: IngestMeta = {
+        id: result.metadata.id,
+        name: result.metadata.name || result.metadata.id,
+        category: result.metadata.category || "uncategorized",
+        subcategory: result.metadata.subcategory || "general",
+        style: result.metadata.style || "",
+        dimensions: result.metadata.dimensions,
+      };
+      await ingestAsset(meta, undefined, undefined, result.jobId);
+      toast({ title: "Saved to catalog", description: `Asset ${meta.name} ingested successfully.` });
       setStep(doneStep);
     } catch (e: unknown) {
-      toast({ title: "Sync failed", description: e instanceof Error ? e.message : "Sync error", variant: "destructive" });
+      toast({ title: "Save failed", description: e instanceof Error ? e.message : "Ingest error", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -190,8 +195,8 @@ export default function OptimizePage() {
       {step === reviewStep && result && (
         <ReviewSection
           result={result}
-          onSave={() => setStep(doneStep)}
-          onSync={handleSync}
+          onSave={handleSaveToCatalog}
+          saving={loading}
         />
       )}
 
@@ -218,11 +223,11 @@ export default function OptimizePage() {
 function ReviewSection({
   result,
   onSave,
-  onSync,
+  saving,
 }: {
   result: OptimizeResponse;
   onSave: () => void;
-  onSync: () => void;
+  saving?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -353,12 +358,23 @@ function ReviewSection({
       </Card>
 
       <div className="flex gap-3">
-        <Button className="flex-1 gap-1.5" variant="outline" onClick={onSave}>
-          <FolderPlus className="h-4 w-4" /> Save to Catalog
+        <Button className="flex-1 gap-1.5" onClick={onSave} disabled={saving}>
+          <FolderPlus className="h-4 w-4" /> {saving ? "Saving…" : "Save to Catalog"}
         </Button>
-        <Button className="flex-1 gap-1.5" onClick={onSync}>
-          <RefreshCw className="h-4 w-4" /> Sync to Bjorq
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex-1">
+                <Button className="w-full gap-1.5" variant="outline" disabled>
+                  <RefreshCw className="h-4 w-4" /> Sync to Bjorq
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">Dashboard sync not yet available</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );

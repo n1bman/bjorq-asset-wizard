@@ -1,16 +1,29 @@
 /**
  * Bjorq Asset Wizard — Backend Entry Point
  *
- * Fastify server that provides the API for 3D asset analysis,
- * optimization, and catalog management.
+ * Fastify server providing the API for 3D asset analysis,
+ * optimization, catalog management, and (future) dashboard sync.
  *
- * Status: Scaffolding — route stubs return 501 until implemented.
- * Only /health and /version are fully functional.
+ * Implemented:
+ *   /health, /version — system status
+ *   /analyze — GLB model analysis
+ *   /optimize — full optimization pipeline
+ *   /catalog/index — browse persisted catalog
+ *   /catalog/ingest — save optimized assets to catalog
+ *   /catalog/reindex — rebuild catalog manifest
+ *   /jobs/* — static file serving for job outputs
+ *   /catalog/files/* — static file serving for catalog assets
+ *
+ * Stubs (501):
+ *   /sync — dashboard sync (coming next)
+ *   /import/* — conversion-based import (future)
  */
 
 import Fastify, { FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
+import fastifyStatic from "@fastify/static";
+import { resolve } from "node:path";
 import { createLoggerConfig } from "./lib/logger.js";
 import { initStorage } from "./lib/storage.js";
 import { healthRoutes } from "./routes/health.js";
@@ -23,6 +36,7 @@ import { importRoutes } from "./routes/import.js";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
+const STORAGE_PATH = resolve(process.env.STORAGE_PATH || "./storage");
 
 async function start() {
   const server = Fastify({
@@ -70,6 +84,24 @@ async function start() {
     limits: {
       fileSize: MAX_FILE_SIZE,
     },
+  });
+
+  // --- Static file serving for job outputs ---
+  await server.register(fastifyStatic, {
+    root: resolve(STORAGE_PATH, "jobs"),
+    prefix: "/jobs/",
+    decorateReply: false,
+    serve: true,
+    wildcard: true,
+  });
+
+  // --- Static file serving for catalog assets ---
+  await server.register(fastifyStatic, {
+    root: resolve(STORAGE_PATH, "catalog"),
+    prefix: "/catalog/files/",
+    decorateReply: false,
+    serve: true,
+    wildcard: true,
   });
 
   // --- Storage initialization ---
