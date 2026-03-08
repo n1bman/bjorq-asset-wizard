@@ -1,6 +1,6 @@
 # Bjorq Asset Wizard — Developer Handbook
 
-Practical reference for developing and extending the Bjorq Asset Wizard frontend.
+Practical reference for developing and extending the Bjorq Asset Wizard.
 
 ---
 
@@ -10,40 +10,35 @@ Bjorq Asset Wizard is a dashboard for managing 3D assets in the Bjorq ecosystem.
 
 ---
 
-## Folder Structure
+## Repository Structure
+
+This is a monorepo containing both the frontend dashboard and backend service scaffolding.
 
 ```
-src/
-├── pages/              # Route-level page components
-├── components/
-│   ├── layout/         # AppLayout, AppSidebar
-│   ├── analysis/       # Analysis results, performance badges
-│   ├── optimize/       # Pipeline stepper, options, stats comparison
-│   ├── catalog/        # Asset cards, grid, filters, detail drawer, status badges
-│   ├── wizard/         # Wizard integration components (settings, status, catalog browser)
-│   ├── system/         # Health status, connection card, version info, storage stats
-│   ├── upload/         # File uploader (drag & drop)
-│   ├── ingest/         # Ingest metadata form
-│   ├── sync/           # Sync status bar
-│   └── ui/             # shadcn/ui base components (do not modify directly)
-├── contexts/
-│   ├── ConnectionContext.tsx   # Backend connection state (connected/disconnected/mock)
-│   └── WizardContext.tsx       # Wizard integration state
-├── services/
-│   ├── api-client.ts          # HTTP client singleton with timeout, error handling
-│   ├── api.ts                 # Service functions with mock fallback
-│   ├── mock-data.ts           # Mock responses for offline development
-│   ├── wizard-client.ts       # Wizard-specific API client
-│   └── wizard-mock-data.ts    # Wizard mock data
-├── hooks/
-│   ├── use-api.ts             # Generic API call hook (loading/error/data)
-│   ├── use-mobile.tsx         # Mobile breakpoint detection
-│   └── use-toast.ts           # Toast notification hook
-├── types/
-│   └── api.ts                 # All TypeScript types for API requests/responses
-├── lib/
-│   └── utils.ts               # Utility functions (cn, etc.)
-└── assets/                    # Static assets (logo, etc.)
+bjorq-asset-wizard/
+├── src/                        # Frontend (React + Vite)
+│   ├── pages/                  # Route-level page components
+│   ├── components/             # UI components by domain
+│   ├── contexts/               # React context providers
+│   ├── services/               # API client, service functions, mock data
+│   ├── hooks/                  # Custom React hooks
+│   ├── types/                  # TypeScript type definitions
+│   ├── lib/                    # Utilities
+│   └── assets/                 # Static assets (logo, etc.)
+├── server/                     # Backend (Node.js + Fastify) — scaffolded
+│   ├── src/
+│   │   ├── index.ts            # Fastify entry point
+│   │   ├── routes/             # Route handlers (stubs)
+│   │   └── lib/                # Storage helpers, utilities
+│   ├── package.json            # Backend dependencies
+│   ├── tsconfig.json           # Backend TypeScript config
+│   └── .env.example            # Environment variable reference
+├── .github/workflows/          # CI, Docker, release workflows
+├── ha-addon/                   # Home Assistant add-on packaging
+├── Dockerfile                  # Backend production container
+├── docker-compose.yml          # Local development
+├── package.json                # Frontend dependencies
+└── docs/                       # Documentation
 ```
 
 ---
@@ -154,6 +149,75 @@ The backend URL can be changed in the Wizard Integration settings page or by set
 
 ---
 
+## Backend Development
+
+### Structure
+
+The backend lives in `server/` with its own `package.json`, `tsconfig.json`, and `src/` directory.
+
+```
+server/src/
+├── index.ts            # Fastify entry point — registers plugins and routes
+├── routes/
+│   ├── health.ts       # GET /health, GET /version (✅ implemented)
+│   ├── analyze.ts      # POST /analyze (stub — returns 501)
+│   ├── optimize.ts     # POST /optimize (stub — returns 501)
+│   ├── catalog.ts      # GET /catalog/index, POST /catalog/ingest, POST /catalog/reindex (stubs)
+│   ├── sync.ts         # POST /sync (stub)
+│   └── import.ts       # POST /import/direct, POST /import/convert (stubs)
+└── lib/
+    └── storage.ts      # Storage path helpers and directory initialization
+```
+
+### Getting started
+
+```bash
+cd server
+npm install
+npm run dev    # Starts with tsx watch on port 3500
+```
+
+### Implementing an endpoint
+
+Each route file exports an async function that registers Fastify routes. To implement a stub:
+
+1. Replace the 501 response with actual logic
+2. Use `@gltf-transform/core` for GLB/glTF parsing (listed as optional dependency)
+3. Use `sharp` for thumbnail generation
+4. Follow the response schemas in `docs/bjorq-asset-optimizer/API_SPEC.md`
+5. The frontend will automatically use real responses when the backend is running
+
+### Docker
+
+```bash
+# Build the backend container
+docker build -t bjorq-asset-wizard .
+
+# Run with persistent storage
+docker run -p 3500:3500 -v wizard-data:/app/storage bjorq-asset-wizard
+
+# Or use docker-compose for local development
+docker compose up -d
+```
+
+### CI/CD
+
+GitHub Actions workflows in `.github/workflows/`:
+- `ci.yml` — Runs lint, typecheck, build, and test for both frontend and backend
+- `docker.yml` — Builds and pushes Docker image on version tags (v*)
+- `release.yml` — Manual workflow to create semver tags and GitHub releases
+
+### Home Assistant Add-on
+
+The `ha-addon/` directory contains the packaging scaffold:
+- `config.yaml` — Add-on manifest with options schema
+- `run.sh` — Entry point that maps HA options to environment variables
+- `DOCS.md` — User-facing documentation
+
+The add-on uses the same Docker image with HA-specific storage paths (`/data/storage`, `/data/catalog`).
+
+---
+
 ## Conventions
 
 ### Do
@@ -182,7 +246,7 @@ User uploads a GLB/glTF file → analysis → optimization → catalog ingest. T
 
 ### Conversion Import (UI prepared, backend pending)
 
-User uploads a larger project file (SketchUp, IFC, OBJ, FBX) → backend converts to GLB → standard pipeline. The UI shows a "coming soon" panel for this path. The `POST /import/convert` endpoint stub exists in `api.ts` but requires the backend implementation.
+User uploads a larger project file (SketchUp, IFC, OBJ, FBX) → backend converts to GLB → standard pipeline. The UI shows a "coming soon" panel for this path. The `POST /import/convert` endpoint stub exists in both `api.ts` and `server/src/routes/import.ts` but requires the backend implementation.
 
 ---
 

@@ -1,0 +1,52 @@
+# Frontend source (not needed in backend container)
+src/
+public/
+index.html
+vite.config.ts
+postcss.config.js
+tailwind.config.ts
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+components.json
+
+# Dependencies (rebuilt in container)
+node_modules/
+server/node_modules/
+
+# Build output (rebuilt in container)
+dist/
+server/dist/
+
+# Development
+.env
+.env.local
+*.log
+
+# Storage (mounted as volume)
+storage/
+
+# Tests & docs
+**/*.test.ts
+**/*.spec.ts
+__tests__/
+docs/
+
+# Git & IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Docker (avoid recursive context)
+.dockerignore
+
+# HA add-on files
+ha-addon/
+
+# GitHub Actions
+.github/
+
+# OS
+.DS_Store
+Thumbs.db
