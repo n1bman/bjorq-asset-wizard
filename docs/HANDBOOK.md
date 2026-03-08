@@ -218,6 +218,57 @@ The add-on uses the same Docker image with HA-specific storage paths (`/data/sto
 
 ---
 
+## Logging
+
+The backend uses **pino** (built into Fastify) for structured logging.
+
+### Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOG_LEVEL` | `info` | Log level: `debug`, `info`, `warn`, `error`, `fatal` |
+| `LOG_FILE` | _(empty)_ | Optional file path for persistent log output (JSON format) |
+
+- **Development**: Pretty-printed colored output to stdout (via `pino-pretty`)
+- **Production**: Structured JSON to stdout (and to `LOG_FILE` if set)
+
+### Log file locations
+
+| Environment | Recommended `LOG_FILE` |
+|-------------|----------------------|
+| Local dev | `./storage/logs/wizard.log` |
+| Docker | `/app/storage/logs/wizard.log` (set in `docker-compose.yml`) |
+| HA add-on | `/data/storage/logs/wizard.log` (set automatically in `run.sh`) |
+
+### Request logging
+
+All requests are logged automatically via Fastify's `onResponse` hook with:
+- `method`, `url`, `statusCode`, `responseTime` (ms)
+
+### Job tracing
+
+Pipeline operations (analyze, optimize, ingest) should use scoped child loggers with a unique `jobId`:
+
+```typescript
+import { createJobLogger, generateJobId } from "../lib/logger.js";
+
+const jobId = generateJobId();
+const log = createJobLogger(request.log, jobId, "analyze");
+
+log.info({ fileName: "model.glb" }, "Starting analysis");
+// All entries include { jobId: "abc-123", jobType: "analyze" }
+log.info({ meshCount: 12 }, "Analysis complete");
+```
+
+Filter logs by job: `cat wizard.log | grep '"jobId":"abc-123"'`
+
+### Error handling
+
+- Route errors → caught by `setErrorHandler`, logged with full stack trace
+- Uncaught exceptions / unhandled rejections → logged as `fatal`, process exits
+
+---
+
 ## Conventions
 
 ### Do
