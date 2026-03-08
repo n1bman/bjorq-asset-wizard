@@ -225,11 +225,11 @@ export default function OptimizePage() {
 function ReviewSection({
   result,
   onSave,
-  onSync,
+  saving,
 }: {
   result: OptimizeResponse;
   onSave: () => void;
-  onSync: () => void;
+  saving?: boolean;
 }) {
   return (
     <div className="space-y-4">
