@@ -88,8 +88,8 @@ export default function OptimizePage() {
       const res = await analyzeModel(f);
       setAnalysis(res);
       setStep(configStep);
-    } catch (e: any) {
-      toast({ title: "Analysis failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Analysis failed", description: e instanceof Error ? e.message : "Analysis error", variant: "destructive" });
       setStep(0);
     } finally {
       setLoading(false);
@@ -105,8 +105,8 @@ export default function OptimizePage() {
       setResult(res);
       setStep(reviewStep);
       toast({ title: "Optimization complete", description: `Job ID: ${res.jobId}` });
-    } catch (e: any) {
-      toast({ title: "Optimization failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Optimization failed", description: e instanceof Error ? e.message : "Optimization error", variant: "destructive" });
       setStep(configStep);
     } finally {
       setLoading(false);
@@ -123,8 +123,8 @@ export default function OptimizePage() {
       await syncToBjorq([result.metadata.id]);
       toast({ title: "Synced to Bjorq" });
       setStep(doneStep);
-    } catch (e: any) {
-      toast({ title: "Sync failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Sync failed", description: e instanceof Error ? e.message : "Sync error", variant: "destructive" });
     }
   };
 
