@@ -16,13 +16,13 @@ arch:
 
 # Network
 ports:
-  3500/tcp: 3500
+  3000/tcp: 3000
 ports_description:
-  3500/tcp: "Asset Wizard API"
+  3000/tcp: "Asset Wizard API"
 
 # Ingress — enables iframe panel in HA sidebar
 ingress: true
-ingress_port: 3500
+ingress_port: 3000
 panel_icon: mdi:cube-scan
 panel_title: Bjorq Wizard
 
