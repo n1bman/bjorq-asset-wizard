@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ConnectionProvider } from "@/contexts/ConnectionContext";
+import { WizardProvider } from "@/contexts/WizardContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import UploadAnalyze from "@/pages/UploadAnalyze";
 import Optimize from "@/pages/Optimize";
@@ -12,6 +13,7 @@ import AssetDetail from "@/pages/AssetDetail";
 import CatalogIngest from "@/pages/CatalogIngest";
 import SystemStatus from "@/pages/SystemStatus";
 import NotFound from "@/pages/NotFound";
+import WizardIntegration from "@/pages/WizardIntegration";
 
 const queryClient = new QueryClient();
 
@@ -19,21 +21,24 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ConnectionProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<UploadAnalyze />} />
-              <Route path="/optimize" element={<Optimize />} />
-              <Route path="/catalog" element={<Catalog />} />
-              <Route path="/catalog/:id" element={<AssetDetail />} />
-              <Route path="/ingest" element={<CatalogIngest />} />
-              <Route path="/system" element={<SystemStatus />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <WizardProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<UploadAnalyze />} />
+                <Route path="/optimize" element={<Optimize />} />
+                <Route path="/catalog" element={<Catalog />} />
+                <Route path="/catalog/:id" element={<AssetDetail />} />
+                <Route path="/ingest" element={<CatalogIngest />} />
+                <Route path="/system" element={<SystemStatus />} />
+                <Route path="/wizard" element={<WizardIntegration />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </WizardProvider>
       </ConnectionProvider>
     </TooltipProvider>
   </QueryClientProvider>

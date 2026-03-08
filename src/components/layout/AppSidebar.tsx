@@ -1,4 +1,4 @@
-import { Upload, Wand2, LayoutGrid, FolderPlus, Activity } from "lucide-react";
+import { Upload, Wand2, LayoutGrid, FolderPlus, Activity, Plug } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import bjorqLogo from "@/assets/bjorq-wizard-logo.png";
@@ -27,6 +27,10 @@ const catalogItems = [
 
 const systemItems = [
   { title: "Status", url: "/system", icon: Activity },
+];
+
+const integrationItems = [
+  { title: "Wizard", url: "/wizard", icon: Plug },
 ];
 
 export function AppSidebar() {
@@ -77,6 +81,7 @@ export function AppSidebar() {
         {renderGroup("Pipeline", pipelineItems)}
         {renderGroup("Catalog", catalogItems)}
         {renderGroup("System", systemItems)}
+        {renderGroup("Integration", integrationItems)}
       </SidebarContent>
     </Sidebar>
   );

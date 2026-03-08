@@ -7,6 +7,7 @@ const sourceConfig: Record<AssetSource, { label: string; className: string }> = 
   optimized: { label: "Optimized", className: "bg-primary/15 text-primary border-primary/30" },
   catalog:   { label: "Catalog",   className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
   synced:    { label: "Synced",    className: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
+  wizard:    { label: "Wizard",    className: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
 };
 
 const syncConfig: Record<SyncStatus, { label: string; dot: string }> = {
