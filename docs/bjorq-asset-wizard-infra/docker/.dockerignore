@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output (rebuilt in container)
+dist/
+
+# Development
+.env
+.env.local
+*.log
+
+# Storage (mounted as volume)
+storage/
+public/catalog/
+
+# Tests & docs
+src/**/*.test.ts
+src/**/*.spec.ts
+__tests__/
+docs/
+*.md
+!README.md
+
+# Git & IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Docker (avoid recursive context)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# HA add-on files
+config.yaml
+run.sh
+DOCS.md
+
+# OS
+.DS_Store
+Thumbs.db
