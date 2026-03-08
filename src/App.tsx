@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ConnectionProvider } from "@/contexts/ConnectionContext";
+import { WizardProvider } from "@/contexts/WizardContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import UploadAnalyze from "@/pages/UploadAnalyze";
 import Optimize from "@/pages/Optimize";
