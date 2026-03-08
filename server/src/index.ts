@@ -8,7 +8,7 @@
  * Only /health and /version are fully functional.
  */
 
-import Fastify from "fastify";
+import Fastify, { FastifyError }, { FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { createLoggerConfig } from "./lib/logger.js";
@@ -30,7 +30,7 @@ async function start() {
   });
 
   // --- Global error handler ---
-  server.setErrorHandler((error, request, reply) => {
+  server.setE: FastifyErrorrrorHandler((error, request, reply) => {
     request.log.error(
       {
         err: error,
