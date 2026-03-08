@@ -40,8 +40,8 @@ export function IngestForm() {
       }
       const res = await ingestAsset(payload, undefined, undefined, jobId || undefined);
       toast({ title: "Asset ingested", description: `Path: ${res.catalogEntry.path}` });
-    } catch (e: any) {
-      toast({ title: "Ingest failed", description: e.message, variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Ingest failed", description: e instanceof Error ? e.message : "Unknown error", variant: "destructive" });
     } finally {
       setLoading(false);
     }
