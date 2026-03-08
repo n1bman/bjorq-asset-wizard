@@ -1,30 +1,24 @@
 # ============================================
 # Bjorq Asset Wizard — Home Assistant Add-on
 # ============================================
-# This Dockerfile is used by the HA add-on builder.
-# Build context = this directory (bjorq_asset_wizard/).
+# Build context: bjorq_asset_wizard/ (after prepare-addon.sh)
+#
+# The prepare-addon.sh script copies server/ into this directory
+# so the HA add-on builder can access it.
 #
 # For local testing from repo root:
-#   docker build -f bjorq_asset_wizard/Dockerfile -t bjorq-addon .
-#
-# For HA add-on builder (hassio-builder):
-#   The builder uses this directory as context, so server/
-#   source is fetched via a pre-build copy step.
-#   See README.md for the prepare-addon workflow.
+#   ./bjorq_asset_wizard/prepare-addon.sh
+#   docker build -t bjorq-addon bjorq_asset_wizard/
 
-ARG BUILD_FROM
-FROM ${BUILD_FROM:-node:20-alpine} AS base
+ARG BUILD_FROM=node:20-alpine
+FROM ${BUILD_FROM} AS builder
 
-# Install Node.js (HA base images don't include it)
-RUN apk add --no-cache nodejs npm
-
-# Install build dependencies for sharp (native module)
-RUN apk add --no-cache python3 make g++ vips-dev
+# Install Node.js + build dependencies for sharp
+RUN apk add --no-cache nodejs npm python3 make g++ vips-dev
 
 WORKDIR /app
 
-# --- Build stage ---
-# Copy server source (placed here by prepare-addon.sh or CI)
+# Copy server package files
 COPY server/package.json server/package-lock.json* ./
 RUN npm ci --ignore-scripts && npm rebuild sharp
 
@@ -33,14 +27,16 @@ COPY server/src/ ./src/
 
 RUN npm run build
 
-# Remove dev dependencies
-RUN npm prune --omit=dev
+# --- Production stage ---
+FROM ${BUILD_FROM}
 
-# Remove build tools to shrink image
-RUN apk del python3 make g++
+RUN apk add --no-cache nodejs npm vips bash
 
-# Runtime dependency for sharp
-RUN apk add --no-cache vips
+WORKDIR /app
+
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
 
 # Create storage directories
 RUN mkdir -p \
@@ -55,7 +51,7 @@ RUN mkdir -p \
     /data/catalog/decor
 
 # Copy run script
-COPY bjorq_asset_wizard/run.sh /run.sh
+COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
 # Environment defaults
