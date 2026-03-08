@@ -8,10 +8,11 @@ import { analyzeModel, optimizeModel, syncToBjorq } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
 import type { OptimizeOptions, OptimizeResponse, AnalysisResponse, ImportType } from "@/types/api";
-import { Download, FolderPlus, RefreshCw } from "lucide-react";
+import { Download, FolderPlus, RefreshCw, AlertTriangle, Hash, Tag, Briefcase } from "lucide-react";
 
 const DIRECT_STEPS = [
   { label: "Upload" },
@@ -64,7 +65,6 @@ export default function OptimizePage() {
   const isConversion = importType === "converted-project";
   const steps = useMemo(() => (isConversion ? CONVERT_STEPS : DIRECT_STEPS), [isConversion]);
 
-  // For conversion imports, step offsets shift by 1 after Upload
   const analyzeStep = isConversion ? 2 : 1;
   const configStep = isConversion ? 3 : 2;
   const optimizeStep = isConversion ? 4 : 3;
@@ -73,12 +73,7 @@ export default function OptimizePage() {
 
   const handleFileSelected = (f: File) => {
     setFile(f);
-    if (isConversion) {
-      // Future: trigger conversion step here
-      setStep(analyzeStep);
-    } else {
-      setStep(analyzeStep);
-    }
+    setStep(analyzeStep);
     handleAnalyze(f);
   };
 
@@ -152,7 +147,7 @@ export default function OptimizePage() {
         <FileUploader onFileSelected={handleFileSelected} isLoading={loading} />
       )}
 
-      {/* Conversion step (future — only shown for converted-project imports) */}
+      {/* Conversion step (future) */}
       {isConversion && step === 1 && (
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground space-y-2">
@@ -193,60 +188,11 @@ export default function OptimizePage() {
 
       {/* Review */}
       {step === reviewStep && result && (
-        <div className="space-y-4">
-          <StatsComparison stats={result.stats} />
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Outputs</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                  <Download className="h-4 w-4" /> Optimized Model
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                  <Download className="h-4 w-4" /> Thumbnail
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-                  <Download className="h-4 w-4" /> Metadata JSON
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Applied Operations</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-1.5">
-                {result.optimization.applied.map((op) => (
-                  <Badge key={op} variant="secondary" className="text-xs">{op}</Badge>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Metadata preview */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Generated Metadata</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <pre className="text-xs font-mono bg-muted/50 rounded-lg p-3 overflow-auto max-h-48 text-foreground">
-                {JSON.stringify(result.metadata, null, 2)}
-              </pre>
-            </CardContent>
-          </Card>
-
-          <div className="flex gap-3">
-            <Button className="flex-1 gap-1.5" variant="outline" onClick={() => setStep(doneStep)}>
-              <FolderPlus className="h-4 w-4" /> Save to Catalog
-            </Button>
-            <Button className="flex-1 gap-1.5" onClick={handleSync}>
-              <RefreshCw className="h-4 w-4" /> Sync to Bjorq
-            </Button>
-          </div>
-        </div>
+        <ReviewSection
+          result={result}
+          onSave={() => setStep(doneStep)}
+          onSync={handleSync}
+        />
       )}
 
       {/* Done */}
@@ -263,6 +209,171 @@ export default function OptimizePage() {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+/* ── Review Section ── */
+
+function ReviewSection({
+  result,
+  onSave,
+  onSync,
+}: {
+  result: OptimizeResponse;
+  onSave: () => void;
+  onSync: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {/* Asset Identity */}
+      <Card>
+        <CardContent className="py-4">
+          <div className="grid sm:grid-cols-3 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Asset Name</p>
+                <p className="font-medium text-foreground">{result.metadata.name || "—"}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Hash className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Asset ID</p>
+                <p className="font-mono text-foreground">{result.metadata.id || "—"}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Job ID</p>
+                <p className="font-mono text-foreground text-xs">{result.jobId}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <StatsComparison stats={result.stats} />
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {/* Outputs */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Outputs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {result.outputs.optimizedModel && (
+              <OutputRow label="Optimized Model" path={result.outputs.optimizedModel} />
+            )}
+            {result.outputs.thumbnail && (
+              <OutputRow label="Thumbnail" path={result.outputs.thumbnail} />
+            )}
+            {result.outputs.metadata && (
+              <OutputRow label="Metadata JSON" path={result.outputs.metadata} />
+            )}
+            {result.outputs.report && (
+              <OutputRow label="Report" path={result.outputs.report} />
+            )}
+            {!result.outputs.optimizedModel && !result.outputs.metadata && (
+              <p className="text-muted-foreground text-xs italic">No output references available (mock data).</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Applied Operations */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Applied Operations</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-1.5">
+            {result.optimization.applied.map((op) => (
+              <Badge key={op} variant="secondary" className="text-xs">{op}</Badge>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Skipped & Warnings */}
+      {(result.optimization.skipped.length > 0 || result.optimization.warnings.length > 0) && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {result.optimization.skipped.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-muted-foreground">Skipped (V2)</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-1.5">
+                <TooltipProvider>
+                  {result.optimization.skipped.map((s) => (
+                    <Tooltip key={s.operation}>
+                      <TooltipTrigger>
+                        <Badge variant="outline" className="text-xs">{s.operation}</Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">{s.reason}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </TooltipProvider>
+              </CardContent>
+            </Card>
+          )}
+
+          {result.optimization.warnings.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-1.5">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  Warnings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1.5 text-sm">
+                {result.optimization.warnings.map((w, i) => (
+                  <p key={i} className="text-muted-foreground">
+                    <span className="font-medium text-foreground">{w.operation}:</span> {w.message}
+                  </p>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Metadata preview */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Generated Metadata</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <pre className="text-xs font-mono bg-muted/50 rounded-lg p-3 overflow-auto max-h-48 text-foreground">
+            {JSON.stringify(result.metadata, null, 2)}
+          </pre>
+        </CardContent>
+      </Card>
+
+      <div className="flex gap-3">
+        <Button className="flex-1 gap-1.5" variant="outline" onClick={onSave}>
+          <FolderPlus className="h-4 w-4" /> Save to Catalog
+        </Button>
+        <Button className="flex-1 gap-1.5" onClick={onSync}>
+          <RefreshCw className="h-4 w-4" /> Sync to Bjorq
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Output row helper ── */
+
+function OutputRow({ label, path }: { label: string; path: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Download className="h-4 w-4 text-muted-foreground shrink-0" />
+      <div className="min-w-0">
+        <p className="text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground font-mono truncate">{path}</p>
+      </div>
     </div>
   );
 }
