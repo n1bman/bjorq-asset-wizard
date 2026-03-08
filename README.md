@@ -187,9 +187,27 @@ All runtime data is stored under configurable paths:
 
 ## Home Assistant Add-on
 
-The `ha-addon/` directory contains packaging scaffolding for running the backend as an HA add-on. Configuration is managed through the HA UI. Storage persists under `/data/`.
+This repository is a valid Home Assistant add-on repository. To install:
 
-> **Status:** Scaffolded — requires a working backend before the add-on is functional.
+1. In Home Assistant, go to **Settings → Add-ons → Add-on Store**
+2. Click **⋮ → Repositories**
+3. Add: `https://github.com/n1bman/bjorq-asset-wizard`
+4. Find **Bjorq Asset Wizard** in the store and click **Install**
+
+The add-on runs the backend service with ingress support (sidebar panel). Configuration is managed through the HA UI. Storage persists under `/data/`.
+
+### Add-on Build (for development)
+
+The HA add-on builder uses `bjorq_asset_wizard/` as the build context. Since server source lives in `server/`, run the prepare script first:
+
+```bash
+chmod +x bjorq_asset_wizard/prepare-addon.sh
+./bjorq_asset_wizard/prepare-addon.sh
+```
+
+This copies `server/` into the add-on directory for the Docker build. The `bjorq_asset_wizard/server/` copy is gitignored.
+
+> **Legacy:** The `ha-addon/` directory contains the original scaffolding and is kept as reference.
 
 ---
 
