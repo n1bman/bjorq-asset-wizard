@@ -86,6 +86,11 @@ interface CatalogAssetMeta {
     confidence: string;              // "high" | "medium" | "low"
   };
 
+  // --- Optimization V2 flags (Phase 8 — non-breaking additions) ---
+  normalizationApplied?: boolean;    // true if scale transforms were baked into geometry
+  floorAlignmentApplied?: boolean;   // true if model was shifted so floor sits at Y=0
+  textureOptimizationApplied?: boolean; // true if base color textures were resized
+
   // --- Status ---
   source?: string;                   // "optimized" | "uploaded" | "catalog" | "synced"
   ingestStatus?: string;             // "ingested" | "not_ingested" | "error"
