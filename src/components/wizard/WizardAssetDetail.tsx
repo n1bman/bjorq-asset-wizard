@@ -58,25 +58,27 @@ export function WizardAssetDetail({ asset, open, onOpenChange }: Props) {
           <Separator />
 
           {/* Dimensions */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-1 text-sm font-medium text-foreground">
-              <Ruler className="h-4 w-4 text-primary" /> Dimensions
+          {asset.dimensions && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1 text-sm font-medium text-foreground">
+                <Ruler className="h-4 w-4 text-primary" /> Dimensions
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">W</p>
+                  <p className="font-medium text-foreground">{asset.dimensions.width?.toFixed(2) ?? "?"}m</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">D</p>
+                  <p className="font-medium text-foreground">{asset.dimensions.depth?.toFixed(2) ?? "?"}m</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">H</p>
+                  <p className="font-medium text-foreground">{asset.dimensions.height?.toFixed(2) ?? "?"}m</p>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center text-sm">
-              <div>
-                <p className="text-xs text-muted-foreground">W</p>
-                <p className="font-medium text-foreground">{asset.dimensions.width.toFixed(2)}m</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">D</p>
-                <p className="font-medium text-foreground">{asset.dimensions.depth.toFixed(2)}m</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">H</p>
-                <p className="font-medium text-foreground">{asset.dimensions.height.toFixed(2)}m</p>
-              </div>
-            </div>
-          </div>
+          )}
 
           <Separator />
 
