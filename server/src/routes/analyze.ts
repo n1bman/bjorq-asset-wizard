@@ -34,6 +34,7 @@ export async function analyzeRoutes(server: FastifyInstance) {
       return reply.status(400).send({
         success: false,
         error: "No file uploaded",
+        stage: "upload",
       });
     }
 
