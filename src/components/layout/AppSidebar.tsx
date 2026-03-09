@@ -37,6 +37,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const isIngress = typeof window !== "undefined" && window.location.pathname.includes("/api/hassio_ingress/");
+  const directUrl = `http://${typeof window !== "undefined" ? window.location.hostname : "homeassistant.local"}:3500`;
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
