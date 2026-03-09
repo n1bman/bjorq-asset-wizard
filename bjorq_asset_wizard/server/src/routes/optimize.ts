@@ -163,7 +163,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
       },
       outputs: {
         optimizedModel: `/jobs/${jobId}/optimized.glb`,
-        thumbnail: "",
+        thumbnail: null,
         metadata: `/jobs/${jobId}/result.json`,
         report: "",
       },
