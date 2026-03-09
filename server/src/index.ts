@@ -121,6 +121,14 @@ async function start() {
   await server.register(syncRoutes);
   await server.register(importRoutes);
 
+  // --- Root route (safe landing for HA ingress probes) ---
+  server.get("/", async () => ({
+    service: "bjorq-asset-wizard",
+    status: "running",
+    version: VERSION,
+    endpoints: ["/health", "/version", "/analyze", "/optimize", "/catalog/index", "/catalog/ingest"],
+  }));
+
   // --- Graceful shutdown ---
   const shutdown = async (signal: string) => {
     server.log.info({ signal }, "Shutting down");

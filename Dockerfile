@@ -59,7 +59,8 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     STORAGE_PATH=./storage \
     CATALOG_PATH=./public/catalog \
-    LOG_LEVEL=info
+    LOG_LEVEL=info \
+    CORS_ORIGINS=*
 
 EXPOSE 3500
 

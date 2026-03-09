@@ -22,7 +22,8 @@ RUN chmod +x /run.sh
 # Runtime environment
 ENV NODE_ENV=production \
     PORT=3500 \
-    HOST=0.0.0.0
+    HOST=0.0.0.0 \
+    CORS_ORIGINS=*
 
 EXPOSE 3500
 
