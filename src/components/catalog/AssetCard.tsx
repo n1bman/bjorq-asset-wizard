@@ -33,8 +33,8 @@ export function AssetCard({ asset, onClick }: Props) {
           <SourceBadge source={asset.source} />
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{asset.performance.triangles.toLocaleString()} tris</span>
-          <span>{asset.performance.fileSizeKB} KB</span>
+          <span>{asset.performance?.triangles?.toLocaleString() ?? "—"} tris</span>
+          <span>{asset.performance?.fileSizeKB ?? "—"} KB</span>
         </div>
       </CardContent>
     </Card>
