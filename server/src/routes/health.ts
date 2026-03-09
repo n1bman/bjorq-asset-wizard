@@ -8,7 +8,7 @@ import { access, writeFile, unlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
 
-const VERSION = "0.4.0";
+const VERSION = "0.4.1";
 const STORAGE_PATH = process.env.STORAGE_PATH || "./storage";
 
 async function checkStorageWritable(storagePath: string): Promise<boolean> {
