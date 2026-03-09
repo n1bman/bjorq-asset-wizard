@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.3] — 2026-03-09
+
+### Fixed
+- **ESM compatibility**: Replaced CJS `__dirname` (unavailable in ES modules) with `fileURLToPath`/`dirname` shim. Fixes server crash on startup under `"type": "module"`.
+
+### Changed
+- Version bump to 0.3.3 across all version sources.
+- Updated README/DOCS version references and release tag examples.
+
 ## [0.3.2] — 2026-03-09
 
 ### Fixed
