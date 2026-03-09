@@ -4,6 +4,8 @@
 
 export type ConnectionStatus = "connected" | "disconnected" | "checking";
 
+export type AssetLifecycleStatus = "uploaded" | "analyzed" | "optimized" | "published";
+
 export type AssetSource = "uploaded" | "optimized" | "catalog" | "synced" | "wizard";
 
 export type SyncStatus = "not_synced" | "syncing" | "synced" | "error";
