@@ -8,10 +8,8 @@
  * Real API errors (4xx, 5xx) are NOT masked — they propagate to the caller.
  * Only connection failures trigger the mock fallback.
  *
- * To add a new endpoint:
- *   1. Define types in src/types/api.ts
- *   2. Add mock data in src/services/mock-data.ts
- *   3. Add a service function here using withFallback()
+ * EXCEPTION: analyzeModel() and optimizeModel() do NOT use withFallback().
+ * These are real processing operations — errors must always propagate.
  */
 import type {
   AnalysisResponse,
@@ -25,8 +23,6 @@ import type {
   SyncResponse,
 } from "@/types/api";
 import {
-  mockAnalysis,
-  mockOptimize,
   mockCatalog,
   mockIngest,
   mockHealth,
@@ -55,42 +51,21 @@ async function withFallback<T>(apiFn: () => Promise<T>, mockFn: () => T | Promis
   }
 }
 
-// --- Analyze ---
+// --- Analyze (NO mock fallback — errors always propagate) ---
 
 export async function analyzeModel(file: File, onUploadProgress?: (percent: number) => void): Promise<AnalysisResponse> {
-  const { data } = await withFallback(
-    () => {
-      const fd = new FormData();
-      fd.append("file", file);
-      return apiClient.request<AnalysisResponse>("/analyze", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
-    },
-    () => ({
-      ...mockAnalysis,
-      analysis: {
-        ...mockAnalysis.analysis,
-        fileName: file.name,
-        fileSizeBytes: file.size,
-        fileSizeKB: Math.round(file.size / 1024),
-        fileSizeMB: +(file.size / 1048576).toFixed(2),
-      },
-    }),
-  );
-  return data;
+  const fd = new FormData();
+  fd.append("file", file);
+  return apiClient.request<AnalysisResponse>("/analyze", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
 }
 
-// --- Optimize ---
+// --- Optimize (NO mock fallback — errors always propagate) ---
 
 export async function optimizeModel(file: File, options?: OptimizeOptions, onUploadProgress?: (percent: number) => void): Promise<OptimizeResponse> {
-  const { data } = await withFallback(
-    () => {
-      const fd = new FormData();
-      fd.append("file", file);
-      if (options) fd.append("options", JSON.stringify(options));
-      return apiClient.request<OptimizeResponse>("/optimize", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
-    },
-    () => mockOptimize,
-  );
-  return data;
+  const fd = new FormData();
+  fd.append("file", file);
+  if (options) fd.append("options", JSON.stringify(options));
+  return apiClient.request<OptimizeResponse>("/optimize", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
 }
 
 // --- Catalog ---
@@ -124,6 +99,12 @@ export async function reindexCatalog(): Promise<{ success: boolean }> {
     () => ({ success: true }),
   );
   return data;
+}
+
+// --- Delete ---
+
+export async function deleteAsset(assetId: string): Promise<{ success: boolean; deleted: string }> {
+  return apiClient.request<{ success: boolean; deleted: string }>(`/catalog/asset/${assetId}`, { method: "DELETE" });
 }
 
 // --- Sync ---

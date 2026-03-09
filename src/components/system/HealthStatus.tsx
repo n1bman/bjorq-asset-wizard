@@ -10,7 +10,7 @@ export function HealthStatus({ data }: { data: HealthResponse }) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Health</CardTitle>
+          <CardTitle className="text-base">Wizard Health</CardTitle>
           <Badge variant={data.status === "ok" ? "default" : "destructive"}>
             {data.status}
           </Badge>
