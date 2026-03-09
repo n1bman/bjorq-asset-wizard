@@ -328,7 +328,7 @@ export async function optimizeModel(
     if (hasOversizedBaseColorTextures(doc, maxSize)) {
       try {
         await doc.transform(
-          texCompress({ res({ re{ size: [maxSize, maxSize], slots: /baseColor/ }),
+          textureCompress({ encoder: sharp, resize: [maxSize, maxSize], slots: /baseColor/ }),
         );
         applied.push("optimizeBaseColorTextures");
         log.info({ maxSize }, "Applied: optimizeBaseColorTextures (textureResize)");
