@@ -57,12 +57,12 @@ async function withFallback<T>(apiFn: () => Promise<T>, mockFn: () => T | Promis
 
 // --- Analyze ---
 
-export async function analyzeModel(file: File): Promise<AnalysisResponse> {
+export async function analyzeModel(file: File, onUploadProgress?: (percent: number) => void): Promise<AnalysisResponse> {
   const { data } = await withFallback(
     () => {
       const fd = new FormData();
       fd.append("file", file);
-      return apiClient.request<AnalysisResponse>("/analyze", { method: "POST", body: fd });
+      return apiClient.request<AnalysisResponse>("/analyze", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
     },
     () => ({
       ...mockAnalysis,
