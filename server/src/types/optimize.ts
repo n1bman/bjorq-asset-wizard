@@ -84,7 +84,7 @@ export interface OptimizeResponse {
   };
   outputs: {
     optimizedModel: string;
-    thumbnail: string;
+    thumbnail: string | null;
     metadata: string;
     report: string;
   };
