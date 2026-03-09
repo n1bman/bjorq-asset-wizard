@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import type { AssetMetadata } from "@/types/api";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
 import { PreviewErrorBoundary } from "./PreviewErrorBoundary";
 import { AssetPreviewPanel } from "./AssetPreviewPanel";
+import { getAssetModelUrl } from "@/lib/asset-paths";
 
 interface Props {
   asset: AssetMetadata | null;
@@ -21,6 +23,7 @@ interface Props {
 export function AssetDetailDrawer({ asset, open, onOpenChange }: Props) {
   const { toast } = useToast();
   const { isConnected } = useConnection();
+  const navigate = useNavigate();
 
   if (!asset) return null;
 
@@ -35,6 +38,30 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: Props) {
     } catch (e: unknown) {
       toast({ title: "Sync failed", description: e instanceof Error ? e.message : "Unknown error", variant: "destructive" });
     }
+  };
+
+  const handleOptimize = () => {
+    if (asset.optimizationStatus === "optimized") {
+      toast({ title: "Already optimized", description: `${asset.name} has already been optimized` });
+      return;
+    }
+    navigate("/optimize");
+  };
+
+  const handleIngest = () => {
+    if (asset.ingestStatus === "ingested") {
+      toast({ title: "Already ingested", description: `${asset.name} is already in the catalog` });
+      return;
+    }
+    navigate("/ingest");
+  };
+
+  const handleExport = () => {
+    if (!isConnected) {
+      toast({ title: "Export unavailable", description: "Backend not connected", variant: "destructive" });
+      return;
+    }
+    window.open(getAssetModelUrl(asset.id), "_blank");
   };
 
   return (
@@ -58,6 +85,11 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: Props) {
               <SyncDot status={asset.syncStatus} />
               <OptimizationBadge status={asset.optimizationStatus} />
               <IngestBadge status={asset.ingestStatus} />
+              {asset.lifecycleStatus && (
+                <Badge variant={asset.lifecycleStatus === "published" ? "default" : "secondary"} className="text-xs">
+                  {asset.lifecycleStatus}
+                </Badge>
+              )}
             </div>
 
             <Separator />
@@ -202,13 +234,13 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: Props) {
 
             {/* Actions */}
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={handleOptimize}>
                 <Wand2 className="h-3.5 w-3.5" /> Optimize
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={handleIngest}>
                 <FolderPlus className="h-3.5 w-3.5" /> Ingest
               </Button>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExport}>
                 <Download className="h-3.5 w-3.5" /> Export
               </Button>
               <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSync}>
