@@ -437,7 +437,7 @@ function ReviewSection({
           {result.optimization.skipped.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base text-muted-foreground">Skipped (V2)</CardTitle>
+                <CardTitle className="text-base text-muted-foreground">Skipped</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-1.5">
                 <TooltipProvider>

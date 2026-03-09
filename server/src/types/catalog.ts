@@ -3,6 +3,9 @@
  *
  * ⚠️  FROZEN CONTRACT — Changes to this file require a schemaVersion bump.
  * External consumers (Dashboard) depend on this shape.
+ *
+ * Phase 8 additions (normalizationApplied, floorAlignmentApplied,
+ * textureOptimizationApplied) are optional — non-breaking under v1.
  */
 
 export interface CatalogAssetMeta {
@@ -50,6 +53,11 @@ export interface CatalogAssetMeta {
     unit: string;
     confidence: string;
   };
+
+  // --- Optimization V2 flags (Phase 8 — non-breaking additions) ---
+  normalizationApplied?: boolean;
+  floorAlignmentApplied?: boolean;
+  textureOptimizationApplied?: boolean;
 }
 
 export interface CatalogSubcategory {

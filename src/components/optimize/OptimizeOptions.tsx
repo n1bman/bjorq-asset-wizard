@@ -4,13 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Props {
   options: Opts;
   onChange: (opts: Opts) => void;
 }
 
-const activeToggles: { key: keyof Opts; label: string }[] = [
+const cleanupToggles: { key: keyof Opts; label: string }[] = [
   { key: "removeEmptyNodes", label: "Remove empty nodes" },
   { key: "removeUnusedNodes", label: "Remove unused nodes" },
   { key: "removeCameras", label: "Remove cameras" },
@@ -18,15 +19,22 @@ const activeToggles: { key: keyof Opts; label: string }[] = [
   { key: "removeAnimations", label: "Remove animations" },
 ];
 
+const normalizationToggles: { key: keyof Opts; label: string }[] = [
+  { key: "normalizeScale", label: "Normalize scale" },
+  { key: "setFloorToY0", label: "Set floor to Y=0" },
+  { key: "optimizeBaseColorTextures", label: "Optimize base color textures" },
+];
+
 const alwaysOnDefaults = [
   { label: "Prune unused resources", note: "Always applied" },
   { label: "Deduplicate materials & accessors", note: "Always applied" },
 ];
 
-const v2Toggles = [
-  { label: "Normalize scale" },
-  { label: "Set floor to Y=0" },
-  { label: "Optimize base color textures" },
+const TEXTURE_SIZE_OPTIONS = [
+  { value: "512", label: "512 px" },
+  { value: "1024", label: "1024 px" },
+  { value: "2048", label: "2048 px (default)" },
+  { value: "4096", label: "4096 px" },
 ];
 
 export function OptimizeOptionsPanel({ options, onChange }: Props) {
@@ -54,11 +62,11 @@ export function OptimizeOptionsPanel({ options, onChange }: Props) {
           </div>
         </div>
 
-        {/* Active V1 toggles */}
+        {/* Cleanup toggles */}
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground uppercase tracking-wide">Configurable</Label>
+          <Label className="text-xs text-muted-foreground uppercase tracking-wide">Cleanup</Label>
           <div className="grid sm:grid-cols-2 gap-3">
-            {activeToggles.map((t) => (
+            {cleanupToggles.map((t) => (
               <div key={t.key} className="flex items-center justify-between gap-2">
                 <Label className="text-sm text-foreground">{t.label}</Label>
                 <Switch
@@ -70,17 +78,42 @@ export function OptimizeOptionsPanel({ options, onChange }: Props) {
           </div>
         </div>
 
-        {/* V2 planned (disabled) */}
+        {/* Normalization & texture toggles (V2) */}
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground uppercase tracking-wide">Coming in V2</Label>
-          <div className="grid sm:grid-cols-2 gap-3 opacity-50">
-            {v2Toggles.map((t) => (
-              <div key={t.label} className="flex items-center justify-between gap-2">
-                <Label className="text-sm text-muted-foreground">{t.label}</Label>
-                <Switch checked={false} disabled />
+          <Label className="text-xs text-muted-foreground uppercase tracking-wide">Normalization & Textures</Label>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {normalizationToggles.map((t) => (
+              <div key={t.key} className="flex items-center justify-between gap-2">
+                <Label className="text-sm text-foreground">{t.label}</Label>
+                <Switch
+                  checked={options[t.key] as boolean ?? true}
+                  onCheckedChange={() => toggle(t.key)}
+                />
               </div>
             ))}
           </div>
+
+          {/* Max texture size selector — visible when texture optimization is enabled */}
+          {options.optimizeBaseColorTextures !== false && (
+            <div className="mt-2 max-w-xs space-y-1">
+              <Label className="text-xs text-muted-foreground">Max texture size</Label>
+              <Select
+                value={String(options.maxTextureSize ?? 2048)}
+                onValueChange={(v) => onChange({ ...options, maxTextureSize: Number(v) })}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEXTURE_SIZE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Asset metadata inputs */}

@@ -167,7 +167,7 @@ export const mockHealth: HealthResponse = {
 
 export const mockVersion: VersionResponse = {
   name: "bjorq-asset-optimizer",
-  version: "1.0.0",
+  version: "1.1.0",
   node: "v20.11.0",
   environment: "development",
 };
