@@ -43,10 +43,11 @@ export async function analyzeRoutes(server: FastifyInstance) {
     const ext = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
 
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      log.warn({ fileName, ext }, "Unsupported file format");
+      log.warn({ fileName, ext, stage: "upload" }, "Unsupported file format");
       return reply.status(400).send({
         success: false,
         error: `Unsupported format '${ext}'. Only .glb and .gltf files are accepted`,
+        stage: "upload",
       });
     }
 
