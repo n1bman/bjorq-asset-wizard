@@ -1,17 +1,23 @@
 /**
- * Catalog endpoints — browse, ingest, and reindex.
+ * Catalog endpoints — browse, ingest, reindex, and asset access.
  *
- * GET  /catalog/index   — Return the current catalog manifest
- * POST /catalog/ingest  — Ingest an optimized asset into the catalog
- * POST /catalog/reindex — Force a catalog re-scan and index rebuild
+ * GET  /catalog/index            — Return the current catalog manifest
+ * POST /catalog/ingest           — Ingest an optimized asset into the catalog
+ * POST /catalog/reindex          — Force a catalog re-scan and index rebuild
+ * GET  /catalog/policy           — Storage usage and limits
+ * GET  /catalog/asset/:id/thumbnail — Serve asset thumbnail or 404
  */
 
 import type { FastifyInstance } from "fastify";
+import { join } from "node:path";
+import { access } from "node:fs/promises";
+import { createReadStream } from "node:fs";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import {
   buildCatalogIndex,
   ingestAsset,
   reindexCatalog,
+  findAssetPath,
 } from "../services/catalog/manager.js";
 import { getCatalogPolicy, evaluateAssetForCatalog } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
@@ -137,6 +143,28 @@ export async function catalogRoutes(server: FastifyInstance) {
     } catch (err) {
       request.log.error({ err }, "Failed to get catalog policy");
       return reply.status(500).send({ success: false, error: "Failed to get catalog policy" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /catalog/asset/:id/thumbnail — serve asset thumbnail
+  // -----------------------------------------------------------------------
+  server.get("/catalog/asset/:id/thumbnail", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    request.log.info({ assetId: id }, "Thumbnail requested");
+
+    const assetPath = await findAssetPath(id);
+    if (!assetPath) {
+      return reply.status(404).send({ success: false, error: "Asset not found" });
+    }
+
+    const thumbPath = join(assetPath, "thumb.webp");
+    try {
+      await access(thumbPath);
+      reply.type("image/webp");
+      return reply.send(createReadStream(thumbPath));
+    } catch {
+      return reply.status(404).send({ success: false, error: "No thumbnail available for this asset" });
     }
   });
 }
