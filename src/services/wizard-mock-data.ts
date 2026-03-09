@@ -11,7 +11,6 @@ export const wizardMockVersion: VersionResponse = {
   name: "bjorq-asset-wizard",
   version: "0.9.0",
   node: "v20.11.0",
-  typescript: "5.4.0",
   environment: "development",
 };
 

@@ -167,7 +167,7 @@ export interface AssetMetadata {
   subcategory?: string;
   style?: string;
   model: string;
-  thumbnail: string;
+  thumbnail: string | null;
   dimensions: {
     width: number;
     depth: number;
