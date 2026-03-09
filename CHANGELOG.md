@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.9] — 2026-03-09
+
+### Fixed
+- **Catalog path mismatch**: Static file serving for catalog assets now uses `CATALOG_PATH` instead of `STORAGE_PATH/catalog`. In Home Assistant, these are different directories (`/data/catalog` vs `/data/storage/catalog`), causing ingested assets to be invisible via the API.
+
+### Added
+- `STORAGE_PATH` and `CATALOG_PATH` environment defaults in HA Dockerfile as safety net if bashio fails.
+
+### Changed
+- Version bump to 0.2.9 across all version sources.
+
 ## [0.2.8] — 2026-03-09
 
 ### Fixed

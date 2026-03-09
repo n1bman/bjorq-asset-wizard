@@ -62,7 +62,7 @@ If Home Assistant still shows an old version after a release:
 2. **Remove** the repository URL
 3. Click **Reload** (top-right ⋮ menu)
 4. **Re-add** the repository URL
-5. Verify the correct version (currently **0.2.3**) appears before clicking Install
+5. Verify the correct version (currently **0.2.9**) appears before clicking Install
 6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
 
 ## Architecture Support

@@ -38,6 +38,7 @@ const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
 const STORAGE_PATH = resolve(process.env.STORAGE_PATH || "./storage");
+const CATALOG_PATH_RESOLVED = resolve(process.env.CATALOG_PATH || "./public/catalog");
 
 async function start() {
   const server = Fastify({
