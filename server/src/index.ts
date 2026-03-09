@@ -28,7 +28,7 @@ import multipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { access } from "node:fs/promises";
+import { access, readdir } from "node:fs/promises";
 import { createLoggerConfig } from "./lib/logger.js";
 import { initStorage } from "./lib/storage.js";
 import { healthRoutes } from "./routes/health.js";
