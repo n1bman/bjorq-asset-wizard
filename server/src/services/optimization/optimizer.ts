@@ -9,7 +9,7 @@
 
 import { NodeIO, Document } from "@gltf-transform/core";
 import { prune, dedup, flatten, textureResize } from "@gltf-transform/functions";
-import sharp from "sharp";
+// sharp is available as a peer dep for textureResize — not directly imported here
 import { analyzeModel } from "../analysis/analyzer.js";
 import type { OptimizeRequestOptions, OptimizeResult, StatsSnapshot } from "../../types/optimize.js";
 import type { AnalysisResult } from "../../types/analyze.js";

@@ -115,6 +115,10 @@ export interface OptimizeResponse {
       unit: string;
       confidence: string;
     };
+    // Phase 8 — V2 optimization flags
+    normalizationApplied?: boolean;
+    floorAlignmentApplied?: boolean;
+    textureOptimizationApplied?: boolean;
   };
 }
 
