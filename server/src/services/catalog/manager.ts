@@ -1,5 +1,5 @@
 /**
- * Catalog Manager — scan, ingest, and reindex the asset catalog.
+ * Catalog Manager — scan, ingest, delete, and reindex the asset catalog.
  *
  * ⚠️  FROZEN v1 FOLDER STRUCTURE:
  *   CATALOG_PATH/<category>/<subcategory>/<assetId>/
@@ -8,7 +8,7 @@
  *     thumb.webp  (optional)
  */
 
-import { readdir, readFile, writeFile, mkdir, copyFile, stat, access } from "node:fs/promises";
+import { readdir, readFile, writeFile, mkdir, copyFile, stat, access, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { CATALOG_PATH, storagePath } from "../../lib/storage.js";
 import type {
@@ -21,7 +21,7 @@ import type {
 } from "../../types/catalog.js";
 
 export const CATALOG_SCHEMA_VERSION = "1.0" as const;
-const CATALOG_VERSION = "1.1.0";
+const CATALOG_VERSION = "1.1.7";
 
 // ---------------------------------------------------------------------------
 // Required fields for a valid CatalogAssetMeta
@@ -85,13 +85,11 @@ export async function buildCatalogIndex(): Promise<CatalogIndex> {
             assets.push(meta as CatalogAssetMeta);
             totalAssets++;
           }
-          // Invalid meta is silently skipped — logged at debug level in production
         } catch {
           // Skip assets without valid meta.json
         }
       }
 
-      // Sort assets alphabetically by name
       assets.sort((a, b) => a.name.localeCompare(b.name));
 
       if (assets.length > 0) {
@@ -99,7 +97,6 @@ export async function buildCatalogIndex(): Promise<CatalogIndex> {
       }
     }
 
-    // Sort subcategories alphabetically
     subcategories.sort((a, b) => a.name.localeCompare(b.name));
 
     if (subcategories.length > 0) {
@@ -107,7 +104,6 @@ export async function buildCatalogIndex(): Promise<CatalogIndex> {
     }
   }
 
-  // Sort categories alphabetically
   categories.sort((a, b) => a.name.localeCompare(b.name));
 
   return {
@@ -131,7 +127,6 @@ export async function ingestAsset(
   const category = meta.category || "uncategorized";
   const subcategory = meta.subcategory || "general";
 
-  // Resolve unique directory name
   const resolvedId = await resolveUniqueId(category, subcategory, meta.id);
   const assetDir = join(CATALOG_PATH, category, subcategory, resolvedId);
   await mkdir(assetDir, { recursive: true });
@@ -160,7 +155,7 @@ export async function ingestAsset(
       await copyFile(jobThumb, thumbDest);
       thumbnailRelPath = `/${category}/${subcategory}/${resolvedId}/thumb.webp`;
     } catch {
-      // No thumbnail available — leave as null
+      // No thumbnail available
     }
   }
 
@@ -171,27 +166,24 @@ export async function ingestAsset(
       const raw = await readFile(storagePath("jobs", jobId, "result.json"), "utf-8");
       jobMeta = JSON.parse(raw);
     } catch {
-      // No result.json — proceed without
+      // No result.json
     }
   }
 
-  // --- Extract Phase 4 metadata from job result ---
+  // --- Extract metadata from job result ---
   const metadata = jobMeta.metadata as Record<string, unknown> | undefined;
   const originalFileSizeKB = (metadata?.originalFileSizeKB as number) ?? undefined;
   const reductionPercent = (metadata?.reductionPercent as number) ?? undefined;
   const targetProfile = (metadata?.targetProfile as string) ?? undefined;
 
-  // --- Extract Phase 7 scene metadata from job result ---
   const scene = jobMeta.scene as Record<string, unknown> | undefined;
   const boundingBox = scene?.boundingBox as CatalogAssetMeta["boundingBox"] | undefined;
   const estimatedScale = scene?.estimatedScale as CatalogAssetMeta["estimatedScale"] | undefined;
 
-  // --- Extract Phase 8 V2 optimization flags from job result ---
   const normalizationApplied = (jobMeta.normalizationApplied as boolean) ?? undefined;
   const floorAlignmentApplied = (jobMeta.floorAlignmentApplied as boolean) ?? undefined;
   const textureOptimizationApplied = (jobMeta.textureOptimizationApplied as boolean) ?? undefined;
 
-  // Compute center from bounding box
   let center: [number, number, number] | undefined;
   if (boundingBox) {
     center = [
@@ -201,7 +193,6 @@ export async function ingestAsset(
     ];
   }
 
-  // Derive pivot from bounding box
   let pivot: string | undefined;
   if (boundingBox) {
     pivot = Math.abs(boundingBox.min[1]) < 0.01 ? "bottom-center" : "center";
@@ -271,6 +262,20 @@ export async function ingestAsset(
 }
 
 // ---------------------------------------------------------------------------
+// Delete an asset from the catalog
+// ---------------------------------------------------------------------------
+
+export async function deleteAsset(assetId: string): Promise<void> {
+  const assetPath = await findAssetPath(assetId);
+  if (!assetPath) {
+    throw new Error(`Asset "${assetId}" not found in catalog`);
+  }
+
+  await rm(assetPath, { recursive: true, force: true });
+  await reindexCatalog();
+}
+
+// ---------------------------------------------------------------------------
 // Reindex — rebuild and write index.json
 // ---------------------------------------------------------------------------
 
@@ -282,7 +287,7 @@ export async function reindexCatalog(): Promise<CatalogIndex> {
 }
 
 // ---------------------------------------------------------------------------
-// Find asset by ID (for thumbnail route)
+// Find asset by ID
 // ---------------------------------------------------------------------------
 
 export async function findAssetPath(assetId: string): Promise<string | null> {

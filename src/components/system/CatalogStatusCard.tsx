@@ -33,7 +33,7 @@ export function CatalogStatusCard() {
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Total Assets</span>
+          <span className="text-muted-foreground">Published Assets</span>
           <span className="text-foreground font-medium">{catalog?.totalAssets ?? "—"}</span>
         </div>
         <div className="flex justify-between">
@@ -41,8 +41,8 @@ export function CatalogStatusCard() {
           <span className="text-foreground">{catalog?.categories.length ?? "—"}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Version</span>
-          <span className="text-foreground font-mono text-xs">{catalog?.version ?? "—"}</span>
+          <span className="text-muted-foreground">Catalog Schema</span>
+          <span className="text-foreground font-mono text-xs">{catalog?.schemaVersion ?? "—"}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Generated</span>

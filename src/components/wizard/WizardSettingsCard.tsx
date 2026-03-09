@@ -4,14 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useConnection } from "@/contexts/ConnectionContext";
 import { apiClient } from "@/services/api-client";
-import { Settings, RefreshCw, Wifi, WifiOff, Loader2 } from "lucide-react";
+import { Settings, RefreshCw, Wifi, WifiOff, Loader2, Copy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export function WizardSettingsCard() {
   const { status, latency, baseUrl, setBaseUrl, refresh } = useConnection();
+  const { toast } = useToast();
   const [urlDraft, setUrlDraft] = useState(baseUrl);
   const [testing, setTesting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleSaveUrl = () => {
     setBaseUrl(urlDraft);
@@ -28,6 +32,24 @@ export function WizardSettingsCard() {
     setUrlDraft(apiClient.baseUrl);
     refresh();
   };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(baseUrl);
+      setCopied(true);
+      toast({ title: "Copied", description: "API URL copied to clipboard" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Copy failed", variant: "destructive" });
+    }
+  };
+
+  const dashboardEndpoints = [
+    { method: "GET", path: "/libraries", desc: "List libraries" },
+    { method: "GET", path: "/assets/:id/meta", desc: "Asset metadata" },
+    { method: "GET", path: "/assets/:id/model", desc: "Asset model GLB" },
+    { method: "GET", path: "/assets/:id/thumbnail", desc: "Asset thumbnail" },
+  ];
 
   return (
     <Card>
@@ -80,6 +102,38 @@ export function WizardSettingsCard() {
             <RefreshCw className={`mr-1 h-3 w-3 ${testing ? "animate-spin" : ""}`} />
             Test
           </Button>
+        </div>
+
+        <Separator />
+
+        {/* Dashboard Integration */}
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs font-medium text-foreground">Dashboard Integration</Label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Configure your Bjorq Dashboard to connect to this Wizard API URL:
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
+            <code className="text-xs font-mono text-foreground flex-1 break-all">{baseUrl}</code>
+            <Button size="sm" variant="ghost" onClick={handleCopyUrl} className="h-7 w-7 p-0 shrink-0">
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground font-medium">Available endpoints:</p>
+            <div className="space-y-0.5">
+              {dashboardEndpoints.map(ep => (
+                <div key={ep.path} className="flex items-center gap-2 text-xs">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">{ep.method}</Badge>
+                  <code className="font-mono text-muted-foreground">{ep.path}</code>
+                  <span className="text-muted-foreground/70">— {ep.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -1,16 +1,27 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCatalogIndex, syncToBjorq } from "@/services/api";
+import { getCatalogIndex, syncToBjorq, deleteAsset } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Wand2, FolderPlus, RefreshCw } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Download, Wand2, FolderPlus, RefreshCw, Trash2, Loader2 } from "lucide-react";
 import { SourceBadge, SyncDot, OptimizationBadge, IngestBadge, ImportTypeBadge, ConversionBadge } from "@/components/catalog/AssetStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
 import { PreviewErrorBoundary } from "@/components/catalog/PreviewErrorBoundary";
 import { AssetPreviewPanel } from "@/components/catalog/AssetPreviewPanel";
-import { getAssetModelUrl } from "@/lib/asset-paths";
+import { downloadAssetBlob } from "@/lib/asset-paths";
 import type { AssetMetadata } from "@/types/api";
 
 export default function AssetDetailPage() {
@@ -20,6 +31,8 @@ export default function AssetDetailPage() {
   const { isConnected } = useConnection();
   const [asset, setAsset] = useState<AssetMetadata | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setNotFound(false);
@@ -67,13 +80,39 @@ export default function AssetDetailPage() {
     navigate("/ingest");
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!asset) return;
     if (!isConnected) {
       toast({ title: "Export unavailable", description: "Backend not connected", variant: "destructive" });
       return;
     }
-    window.open(getAssetModelUrl(asset.id), "_blank");
+    setExporting(true);
+    try {
+      await downloadAssetBlob(asset.id, `${asset.name.replace(/[^a-zA-Z0-9_-]/g, "_")}.glb`);
+      toast({ title: "Download started", description: `${asset.name}.glb` });
+    } catch (e: unknown) {
+      toast({ title: "Export failed", description: e instanceof Error ? e.message : "Download error", variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!asset) return;
+    if (!isConnected) {
+      toast({ title: "Delete unavailable", description: "Backend not connected", variant: "destructive" });
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteAsset(asset.id);
+      toast({ title: "Asset deleted", description: `${asset.name} has been removed from the catalog` });
+      navigate("/catalog");
+    } catch (e: unknown) {
+      toast({ title: "Delete failed", description: e instanceof Error ? e.message : "Unknown error", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (!asset && notFound) {
@@ -278,13 +317,34 @@ export default function AssetDetailPage() {
           <Button variant="outline" className="gap-1.5" onClick={handleIngest}>
             <FolderPlus className="h-4 w-4" /> Ingest
           </Button>
-          <Button variant="outline" className="gap-1.5" onClick={handleExport}>
-            <Download className="h-4 w-4" /> Export
+          <Button variant="outline" className="gap-1.5" onClick={handleExport} disabled={exporting}>
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export
           </Button>
           <Button variant="outline" className="gap-1.5" onClick={handleSync}>
             <RefreshCw className="h-4 w-4" /> Sync
           </Button>
         </div>
+
+        {/* Delete */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="w-full gap-1.5" disabled={deleting}>
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete Asset
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {asset.name}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently remove the asset from the catalog, including the model file, metadata, and thumbnail. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PreviewErrorBoundary>
   );

@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.7] — 2026-03-09
+
+### Fixed — Stabilization Patch
+- **Analyze/optimize error propagation**: Removed `withFallback()` wrapper from `analyzeModel()` and `optimizeModel()`. Errors (timeouts, OOM, parse failures) now always propagate to the UI instead of silently falling back to mock data.
+- **Export/download button**: Replaced `window.open()` with programmatic blob download via fetch + anchor element. Works inside HA ingress where `window.open("_blank")` is blocked or loses session.
+- **Wizard Integration page**: Added error state handling to `WizardCatalogBrowser` and wrapped page in `PreviewErrorBoundary` to prevent black screen on failures.
+
+### Added
+- **Delete asset**: `DELETE /catalog/asset/:id` endpoint removes asset directory recursively and triggers reindex. Frontend adds delete button with `AlertDialog` confirmation in both drawer and detail page.
+- **Dashboard sync URL guidance**: `WizardSettingsCard` now shows the API base URL with copy button and lists available Dashboard-facing endpoints (`/libraries`, `/assets/:id/meta`, etc.).
+
+### Changed
+- **System status labels**: "Connection" → "Wizard Backend" with clarifying note about Dashboard sync. "Total Assets" → "Published Assets". "Version" → "Catalog Schema". "Health" → "Wizard Health".
+- **CATALOG_VERSION** bumped to match app version (1.1.7).
+- Version bump to 1.1.7 across all version sources.
+
 ## [1.1.6] — 2026-03-09
 
 ### Fixed — Systems Repair & Architecture Hardening

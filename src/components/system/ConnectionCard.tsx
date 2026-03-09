@@ -20,7 +20,7 @@ export function ConnectionCard() {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Connection</CardTitle>
+          <CardTitle className="text-base">Wizard Backend</CardTitle>
           <Badge
             variant={isConnected ? "default" : "destructive"}
             className="gap-1"
@@ -72,6 +72,10 @@ export function ConnectionCard() {
             Demo mode — using mock data. Connect a backend to use real data.
           </p>
         )}
+
+        <p className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1.5">
+          This shows Wizard internal health. Dashboard sync requires separate configuration in the Integration page.
+        </p>
 
         <Button variant="outline" size="sm" onClick={refresh} className="w-full">
           Test Connection
