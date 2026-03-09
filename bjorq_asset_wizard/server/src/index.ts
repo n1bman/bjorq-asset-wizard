@@ -104,7 +104,7 @@ async function start() {
 
   // --- Static file serving for catalog assets ---
   await server.register(fastifyStatic, {
-    root: resolve(STORAGE_PATH, "catalog"),
+    root: CATALOG_PATH_RESOLVED,
     prefix: "/catalog/files/",
     decorateReply: false,
     serve: true,
