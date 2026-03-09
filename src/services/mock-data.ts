@@ -89,6 +89,9 @@ export const mockOptimize: OptimizeResponse = {
     center: [0, 0.375, 0],
     pivot: "bottom-center",
     estimatedScale: { unit: "m", confidence: "high" },
+    normalizationApplied: true,
+    floorAlignmentApplied: true,
+    textureOptimizationApplied: true,
   },
 };
 
