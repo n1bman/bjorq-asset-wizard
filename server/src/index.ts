@@ -33,11 +33,12 @@ import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
 
-const VERSION = "0.2.8";
+const VERSION = "0.2.9";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
 const STORAGE_PATH = resolve(process.env.STORAGE_PATH || "./storage");
+const CATALOG_PATH_RESOLVED = resolve(process.env.CATALOG_PATH || "./public/catalog");
 
 async function start() {
   const server = Fastify({
@@ -103,7 +104,7 @@ async function start() {
 
   // --- Static file serving for catalog assets ---
   await server.register(fastifyStatic, {
-    root: resolve(STORAGE_PATH, "catalog"),
+    root: CATALOG_PATH_RESOLVED,
     prefix: "/catalog/files/",
     decorateReply: false,
     serve: true,

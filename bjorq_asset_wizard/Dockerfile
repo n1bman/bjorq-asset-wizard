@@ -23,7 +23,9 @@ RUN chmod +x /run.sh
 ENV NODE_ENV=production \
     PORT=3500 \
     HOST=0.0.0.0 \
-    CORS_ORIGINS=*
+    CORS_ORIGINS=* \
+    STORAGE_PATH=/data/storage \
+    CATALOG_PATH=/data/catalog
 
 EXPOSE 3500
 
