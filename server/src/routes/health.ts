@@ -9,7 +9,7 @@ import { constants } from "node:fs";
 import { join } from "node:path";
 import { CATALOG_SCHEMA_VERSION } from "../services/catalog/manager.js";
 
-const VERSION = "0.5.0";
+const VERSION = "0.6.0";
 const STORAGE_PATH = process.env.STORAGE_PATH || "./storage";
 
 async function checkStorageWritable(storagePath: string): Promise<boolean> {
@@ -58,7 +58,7 @@ export async function healthRoutes(server: FastifyInstance) {
       uptime: Math.floor(process.uptime()),
       environment: process.env.NODE_ENV || "development",
       catalogSchemaVersion: CATALOG_SCHEMA_VERSION,
-      capabilities: ["analyze", "optimize", "catalog", "policy"],
+      capabilities: ["analyze", "optimize", "catalog", "policy", "diagnostics"],
     };
   });
 }

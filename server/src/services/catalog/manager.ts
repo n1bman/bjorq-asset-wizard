@@ -21,7 +21,30 @@ import type {
 } from "../../types/catalog.js";
 
 export const CATALOG_SCHEMA_VERSION = "1.0" as const;
-const CATALOG_VERSION = "0.5.0";
+const CATALOG_VERSION = "0.6.0";
+
+// ---------------------------------------------------------------------------
+// Required fields for a valid CatalogAssetMeta
+// ---------------------------------------------------------------------------
+
+const REQUIRED_META_FIELDS: (keyof CatalogAssetMeta)[] = [
+  "id",
+  "name",
+  "category",
+  "schemaVersion",
+  "model",
+  "placement",
+];
+
+/** Validate that an asset meta object has all required fields */
+function validateAssetMeta(meta: Record<string, unknown>): meta is CatalogAssetMeta {
+  for (const field of REQUIRED_META_FIELDS) {
+    if (meta[field] === undefined || meta[field] === null || meta[field] === "") {
+      return false;
+    }
+  }
+  return true;
+}
 
 // ---------------------------------------------------------------------------
 // Build catalog index by scanning the directory tree
@@ -55,23 +78,35 @@ export async function buildCatalogIndex(): Promise<CatalogIndex> {
         const metaPath = join(assetPath, "meta.json");
         try {
           const raw = await readFile(metaPath, "utf-8");
-          const meta: CatalogAssetMeta = JSON.parse(raw);
-          assets.push(meta);
-          totalAssets++;
+          const meta = JSON.parse(raw);
+          if (validateAssetMeta(meta)) {
+            assets.push(meta as CatalogAssetMeta);
+            totalAssets++;
+          }
+          // Invalid meta is silently skipped — logged at debug level in production
         } catch {
           // Skip assets without valid meta.json
         }
       }
+
+      // Sort assets alphabetically by name
+      assets.sort((a, b) => a.name.localeCompare(b.name));
 
       if (assets.length > 0) {
         subcategories.push({ name: subDir, assets });
       }
     }
 
+    // Sort subcategories alphabetically
+    subcategories.sort((a, b) => a.name.localeCompare(b.name));
+
     if (subcategories.length > 0) {
       categories.push({ name: catDir, subcategories });
     }
   }
+
+  // Sort categories alphabetically
+  categories.sort((a, b) => a.name.localeCompare(b.name));
 
   return {
     schemaVersion: CATALOG_SCHEMA_VERSION,
@@ -232,6 +267,49 @@ export async function findAssetPath(assetId: string): Promise<string | null> {
   }
 
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Find largest asset in catalog (for diagnostics)
+// ---------------------------------------------------------------------------
+
+export async function findLargestAsset(): Promise<{ id: string; sizeMB: number } | null> {
+  let largestId = "";
+  let largestBytes = 0;
+
+  const categoryDirs = await safeDirEntries(CATALOG_PATH);
+
+  for (const catDir of categoryDirs) {
+    const catPath = join(CATALOG_PATH, catDir);
+    if (!(await isDirectory(catPath))) continue;
+    if (catDir === "index.json") continue;
+
+    const subDirs = await safeDirEntries(catPath);
+    for (const subDir of subDirs) {
+      const subPath = join(catPath, subDir);
+      if (!(await isDirectory(subPath))) continue;
+
+      const assetDirs = await safeDirEntries(subPath);
+      for (const assetDir of assetDirs) {
+        const assetPath = join(subPath, assetDir);
+        if (!(await isDirectory(assetPath))) continue;
+
+        const modelPath = join(assetPath, "model.glb");
+        try {
+          const s = await stat(modelPath);
+          if (s.size > largestBytes) {
+            largestBytes = s.size;
+            largestId = assetDir;
+          }
+        } catch {
+          // No model file — skip
+        }
+      }
+    }
+  }
+
+  if (!largestId) return null;
+  return { id: largestId, sizeMB: +(largestBytes / (1024 * 1024)).toFixed(1) };
 }
 
 // ---------------------------------------------------------------------------

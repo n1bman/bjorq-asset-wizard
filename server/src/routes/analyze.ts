@@ -10,6 +10,7 @@ import { createJobLogger, generateJobId } from "../lib/logger.js";
 import { analyzeModel } from "../services/analysis/analyzer.js";
 
 const ALLOWED_EXTENSIONS = [".glb", ".gltf"];
+const MAX_ANALYZE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB safety limit
 
 export async function analyzeRoutes(server: FastifyInstance) {
   server.post("/analyze", async (request, reply) => {
@@ -66,6 +67,17 @@ export async function analyzeRoutes(server: FastifyInstance) {
 
     log.info({ fileName, fileSizeBytes: buffer.byteLength, fileSizeMB: +(buffer.byteLength / (1024 * 1024)).toFixed(1) }, "File received");
 
+    // 3b. Safety check: reject files that exceed memory-safe analysis limit
+    if (buffer.byteLength > MAX_ANALYZE_SIZE_BYTES) {
+      const sizeMB = (buffer.byteLength / (1024 * 1024)).toFixed(1);
+      log.warn({ fileName, sizeMB, stage: "analyze" }, "File exceeds maximum analysis size");
+      return reply.status(413).send({
+        success: false,
+        error: `File is ${sizeMB} MB — exceeds the ${MAX_ANALYZE_SIZE_BYTES / (1024 * 1024)} MB analysis limit`,
+        stage: "analyze",
+      });
+    }
+
     // 4. Analyze
     try {
       const analysis = await analyzeModel(new Uint8Array(buffer), fileName);
@@ -89,6 +101,23 @@ export async function analyzeRoutes(server: FastifyInstance) {
       log.error({ err, fileName, stage: "analyze" }, "Analysis failed");
 
       const message = err instanceof Error ? err.message : String(err);
+
+      // Detect OOM-style errors
+      const isOOM =
+        message.includes("heap") ||
+        message.includes("memory") ||
+        message.includes("allocation") ||
+        message.includes("ENOMEM");
+
+      if (isOOM) {
+        const sizeMB = (buffer.byteLength / (1024 * 1024)).toFixed(1);
+        return reply.status(507).send({
+          success: false,
+          error: `Analysis ran out of memory processing ${sizeMB} MB file. Try a smaller file or increase server memory.`,
+          stage: "analyze",
+        });
+      }
+
       const isParseError =
         message.includes("Invalid") ||
         message.includes("Unexpected") ||

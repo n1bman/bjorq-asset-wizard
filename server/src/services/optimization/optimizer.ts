@@ -24,6 +24,14 @@ const V1_SKIPPED: { key: keyof OptimizeRequestOptions; reason: string }[] = [
   { key: "removeUnusedVertexAttributes", reason: "Not implemented in V1" },
 ];
 
+/** Map skipped reason patterns to human-readable explanations */
+const EXPLANATION_MAP: Record<string, string> = {
+  "No cameras found": "No cameras present in the model",
+  "No lights found": "No lights present in the model",
+  "No animations found": "No animations present in the model",
+  "No empty nodes found": "No empty nodes found — scene graph is clean",
+};
+
 function toSnapshot(analysis: AnalysisResult, sizeBytes: number): StatsSnapshot {
   const maxRes = analysis.textures.details.reduce((max, t) => {
     const w = t.width ?? 0;
@@ -38,6 +46,43 @@ function toSnapshot(analysis: AnalysisResult, sizeBytes: number): StatsSnapshot 
     textures: analysis.textures.count,
     maxTextureRes: maxRes,
   };
+}
+
+/** Generate human-readable explanations from skipped operations */
+function generateExplanations(
+  skipped: { operation: string; reason: string }[],
+  reduction: { fileSizePercent: number; materialsRemoved: number; texturesRemoved: number },
+): string[] {
+  const explanations: string[] = [];
+
+  // Explain low/zero reduction
+  if (reduction.fileSizePercent <= 0) {
+    explanations.push("No file size reduction achieved — model was already well-optimized");
+  } else if (reduction.fileSizePercent < 5) {
+    explanations.push(`Minimal file size reduction (${reduction.fileSizePercent}%) — model was nearly optimal`);
+  }
+
+  if (reduction.materialsRemoved === 0) {
+    explanations.push("No duplicate materials detected");
+  }
+
+  if (reduction.texturesRemoved === 0) {
+    explanations.push("No unused textures found");
+  }
+
+  // Map skipped operations (exclude user-disabled and V1-not-implemented)
+  for (const entry of skipped) {
+    if (entry.reason === "Disabled by user") continue;
+    if (entry.reason.includes("Not implemented")) continue;
+    if (entry.reason.includes("not implemented")) continue;
+
+    const mapped = EXPLANATION_MAP[entry.reason];
+    if (mapped) {
+      explanations.push(mapped);
+    }
+  }
+
+  return explanations;
 }
 
 export async function optimizeModel(
@@ -207,7 +252,10 @@ export async function optimizeModel(
     texturesResized: 0, // V1: no texture resize
   };
 
-  log.info({ before, after, reduction }, "Optimization complete");
+  // 8. Generate explanations
+  const explanations = generateExplanations(skipped, reduction);
+
+  log.info({ before, after, reduction, explanations }, "Optimization complete");
 
   return {
     optimizedBuffer,
@@ -217,6 +265,7 @@ export async function optimizeModel(
     applied,
     skipped,
     warnings,
+    explanations,
     analysisBefore,
     analysisAfter,
   };
