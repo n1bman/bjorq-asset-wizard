@@ -174,7 +174,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
         subcategory: options.subcategory || "",
         style: options.style || "",
         model: `/jobs/${jobId}/optimized.glb`,
-        thumbnail: "",
+        thumbnail: null,
         dimensions: result.analysisAfter.dimensions,
         placement: options.placement || result.analysisAfter.placement?.candidate || "unknown",
         performance: {

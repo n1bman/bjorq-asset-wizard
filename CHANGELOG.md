@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.2] — 2026-03-09
+
+### Fixed — Bugfix: Analyze Pipeline & Catalog Metadata
+- **glTF extension support**: Registered `ALL_EXTENSIONS` from `@gltf-transform/extensions` with `NodeIO` in both analyzer and optimizer. Real-world models using Draco compression, KHR_materials_unlit, KHR_texture_transform, etc. now parse correctly.
+- **Stage-level error diagnostics**: Analyze pipeline now reports specific failure stages (GLB parse, geometry scan, texture extraction, bounding box computation) instead of generic "Request failed".
+- **API client error parsing**: Frontend now correctly extracts error messages from both `{ error: "string" }` and `{ error: { message: "string" } }` response shapes.
+- **Thumbnail null handling**: Optimize response now returns `thumbnail: null` instead of `""` when no thumbnail is generated. Prevents empty-string issues in catalog metadata.
+- **TypeScript types**: Updated `OptimizeResponse.outputs.thumbnail` and `metadata.thumbnail` to `string | null`.
+
+### Changed
+- Version bump to 1.1.2 across all version sources.
+
 ## [1.1.1] — 2026-03-09
 
 ### Fixed — Phase 9: Optimization V2 Validation

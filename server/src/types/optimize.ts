@@ -95,7 +95,7 @@ export interface OptimizeResponse {
     subcategory: string;
     style: string;
     model: string;
-    thumbnail: string;
+    thumbnail: string | null;
     dimensions: AnalysisResult["dimensions"];
     placement: string;
     performance: {

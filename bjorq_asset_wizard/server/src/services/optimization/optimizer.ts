@@ -8,6 +8,7 @@
  */
 
 import { NodeIO, Document } from "@gltf-transform/core";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { prune, dedup, flatten, textureCompress } from "@gltf-transform/functions";
 import sharp from "sharp";
 import { analyzeModel } from "../analysis/analyzer.js";
