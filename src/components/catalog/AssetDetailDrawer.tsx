@@ -92,15 +92,15 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: Props) {
             <CardContent className="grid grid-cols-3 gap-3 text-sm">
               <div>
                 <p className="text-xs text-muted-foreground">Width</p>
-                <p className="text-foreground font-medium">{asset.dimensions.width} m</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.width ?? "—"} m</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Depth</p>
-                <p className="text-foreground font-medium">{asset.dimensions.depth} m</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.depth ?? "—"} m</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Height</p>
-                <p className="text-foreground font-medium">{asset.dimensions.height} m</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.height ?? "—"} m</p>
               </div>
             </CardContent>
           </Card>
