@@ -2,9 +2,10 @@
 
 import type { ConnectionStatus } from "@/types/api";
 
+import { REQUEST_TIMEOUT } from "@/lib/upload-limits";
+
 const STORAGE_KEY = "bjorq_api_base_url";
 const DEFAULT_URL = "http://localhost:3500";
-const REQUEST_TIMEOUT = 8000;
 
 /**
  * Detect the API base URL for HA ingress or standalone mode.
