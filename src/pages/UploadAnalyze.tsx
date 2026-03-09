@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileBox, AlertTriangle } from "lucide-react";
+import { Upload, FileBox, AlertTriangle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const directUrl = `http://${typeof window !== "undefined" ? window.location.hostname : "homeassistant.local"}:3500`;
 import { ApiError } from "@/services/api-client";
 import type { AnalysisResponse, ImportType } from "@/types/api";
 import type { ProcessingStage } from "@/lib/upload-limits";
