@@ -1,6 +1,6 @@
 import type { OptimizeResponse } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, AlertTriangle } from "lucide-react";
 
 interface Props {
   stats: OptimizeResponse["stats"];
