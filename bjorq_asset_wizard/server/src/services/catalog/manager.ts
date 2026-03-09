@@ -230,6 +230,10 @@ export async function ingestAsset(
     optimizationStatus: "optimized",
     optimizedAt: (jobMeta.timestamp as string) || new Date().toISOString(),
     jobId: jobId || undefined,
+    boundingBox,
+    center,
+    pivot,
+    estimatedScale,
   };
 
   const metaDest = join(assetDir, "meta.json");
