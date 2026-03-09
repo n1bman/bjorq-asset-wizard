@@ -64,7 +64,7 @@ export async function analyzeRoutes(server: FastifyInstance) {
       });
     }
 
-    log.info({ fileName, fileSizeBytes: buffer.byteLength }, "File received");
+    log.info({ fileName, fileSizeBytes: buffer.byteLength, fileSizeMB: +(buffer.byteLength / (1024 * 1024)).toFixed(1) }, "File received");
 
     // 4. Analyze
     try {
