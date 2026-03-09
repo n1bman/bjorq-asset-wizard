@@ -15,6 +15,7 @@ import { storagePath } from "../lib/storage.js";
 import { optimizeModel } from "../services/optimization/optimizer.js";
 import { deriveAssetId } from "../services/optimization/slugify.js";
 import { deriveTargetProfile } from "../services/optimization/profiles.js";
+import { generateThumbnail } from "../services/optimization/thumbnail.js";
 import type { OptimizeRequestOptions, OptimizeResponse, OptimizeErrorResponse } from "../types/optimize.js";
 
 const SUPPORTED_EXTENSIONS = new Set([".glb", ".gltf"]);
