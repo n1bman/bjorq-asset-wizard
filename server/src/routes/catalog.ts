@@ -13,6 +13,7 @@ import {
   ingestAsset,
   reindexCatalog,
 } from "../services/catalog/manager.js";
+import { getCatalogPolicy, evaluateAssetForCatalog } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
 
 export async function catalogRoutes(server: FastifyInstance) {
