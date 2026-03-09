@@ -1,7 +1,7 @@
 import type { AssetMetadata } from "@/types/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Box } from "lucide-react";
+import { Box, HardDrive } from "lucide-react";
 import { SourceBadge, SyncDot } from "./AssetStatusBadge";
 
 interface Props {
@@ -31,6 +31,11 @@ export function AssetCard({ asset, onClick }: Props) {
             <Badge variant="secondary" className="text-xs">{asset.subcategory}</Badge>
           )}
           <SourceBadge source={asset.source} />
+          {asset.lifecycleStatus === "published" && (
+            <Badge variant="outline" className="text-[10px] gap-0.5 text-muted-foreground">
+              <HardDrive className="h-2.5 w-2.5" /> Persistent
+            </Badge>
+          )}
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{asset.performance?.triangles?.toLocaleString() ?? "—"} tris</span>

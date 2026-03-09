@@ -4,13 +4,14 @@
  */
 
 import type { FastifyInstance } from "fastify";
-import { access, writeFile, unlink } from "node:fs/promises";
+import { access, writeFile, unlink, readdir } from "node:fs/promises";
 import { constants } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { CATALOG_SCHEMA_VERSION } from "../services/catalog/manager.js";
 
-const VERSION = "1.1.9";
+const VERSION = "1.1.10";
 const STORAGE_PATH = process.env.STORAGE_PATH || "./storage";
+const CATALOG_PATH = resolve(process.env.CATALOG_PATH || "./public/catalog");
 
 async function checkStorageWritable(storagePath: string): Promise<boolean> {
   const testFile = join(storagePath, `.health-check-${Date.now()}`);
@@ -37,7 +38,19 @@ export async function healthRoutes(server: FastifyInstance) {
     const exists = await checkStorageExists(STORAGE_PATH);
     const writable = exists ? await checkStorageWritable(STORAGE_PATH) : false;
 
-    request.log.debug({ storagePath: STORAGE_PATH, exists, writable }, "Health check");
+    // Count catalog assets
+    let catalogAssetCount = 0;
+    let catalogExists = false;
+    try {
+      await access(CATALOG_PATH, constants.F_OK);
+      catalogExists = true;
+      const allFiles = await readdir(CATALOG_PATH, { recursive: true });
+      catalogAssetCount = (allFiles as string[]).filter(f => f.endsWith("metadata.json") || f.endsWith("meta.json")).length;
+    } catch {
+      // catalog dir missing
+    }
+
+    request.log.debug({ storagePath: STORAGE_PATH, exists, writable, catalogPath: CATALOG_PATH, catalogAssetCount }, "Health check");
 
     return {
       status: "ok",
@@ -46,6 +59,11 @@ export async function healthRoutes(server: FastifyInstance) {
       storage: {
         path: STORAGE_PATH,
         writable,
+      },
+      catalog: {
+        path: CATALOG_PATH,
+        exists: catalogExists,
+        assetCount: catalogAssetCount,
       },
     };
   });

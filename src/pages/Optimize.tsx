@@ -13,7 +13,9 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import type { OptimizeOptions, OptimizeResponse, AnalysisResponse, ImportType, IngestMeta } from "@/types/api";
-import { Download, FolderPlus, AlertTriangle, AlertCircle, Hash, Tag, Briefcase, Cpu, CheckCircle2, XCircle } from "lucide-react";
+import { Download, FolderPlus, AlertTriangle, AlertCircle, Hash, Tag, Briefcase, Cpu, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+
+const directUrl = `http://${typeof window !== "undefined" ? window.location.hostname : "homeassistant.local"}:3500`;
 import { STAGE_LABELS, CATALOG_ASSET_WARN_SIZE_MB, deriveTargetProfile, formatFileSize, type ProcessingStage } from "@/lib/upload-limits";
 
 const DIRECT_STEPS = [
@@ -195,6 +197,25 @@ export default function OptimizePage() {
       </div>
 
       <PipelineStepper steps={steps} currentStep={step} />
+
+      {/* Large-file direct-mode hint */}
+      {step === 0 && (
+        <div className="flex items-start gap-2 rounded-md border border-muted bg-muted/30 p-3">
+          <ExternalLink className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+          <div className="text-xs text-muted-foreground">
+            <p>For files larger than ~10 MB, use direct mode to avoid HA ingress limits.</p>
+            <a
+              href={directUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:underline font-medium mt-1"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Open Wizard in direct mode (Port 3500)
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Step 0: Upload */}
       {step === 0 && (

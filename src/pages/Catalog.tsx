@@ -7,8 +7,9 @@ import { SyncStatusBar } from "@/components/sync/SyncStatusBar";
 import type { AssetMetadata } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useApi } from "@/hooks/use-api";
-import { AlertTriangle, PackageOpen } from "lucide-react";
+import { AlertTriangle, PackageOpen, HardDrive } from "lucide-react";
 
 export default function CatalogPage() {
   const { data: catalog, loading, error } = useApi(getCatalogIndex);
@@ -28,7 +29,14 @@ export default function CatalogPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Catalog</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground">Catalog</h1>
+          {allAssets.length > 0 && (
+            <Badge variant="outline" className="text-[10px] gap-1 text-muted-foreground">
+              <HardDrive className="h-3 w-3" /> Permanently stored
+            </Badge>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground mt-1">
           Browse {catalog?.totalAssets ?? "…"} assets across {categories.length} categories.
         </p>

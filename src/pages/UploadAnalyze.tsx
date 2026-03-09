@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileBox, AlertTriangle } from "lucide-react";
+import { Upload, FileBox, AlertTriangle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const directUrl = `http://${typeof window !== "undefined" ? window.location.hostname : "homeassistant.local"}:3500`;
 import { ApiError } from "@/services/api-client";
 import type { AnalysisResponse, ImportType } from "@/types/api";
 import type { ProcessingStage } from "@/lib/upload-limits";
@@ -149,15 +151,23 @@ export default function UploadAnalyze() {
       {/* Direct upload flow */}
       {importType === "direct-upload" && (
         <>
-          {file && file.size > 10 * 1024 * 1024 && (
+        {file && file.size > 10 * 1024 * 1024 && (
             <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
               <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-              <div className="text-xs text-foreground">
+              <div className="text-xs text-foreground space-y-1.5">
                 <p className="font-medium">Large file detected ({(file.size / (1024 * 1024)).toFixed(1)} MB)</p>
-                <p className="text-muted-foreground mt-0.5">
-                  HA ingress has a size limit (~10 MB). If upload fails with a 413 error, use the direct port instead:{" "}
-                  <code className="font-mono text-foreground">http://&lt;ha-host&gt;:3500</code>
+                <p className="text-muted-foreground">
+                  HA ingress has a size limit (~10 MB). Large files require direct access on port 3500.
                 </p>
+                <a
+                  href={directUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-primary hover:underline font-medium"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Open Wizard in direct mode (Port 3500)
+                </a>
               </div>
             </div>
           )}

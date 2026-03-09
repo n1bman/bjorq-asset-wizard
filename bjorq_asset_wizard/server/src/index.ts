@@ -28,7 +28,7 @@ import multipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { access } from "node:fs/promises";
+import { access, readdir } from "node:fs/promises";
 import { createLoggerConfig } from "./lib/logger.js";
 import { initStorage } from "./lib/storage.js";
 import { healthRoutes } from "./routes/health.js";
@@ -39,7 +39,7 @@ import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "1.1.9";
+const VERSION = "1.1.10";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
@@ -127,6 +127,26 @@ async function start() {
 
   // --- Storage initialization ---
   await initStorage();
+
+  // --- Catalog startup diagnostics ---
+  try {
+    const catExists = await access(CATALOG_PATH_RESOLVED).then(() => true).catch(() => false);
+    if (catExists) {
+      const allFiles = await readdir(CATALOG_PATH_RESOLVED, { recursive: true });
+      const metaFiles = (allFiles as string[]).filter(f => f.endsWith("metadata.json") || f.endsWith("meta.json"));
+      server.log.info(
+        { catalogPath: CATALOG_PATH_RESOLVED, totalFiles: allFiles.length, assetCount: metaFiles.length },
+        `Catalog startup scan: ${metaFiles.length} asset(s) found in ${CATALOG_PATH_RESOLVED}`,
+      );
+      if (metaFiles.length > 0 && metaFiles.length <= 20) {
+        server.log.info({ assets: metaFiles }, "Catalog assets on disk");
+      }
+    } else {
+      server.log.warn({ catalogPath: CATALOG_PATH_RESOLVED }, "Catalog directory does not exist at startup");
+    }
+  } catch (err) {
+    server.log.error({ err, catalogPath: CATALOG_PATH_RESOLVED }, "Catalog startup scan failed");
+  }
 
   // --- Job cleanup ---
   const JOB_RETENTION_HOURS = Number(process.env.JOB_RETENTION_HOURS || 168); // 7 days default

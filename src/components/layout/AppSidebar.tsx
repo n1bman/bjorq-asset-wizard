@@ -1,4 +1,4 @@
-import { Upload, Wand2, LayoutGrid, FolderPlus, Activity, Plug } from "lucide-react";
+import { Upload, Wand2, LayoutGrid, FolderPlus, Activity, Plug, ExternalLink } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import bjorqLogo from "@/assets/bjorq-wizard-logo.png";
@@ -37,6 +37,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const isIngress = typeof window !== "undefined" && window.location.pathname.includes("/api/hassio_ingress/");
+  const directUrl = `http://${typeof window !== "undefined" ? window.location.hostname : "homeassistant.local"}:3500`;
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
@@ -82,6 +84,24 @@ export function AppSidebar() {
         {renderGroup("Catalog", catalogItems)}
         {renderGroup("System", systemItems)}
         {renderGroup("Integration", integrationItems)}
+        {isIngress && (
+          <div className="px-4 py-3 mt-auto">
+            <a
+              href={directUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ExternalLink className="h-3 w-3" />
+              {!collapsed && <span>Direct mode (Port 3500)</span>}
+            </a>
+            {!collapsed && (
+              <p className="text-[10px] text-muted-foreground/60 mt-1">
+                Recommended for large file uploads
+              </p>
+            )}
+          </div>
+        )}
       </SidebarContent>
     </Sidebar>
   );
