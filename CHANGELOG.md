@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.3] — 2026-03-09
+
+### Fixed — Consolidated Bugfix Pass
+- **Analyze error propagation**: Backend now returns specific error messages (e.g., "Analyze failed at GLB parse: ...") instead of generic "Analysis failed unexpectedly". Stack traces logged for all failures.
+- **Health/version log noise**: Suppressed info-level request logging for `/health` and `/version` polling endpoints to reduce log clutter in production.
+- **Integration page false "unreachable"**: Switched Integration page from separate `WizardClient` to main `useConnection` context, ensuring consistent connection state across all screens.
+- **Catalog asset drawer crash**: Added defensive rendering for missing `performance` and `dimensions` data, preventing blank/broken states when metadata is incomplete.
+- **Frontend consistency**: All screens now use the same connection model — no more conflicting connected/disconnected states.
+
+### Changed
+- Version bump to 1.1.3 across all version sources.
+
+
 ## [1.1.2] — 2026-03-09
 
 ### Fixed — Bugfix: Analyze Pipeline & Catalog Metadata
