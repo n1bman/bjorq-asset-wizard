@@ -157,7 +157,7 @@ export async function optimizeModel(
   const warnings: { operation: string; message: string }[] = [];
 
   // 1. Parse document
-  const io = new NodeIO();
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const isGlb = fileName.toLowerCase().endsWith(".glb");
 
   let doc: Document;
