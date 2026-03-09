@@ -84,7 +84,7 @@ export interface OptimizeResponse {
   };
   outputs: {
     optimizedModel: string;
-    thumbnail: string;
+    thumbnail: string | null;
     metadata: string;
     report: string;
   };
@@ -95,7 +95,7 @@ export interface OptimizeResponse {
     subcategory: string;
     style: string;
     model: string;
-    thumbnail: string;
+    thumbnail: string | null;
     dimensions: AnalysisResult["dimensions"];
     placement: string;
     performance: {

@@ -6,6 +6,7 @@
  */
 
 import { NodeIO, Document, Accessor } from "@gltf-transform/core";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import type {
   AnalysisResult,
   AnalysisStatus,
@@ -271,30 +272,60 @@ export async function analyzeModel(
   buffer: Uint8Array,
   fileName: string,
 ): Promise<AnalysisResult> {
-  const io = new NodeIO();
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 
   const isGlb = fileName.toLowerCase().endsWith(".glb");
   const format: "glb" | "gltf" = isGlb ? "glb" : "gltf";
 
-  // Parse in memory
+  // --- Stage: GLB parse ---
   let doc: Document;
-  if (isGlb) {
-    doc = await io.readBinary(buffer);
-  } else {
-    // For glTF JSON, decode buffer to string and parse
-    const jsonStr = new TextDecoder().decode(buffer);
-    const jsonDoc = JSON.parse(jsonStr);
-    doc = await io.readJSON({
-      json: jsonDoc,
-      resources: {},
-    });
+  try {
+    if (isGlb) {
+      doc = await io.readBinary(buffer);
+    } else {
+      const jsonStr = new TextDecoder().decode(buffer);
+      const jsonDoc = JSON.parse(jsonStr);
+      doc = await io.readJSON({
+        json: jsonDoc,
+        resources: {},
+      });
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Analyze failed at GLB parse: ${msg}`);
   }
 
-  // Extract data
-  const geometry = countGeometry(doc);
+  // --- Stage: geometry scan ---
+  let geometry: ReturnType<typeof countGeometry>;
+  try {
+    geometry = countGeometry(doc);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Analyze failed at geometry scan: ${msg}`);
+  }
+
+  // --- Stage: material scan ---
   const materials = doc.getRoot().listMaterials();
-  const textureDetails = extractTextures(doc);
-  const bb = computeBoundingBox(doc);
+
+  // --- Stage: texture scan ---
+  let textureDetails: TextureDetail[];
+  try {
+    textureDetails = extractTextures(doc);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Analyze failed at texture extraction: ${msg}`);
+  }
+
+  // --- Stage: bounding box ---
+  let bb: { min: Vec3; max: Vec3 };
+  try {
+    bb = computeBoundingBox(doc);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Analyze failed at bounding box computation: ${msg}`);
+  }
+
+  // --- Stage: extras detection ---
   const extras = detectExtras(doc);
 
   // Dimensions from bounding box

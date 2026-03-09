@@ -8,6 +8,7 @@
  */
 
 import { NodeIO, Document } from "@gltf-transform/core";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { prune, dedup, flatten, textureCompress } from "@gltf-transform/functions";
 import sharp from "sharp";
 import { analyzeModel } from "../analysis/analyzer.js";
@@ -154,7 +155,7 @@ export async function optimizeModel(
   const warnings: { operation: string; message: string }[] = [];
 
   // 1. Parse document
-  const io = new NodeIO();
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const isGlb = fileName.toLowerCase().endsWith(".glb");
 
   let doc: Document;
