@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import type { OptimizeOptions, OptimizeResponse, AnalysisResponse, ImportType, IngestMeta } from "@/types/api";
-import { Download, FolderPlus, RefreshCw, AlertTriangle, AlertCircle, Hash, Tag, Briefcase, Cpu } from "lucide-react";
+import { Download, FolderPlus, RefreshCw, AlertTriangle, AlertCircle, Hash, Tag, Briefcase, Cpu, CheckCircle2, XCircle } from "lucide-react";
 import { STAGE_LABELS, CATALOG_ASSET_WARN_SIZE_MB, deriveTargetProfile, formatFileSize, type ProcessingStage } from "@/lib/upload-limits";
 
 const DIRECT_STEPS = [
@@ -382,6 +382,39 @@ function ReviewSection({
 
       <StatsComparison stats={result.stats} />
 
+      {/* V2 Operations Summary */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">V2 Optimization Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <V2OpRow
+            label="Normalize Scale"
+            description="Flatten transforms into vertex data"
+            applied={result.optimization.applied.includes("normalizeScale")}
+            warning={result.optimization.warnings.find((w) => w.operation === "normalizeScale")?.message}
+          />
+          <V2OpRow
+            label="Floor Alignment (Y=0)"
+            description="Shift model so lowest point sits at Y=0"
+            applied={result.optimization.applied.includes("setFloorToY0")}
+            skippedReason={result.optimization.skipped.find((s) => s.operation === "setFloorToY0")?.reason}
+          />
+          <V2OpRow
+            label="Texture Optimization"
+            description={`Resize oversized base color textures (max ${result.stats.before.maxTextureRes}px → ${result.stats.after.maxTextureRes}px)`}
+            applied={result.optimization.applied.includes("optimizeBaseColorTextures")}
+            skippedReason={result.optimization.skipped.find((s) => s.operation === "optimizeBaseColorTextures")?.reason}
+            warning={result.optimization.warnings.find((w) => w.operation === "optimizeBaseColorTextures")?.message}
+          />
+          {result.stats.reduction.texturesResized > 0 && (
+            <p className="text-xs text-muted-foreground ml-6">
+              {result.stats.reduction.texturesResized} texture(s) resized
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Catalog size warning */}
       {catalogWarn && (
         <div className="flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/5 px-3 py-2">
@@ -536,6 +569,42 @@ function OutputRow({ label, path }: { label: string; path: string }) {
       <div className="min-w-0">
         <p className="text-foreground">{label}</p>
         <p className="text-xs text-muted-foreground font-mono truncate">{path}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── V2 Operation Row ── */
+
+function V2OpRow({
+  label,
+  description,
+  applied,
+  skippedReason,
+  warning,
+}: {
+  label: string;
+  description: string;
+  applied: boolean;
+  skippedReason?: string;
+  warning?: string;
+}) {
+  return (
+    <div className="flex items-start gap-2 text-sm">
+      {applied ? (
+        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+      ) : (
+        <XCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+      )}
+      <div className="min-w-0">
+        <p className="font-medium text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {!applied && skippedReason && (
+          <p className="text-xs text-muted-foreground italic">Skipped: {skippedReason}</p>
+        )}
+        {warning && (
+          <p className="text-xs text-destructive">⚠ {warning}</p>
+        )}
       </div>
     </div>
   );

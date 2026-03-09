@@ -8,8 +8,8 @@
  */
 
 import { NodeIO, Document } from "@gltf-transform/core";
-import { prune, dedup, flatten, textureCompressssss } from "@gltf-transform/functions";
-// sharp is available as a peer dep for textureResize — not directly imported here
+import { prune, dedup, flatten, textureCompress } from "@gltf-transform/functions";
+import sharp from "sharp";
 import { analyzeModel } from "../analysis/analyzer.js";
 import type { OptimizeRequestOptions, OptimizeResult, StatsSnapshot } from "../../types/optimize.js";
 import type { AnalysisResult } from "../../types/analyze.js";
@@ -323,14 +323,14 @@ export async function optimizeModel(
     if (hasOversizedBaseColorTextures(doc, maxSize)) {
       try {
         await doc.transform(
-          texCompress({ res({ re{ size: [maxSize, maxSize], slots: /baseColor/ }),
+          textureCompress({ encoder: sharp, resize: [maxSize, maxSize], slots: /baseColor/ }),
         );
         applied.push("optimizeBaseColorTextures");
         log.info({ maxSize }, "Applied: optimizeBaseColorTextures (textureResize)");
         const beforeMaxRes = toSnapshot(analysisBefore, buffer.byteLength).maxTextureRes;
         if (beforeMaxRes > maxSize) {
           texturesResized = analysisBefore.textures.details.filter(
-            (t(t.width ?? 0) > maxSize || (t.height ?? 0)height > maxSize) && t.type === "baseColor",
+            (t) => ((t.width ?? 0) > maxSize || (t.height ?? 0) > maxSize) && t.type === "baseColor",
           ).length;
           if (texturesResized === 0) texturesResized = 1;
         }

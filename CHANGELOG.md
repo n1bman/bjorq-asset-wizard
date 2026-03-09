@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.1] — 2026-03-09
+
+### Fixed — Phase 9: Optimization V2 Validation
+- **Garbled optimizer code**: Fixed corrupted import (`textureCompressssss`), garbled `textureCompress` call, and broken filter expression in `optimizer.ts` that caused TypeScript build failures in CI.
+- **Sharp encoder integration**: `textureCompress` now receives `sharp` as explicit encoder for reliable texture resizing.
+- **Null-safe texture checks**: Added `?? 0` guards on `t.width` and `t.height` in texture filter to prevent TS18047 errors.
+
+### Added
+- **V2 Operations Summary card**: Review UI now shows per-operation status for Normalize Scale, Floor Alignment, and Texture Optimization — including applied/skipped state, skip reasons, warnings, and texture resolution before/after.
+
+### Changed
+- Version bump to 1.1.1 across all version sources.
+
 ## [1.1.0] — 2026-03-09
 
 ### Added — Phase 8: Optimization V2 (Advanced Asset Normalization)
