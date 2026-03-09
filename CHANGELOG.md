@@ -1,0 +1,25 @@
+# Changelog
+
+## [0.2.8] — 2026-03-09
+
+### Fixed
+- **CORS crash**: Fixed `Invalid CORS origin option` error that caused restart loops in Home Assistant. CORS now safely defaults to `origin: true` when `CORS_ORIGINS` is unset or `*`.
+- **Root route**: Added `GET /` handler returning service status JSON, preventing 500 errors from HA ingress probes.
+- **Version detection**: Hardcoded version constant instead of relying on `npm_package_version` (unavailable when running compiled `dist/index.js`).
+- **Dockerfile ENV**: Added `CORS_ORIGINS=*` default to both Dockerfiles so CORS works without `run.sh`.
+
+### Changed
+- Version bump to 0.2.8 across `server/package.json`, `config.yaml`, and health endpoint.
+
+## [0.2.7] — 2026-03-08
+
+### Fixed
+- Home Assistant version mismatch resolved (duplicate config in docs renamed).
+- Add-on correctly detected as version 0.2.7.
+
+## [0.2.5] — 2026-03-07
+
+### Fixed
+- Version synchronization across repository.
+- Docker build stabilization (removed fragile sharp rebuild steps).
+- CI restricted to amd64-only.
