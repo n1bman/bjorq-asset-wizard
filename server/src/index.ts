@@ -50,6 +50,8 @@ const PUBLIC_PATH = resolve(__dirname, "../public");
 async function start() {
   const server = Fastify({
     logger: createLoggerConfig(),
+    bodyLimit: MAX_FILE_SIZE,
+    requestTimeout: 300_000, // 5 min — supports large file uploads
   });
 
   // --- Global error handler ---
