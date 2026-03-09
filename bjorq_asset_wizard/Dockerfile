@@ -6,6 +6,17 @@ RUN apk add --no-cache nodejs npm
 
 WORKDIR /app
 
+# --- Build frontend ---
+# Copy frontend source (staged by prepare-addon.sh)
+COPY frontend/package.json frontend/package-lock.json* ./frontend/
+RUN cd frontend && (npm ci || npm install)
+
+COPY frontend/index.html frontend/vite.config.ts frontend/tsconfig.json frontend/tsconfig.app.json frontend/tsconfig.node.json frontend/tailwind.config.ts frontend/postcss.config.js frontend/components.json ./frontend/
+COPY frontend/src/ ./frontend/src/
+COPY frontend/public/ ./frontend/public/
+RUN cd frontend && npx vite build --base="./"
+
+# --- Build backend ---
 # Install dependencies (staged by prepare-addon.sh)
 COPY server/package.json server/package-lock.json* ./
 RUN npm ci || npm install
@@ -14,6 +25,9 @@ RUN npm ci || npm install
 COPY server/tsconfig.json ./
 COPY server/src/ ./src/
 RUN npx tsc
+
+# Move built frontend to public/ for static serving
+RUN mv frontend/dist public
 
 # Copy HA entry point
 COPY run.sh /run.sh
