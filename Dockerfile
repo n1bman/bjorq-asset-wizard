@@ -12,10 +12,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies for sharp (native module)
-RUN apk add --no-cache python3 make g++ vips-dev
-
-# Copy backend package files
+# Copy backend package files and install all deps (incl. devDeps for tsc)
 COPY server/package.json ./
 RUN npm install
 
@@ -29,18 +26,16 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Runtime dependency for sharp
-RUN apk add --no-cache vips
-
 # Create non-root user
 RUN addgroup -g 1001 -S bjorq && \
     adduser -S bjorq -u 1001 -G bjorq
 
-# Copy built output and production deps
+# Copy built output from builder
+COPY --from=builder /app/dist ./dist
+
+# Install production deps only (sharp bundles its own libvips)
 COPY server/package.json ./
 RUN npm install --omit=dev
-
-COPY --from=builder /app/dist ./dist
 
 # Create storage directories
 RUN mkdir -p \
