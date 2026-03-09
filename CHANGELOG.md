@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.0] — 2026-03-09
+
+### Added
+- **Large file support**: Upload limit raised to 100 MB with explicit frontend validation and backend enforcement. Fixes 16.4 MB upload failure caused by 8-second frontend timeout.
+- **Upload progress tracking**: Real-time progress bar during file upload using XMLHttpRequest, replacing blind `fetch` calls.
+- **Processing state UI**: Distinct uploading → processing → complete → error states with stage-specific error messages (upload/parse/analyze/optimize/ingest).
+- **File size validation**: Client-side size check with warning for files > 50 MB and rejection for files > 100 MB.
+- **Catalog storage policy**: Soft limit (2 GB) and hard limit (5 GB) with `GET /catalog/policy` endpoint. Individual asset warning at 25 MB.
+- **Target profiles**: Assets are classified as mobile/tablet/wall/desktop/heavy based on triangle count and file size.
+- **Richer metadata**: `originalFileSizeKB`, `reductionPercent`, and `targetProfile` added to optimize response and asset metadata.
+- **Job cleanup service**: Automatic cleanup of stale jobs (>7 days) and failed jobs (>1 day) from `/data/storage/jobs`. Runs on startup and every 6 hours.
+- **Stage-aware error responses**: All backend routes include `stage` field in error responses for precise failure identification.
+
+### Changed
+- Frontend request timeout increased from 8s to 120s (general) and 300s (upload routes).
+- Fastify `requestTimeout` set to 300s and `bodyLimit` to 100 MB for large file support.
+- FileUploader component rebuilt with progress bar, size validation, warnings, error states, and reset capability.
+- Optimize page shows upload progress, processing spinner, catalog size warnings, and target profile badges.
+- Version bump to 0.4.0 across all version sources.
+
 ## [0.3.3] — 2026-03-09
 
 ### Fixed

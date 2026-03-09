@@ -62,8 +62,31 @@ If Home Assistant still shows an old version after a release:
 2. **Remove** the repository URL
 3. Click **Reload** (top-right ⋮ menu)
 4. **Re-add** the repository URL
-5. Verify the correct version (currently **0.3.3**) appears before clicking Install
+5. Verify the correct version (currently **0.4.0**) appears before clicking Install
 6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
+
+## Upload Limits
+
+- **Maximum source file**: 100 MB (configurable via `max_file_size_mb` in add-on options)
+- Files > 50 MB show a processing time warning
+- Files > 100 MB are rejected before upload
+
+## Storage Policy
+
+The catalog has storage limits to prevent unbounded growth:
+- **Soft limit**: 2 GB — warnings shown but ingest allowed
+- **Hard limit**: 5 GB — new ingests blocked until space is freed
+- Individual optimized assets > 25 MB trigger a warning before catalog save
+
+Check current usage via `GET /catalog/policy`.
+
+## Job Cleanup
+
+Temporary job data in `/data/storage/jobs` is cleaned automatically:
+- Completed jobs: removed after 7 days (configurable via `job_retention_hours`)
+- Failed jobs (no result.json): removed after 1 day
+- Cleanup runs on startup and every 6 hours
+- Catalog assets are never touched
 
 ## Architecture Support
 
