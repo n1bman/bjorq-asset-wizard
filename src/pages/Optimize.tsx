@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import type { OptimizeOptions, OptimizeResponse, AnalysisResponse, ImportType, IngestMeta } from "@/types/api";
-import { Download, FolderPlus, RefreshCw, AlertTriangle, AlertCircle, Hash, Tag, Briefcase, Cpu, CheckCircle2, XCircle } from "lucide-react";
+import { Download, FolderPlus, AlertTriangle, AlertCircle, Hash, Tag, Briefcase, Cpu, CheckCircle2, XCircle } from "lucide-react";
 import { STAGE_LABELS, CATALOG_ASSET_WARN_SIZE_MB, deriveTargetProfile, formatFileSize, type ProcessingStage } from "@/lib/upload-limits";
 
 const DIRECT_STEPS = [

@@ -6,7 +6,7 @@
  * Emits stage-level log messages for HA add-on diagnostics.
  */
 
-import { NodeIO, Document, Accessor } from "@gltf-transform/core";
+import { NodeIO, Document } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import type {
   AnalysisResult,
