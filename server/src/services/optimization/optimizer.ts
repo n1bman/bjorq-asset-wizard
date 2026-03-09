@@ -12,9 +12,67 @@ import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { prune, dedup, flatten, textureCompress } from "@gltf-transform/functions";
 import sharp from "sharp";
 import { analyzeModel } from "../analysis/analyzer.js";
-import type { OptimizeRequestOptions, OptimizeResult, StatsSnapshot } from "../../types/optimize.js";
+import type { OptimizeRequestOptions, OptimizeResult, StatsSnapshot, OptimizationProfile } from "../../types/optimize.js";
 import type { AnalysisResult } from "../../types/analyze.js";
 import type { FastifyBaseLogger } from "fastify";
+
+// ---------------------------------------------------------------------------
+// Optimization profile presets
+// ---------------------------------------------------------------------------
+
+const PROFILE_PRESETS: Record<OptimizationProfile, Partial<OptimizeRequestOptions>> = {
+  "high-quality": {
+    maxTextureSize: 4096,
+    normalizeScale: false,
+    setFloorToY0: false,
+    optimizeBaseColorTextures: false,
+    removeEmptyNodes: true,
+    removeUnusedNodes: true,
+    removeCameras: true,
+    removeLights: true,
+    removeAnimations: false,
+    deduplicateMaterials: true,
+  },
+  balanced: {
+    maxTextureSize: 2048,
+    normalizeScale: true,
+    setFloorToY0: true,
+    optimizeBaseColorTextures: true,
+    removeEmptyNodes: true,
+    removeUnusedNodes: true,
+    removeCameras: true,
+    removeLights: true,
+    removeAnimations: true,
+    deduplicateMaterials: true,
+  },
+  "low-power": {
+    maxTextureSize: 512,
+    normalizeScale: true,
+    setFloorToY0: true,
+    optimizeBaseColorTextures: true,
+    removeEmptyNodes: true,
+    removeUnusedNodes: true,
+    removeCameras: true,
+    removeLights: true,
+    removeAnimations: true,
+    deduplicateMaterials: true,
+  },
+};
+
+/** Apply profile presets — explicit user options always override */
+function applyProfile(options: OptimizeRequestOptions): OptimizeRequestOptions {
+  if (!options.profile) return options;
+  const preset = PROFILE_PRESETS[options.profile];
+  if (!preset) return options;
+  // Preset values fill in missing options; explicit user values win
+  const merged: OptimizeRequestOptions = { ...options };
+  for (const [key, value] of Object.entries(preset)) {
+    if ((merged as Record<string, unknown>)[key] === undefined) {
+      (merged as Record<string, unknown>)[key] = value;
+    }
+  }
+  return merged;
+}
 
 // Options that are still not implemented (V3+)
 const FUTURE_SKIPPED: { key: keyof OptimizeRequestOptions; reason: string }[] = [
