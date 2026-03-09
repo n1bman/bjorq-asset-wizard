@@ -160,13 +160,14 @@ export interface StatsSnapshot {
 // --- Asset / Catalog ---
 
 export interface AssetMetadata {
+  schemaVersion?: "1.0";
   id: string;
   name: string;
   category: string;
   subcategory?: string;
   style?: string;
   model: string;
-  thumbnail: string;
+  thumbnail: string | null;
   dimensions: {
     width: number;
     depth: number;
@@ -264,8 +265,10 @@ export interface VersionResponse {
   name: string;
   version: string;
   node: string;
-  typescript: string;
+  uptime?: number;
   environment: string;
+  catalogSchemaVersion?: string;
+  capabilities?: string[];
 }
 
 // --- Sync ---

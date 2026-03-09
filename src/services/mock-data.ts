@@ -161,6 +161,5 @@ export const mockVersion: VersionResponse = {
   name: "bjorq-asset-optimizer",
   version: "1.0.0",
   node: "v20.11.0",
-  typescript: "5.4.0",
   environment: "development",
 };

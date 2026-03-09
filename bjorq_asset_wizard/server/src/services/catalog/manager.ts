@@ -1,15 +1,15 @@
 /**
  * Catalog Manager — scan, ingest, and reindex the asset catalog.
  *
- * Catalog structure:
+ * ⚠️  FROZEN v1 FOLDER STRUCTURE:
  *   CATALOG_PATH/<category>/<subcategory>/<assetId>/
  *     model.glb
  *     meta.json
  *     thumb.webp  (optional)
  */
 
-import { readdir, readFile, writeFile, mkdir, copyFile, stat } from "node:fs/promises";
-import { join, basename } from "node:path";
+import { readdir, readFile, writeFile, mkdir, copyFile, stat, access } from "node:fs/promises";
+import { join } from "node:path";
 import { CATALOG_PATH, storagePath } from "../../lib/storage.js";
 import type {
   CatalogIndex,
@@ -20,7 +20,8 @@ import type {
   IngestResponse,
 } from "../../types/catalog.js";
 
-const CATALOG_VERSION = "0.4.1";
+export const CATALOG_SCHEMA_VERSION = "1.0" as const;
+const CATALOG_VERSION = "0.5.0";
 
 // ---------------------------------------------------------------------------
 // Build catalog index by scanning the directory tree
@@ -73,6 +74,7 @@ export async function buildCatalogIndex(): Promise<CatalogIndex> {
   }
 
   return {
+    schemaVersion: CATALOG_SCHEMA_VERSION,
     version: CATALOG_VERSION,
     generatedAt: new Date().toISOString(),
     totalAssets,
@@ -101,7 +103,6 @@ export async function ingestAsset(
   const modelDest = join(assetDir, "model.glb");
 
   if (jobId) {
-    // Copy from job output
     const jobOptimized = storagePath("jobs", jobId, "optimized.glb");
     try {
       await copyFile(jobOptimized, modelDest);
@@ -111,7 +112,20 @@ export async function ingestAsset(
   } else if (fileBuffer) {
     await writeFile(modelDest, fileBuffer);
   }
-  // If neither jobId nor file, the model slot stays empty (metadata-only ingest)
+
+  // --- Copy thumbnail from job output if available ---
+  let thumbnailRelPath: string | null = null;
+  if (jobId) {
+    const jobThumb = storagePath("jobs", jobId, "thumb.webp");
+    try {
+      await access(jobThumb);
+      const thumbDest = join(assetDir, "thumb.webp");
+      await copyFile(jobThumb, thumbDest);
+      thumbnailRelPath = `/${category}/${subcategory}/${resolvedId}/thumb.webp`;
+    } catch {
+      // No thumbnail available — leave as null
+    }
+  }
 
   // --- Merge metadata from job result if available ---
   let jobMeta: Record<string, unknown> = {};
@@ -124,18 +138,24 @@ export async function ingestAsset(
     }
   }
 
+  // --- Extract Phase 4 metadata from job result ---
+  const metadata = jobMeta.metadata as Record<string, unknown> | undefined;
+  const originalFileSizeKB = (metadata?.originalFileSizeKB as number) ?? undefined;
+  const reductionPercent = (metadata?.reductionPercent as number) ?? undefined;
+  const targetProfile = (metadata?.targetProfile as string) ?? undefined;
+
   // --- Build meta.json ---
   const modelRelPath = `/${category}/${subcategory}/${resolvedId}/model.glb`;
-  const thumbRelPath = "";
 
   const catalogMeta: CatalogAssetMeta = {
+    schemaVersion: CATALOG_SCHEMA_VERSION,
     id: resolvedId,
     name: meta.name,
     category,
     subcategory,
     style: meta.style || (jobMeta.style as string) || "",
     model: modelRelPath,
-    thumbnail: thumbRelPath,
+    thumbnail: thumbnailRelPath,
     dimensions: (jobMeta.after as Record<string, unknown>)?.dimensions as CatalogAssetMeta["dimensions"] ?? undefined,
     placement: meta.placement || (jobMeta.placement as string) || "floor",
     ha: meta.ha ? { mappable: meta.ha.mappable, defaultDomain: meta.ha.defaultDomain, defaultKind: meta.ha.defaultKind } : undefined,
@@ -146,6 +166,9 @@ export async function ingestAsset(
           fileSizeKB: (jobMeta.after as Record<string, number>).fileSizeKB ?? 0,
         }
       : undefined,
+    originalFileSizeKB,
+    reductionPercent,
+    targetProfile,
     source: "optimized",
     ingestStatus: "ingested",
     optimizationStatus: "optimized",
@@ -168,7 +191,7 @@ export async function ingestAsset(
       path: catalogPath,
       files: {
         model: `${catalogPath}/model.glb`,
-        thumbnail: "",
+        thumbnail: thumbnailRelPath,
         metadata: `${catalogPath}/meta.json`,
       },
     },
@@ -185,6 +208,30 @@ export async function reindexCatalog(): Promise<CatalogIndex> {
   const dest = join(CATALOG_PATH, "index.json");
   await writeFile(dest, JSON.stringify(index, null, 2));
   return index;
+}
+
+// ---------------------------------------------------------------------------
+// Find asset by ID (for thumbnail route)
+// ---------------------------------------------------------------------------
+
+export async function findAssetPath(assetId: string): Promise<string | null> {
+  const categoryDirs = await safeDirEntries(CATALOG_PATH);
+
+  for (const catDir of categoryDirs) {
+    const catPath = join(CATALOG_PATH, catDir);
+    if (!(await isDirectory(catPath))) continue;
+
+    const subDirs = await safeDirEntries(catPath);
+    for (const subDir of subDirs) {
+      const subPath = join(catPath, subDir);
+      if (!(await isDirectory(subPath))) continue;
+
+      const assetPath = join(subPath, assetId);
+      if (await isDirectory(assetPath)) return assetPath;
+    }
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------

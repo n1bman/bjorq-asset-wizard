@@ -7,8 +7,9 @@ import type { FastifyInstance } from "fastify";
 import { access, writeFile, unlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
+import { CATALOG_SCHEMA_VERSION } from "../services/catalog/manager.js";
 
-const VERSION = "0.4.1";
+const VERSION = "0.5.0";
 const STORAGE_PATH = process.env.STORAGE_PATH || "./storage";
 
 async function checkStorageWritable(storagePath: string): Promise<boolean> {
@@ -56,6 +57,8 @@ export async function healthRoutes(server: FastifyInstance) {
       node: process.version,
       uptime: Math.floor(process.uptime()),
       environment: process.env.NODE_ENV || "development",
+      catalogSchemaVersion: CATALOG_SCHEMA_VERSION,
+      capabilities: ["analyze", "optimize", "catalog", "policy"],
     };
   });
 }
