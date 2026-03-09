@@ -40,8 +40,8 @@ export async function optimizeRoutes(server: FastifyInstance) {
         }
       }
     } catch (err) {
-      log.error({ err }, "Failed to parse multipart");
-      return reply.status(400).send({ success: false, error: "Failed to parse multipart upload" });
+      log.error({ err, stage: "upload" }, "Failed to parse multipart");
+      return reply.status(400).send({ success: false, error: "Failed to parse multipart upload", stage: "upload" });
     }
 
     // --- Validate file ---
