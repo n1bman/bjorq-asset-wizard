@@ -21,10 +21,11 @@ export async function analyzeRoutes(server: FastifyInstance) {
     try {
       file = await request.file();
     } catch (err) {
-      log.error({ err }, "Failed to read multipart upload");
+      log.error({ err, stage: "upload" }, "Failed to read multipart upload");
       return reply.status(400).send({
         success: false,
         error: "Invalid multipart request",
+        stage: "upload",
       });
     }
 
