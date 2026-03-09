@@ -58,6 +58,10 @@ The add-on exposes an HTTP API on port 3500. Key endpoints:
 4. Verify the correct version (currently **0.2.3**) appears before installing
 5. If still stale: **Settings → System → Restart** (Supervisor or Core)
 
+## Architecture Support
+
+The first prebuilt add-on release is **amd64-only**. The aarch64 (ARM64) build is temporarily disabled due to QEMU cross-compilation crashes (`Illegal instruction` signal) during `npm install` in CI. Native aarch64 support will be restored once Docker build stabilization is complete.
+
 ## Support
 
 For issues and feature requests, visit the [GitHub repository](https://github.com/n1bman/bjorq-asset-wizard).

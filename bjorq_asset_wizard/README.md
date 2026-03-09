@@ -65,6 +65,10 @@ If Home Assistant still shows an old version after a release:
 5. Verify the correct version (currently **0.2.3**) appears before clicking Install
 6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
 
+## Architecture Support
+
+> **Note:** The first prebuilt release is **amd64-only**. aarch64 is temporarily disabled due to QEMU cross-compilation crashes in CI. It will be restored after Docker build stabilization.
+
 ## Configuration
 
 See [DOCS.md](DOCS.md) for configuration options and usage details.
