@@ -110,4 +110,5 @@ export interface OptimizeResponse {
 export interface OptimizeErrorResponse {
   success: false;
   error: string;
+  stage?: string;
 }
