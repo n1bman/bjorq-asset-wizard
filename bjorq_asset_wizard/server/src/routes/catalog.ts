@@ -37,7 +37,7 @@ import {
 import { getCatalogPolicy, getCatalogStorageUsage } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
 
-const VERSION = "1.1.7";
+const VERSION = "1.1.9";
 
 export async function catalogRoutes(server: FastifyInstance) {
   // -----------------------------------------------------------------------

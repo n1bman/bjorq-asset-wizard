@@ -15,6 +15,7 @@ import { storagePath } from "../lib/storage.js";
 import { optimizeModel } from "../services/optimization/optimizer.js";
 import { deriveAssetId } from "../services/optimization/slugify.js";
 import { deriveTargetProfile } from "../services/optimization/profiles.js";
+import { generateThumbnail } from "../services/optimization/thumbnail.js";
 import type { OptimizeRequestOptions, OptimizeResponse, OptimizeErrorResponse } from "../types/optimize.js";
 
 const SUPPORTED_EXTENSIONS = new Set([".glb", ".gltf"]);
@@ -130,6 +131,21 @@ export async function optimizeRoutes(server: FastifyInstance) {
       };
       await writeFile(`${jobDir}/result.json`, JSON.stringify(resultJson, null, 2));
 
+      // Generate thumbnail
+      try {
+        const thumbBuffer = await generateThumbnail({
+          name: assetName,
+          triangles: result.after.triangles,
+          fileSizeKB: result.after.fileSizeKB,
+          materials: result.after.materials,
+          category: options.category,
+        });
+        await writeFile(`${jobDir}/thumb.webp`, thumbBuffer);
+        log.info("Thumbnail generated");
+      } catch (thumbErr) {
+        log.warn({ err: thumbErr }, "Thumbnail generation failed — continuing without thumbnail");
+      }
+
       log.info({ jobDir }, "Outputs written to storage");
     } catch (err) {
       log.error({ err, stage: "optimize" }, "Failed to write outputs to storage");
@@ -163,7 +179,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
       },
       outputs: {
         optimizedModel: `/jobs/${jobId}/optimized.glb`,
-        thumbnail: null,
+        thumbnail: `/jobs/${jobId}/thumb.webp`,
         metadata: `/jobs/${jobId}/result.json`,
         report: "",
       },
@@ -174,7 +190,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
         subcategory: options.subcategory || "",
         style: options.style || "",
         model: `/jobs/${jobId}/optimized.glb`,
-        thumbnail: null,
+        thumbnail: `/jobs/${jobId}/thumb.webp`,
         dimensions: result.analysisAfter.dimensions,
         placement: options.placement || result.analysisAfter.placement?.candidate || "unknown",
         performance: {

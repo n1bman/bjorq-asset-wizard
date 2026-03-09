@@ -1,6 +1,6 @@
 import type { OptimizeResponse } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, AlertTriangle } from "lucide-react";
 
 interface Props {
   stats: OptimizeResponse["stats"];
@@ -39,6 +39,13 @@ export function StatsComparison({ stats }: Props) {
         <Row label="Materials" before={stats.before.materials} after={stats.after.materials} />
         <Row label="Textures" before={stats.before.textures} after={stats.after.textures} />
         <Row label="Max Texture" before={`${stats.before.maxTextureRes}px`} after={`${stats.after.maxTextureRes}px`} />
+        <div className="flex items-start gap-2 mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            This result is temporary and will be cleaned up after 24 hours.{" "}
+            <span className="text-foreground font-medium">Save to Catalog</span> to keep it permanently.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
