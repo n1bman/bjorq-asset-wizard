@@ -201,6 +201,7 @@ export interface AssetMetadata {
 }
 
 export interface CatalogIndex {
+  schemaVersion?: "1.0";
   version: string;
   generatedAt: string;
   totalAssets: number;

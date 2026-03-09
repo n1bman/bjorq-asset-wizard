@@ -58,7 +58,7 @@ The add-on exposes an HTTP API on port 3500. Key endpoints:
 1. **Settings → Add-ons → Add-on Store** → ⋮ → **Repositories** → remove the repo URL
 2. Click **Reload** in the Add-on Store
 3. Re-add the repository URL
-4. Verify the correct version (currently **0.5.0**) appears before installing
+4. Verify the correct version (currently **0.6.0**) appears before installing
 5. If still stale: **Settings → System → Restart** (Supervisor or Core)
 
 ## Upload Limits

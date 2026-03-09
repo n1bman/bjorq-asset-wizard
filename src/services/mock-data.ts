@@ -56,6 +56,7 @@ export const mockOptimize: OptimizeResponse = {
     applied: ["removeEmptyNodes", "removeUnusedNodes", "removeLights", "deduplicateMaterials", "resizeTextures", "normalizeScale", "setFloorToY0"],
     skipped: [{ operation: "removeAnimations", reason: "No animations found" }],
     warnings: [{ operation: "normalizeOrigin", message: "Origin adjustment skipped — complex pivot detected" }],
+    explanations: ["No animations present in the model", "No duplicate materials detected"],
   },
   stats: {
     before: { fileSizeKB: 2401, triangles: 148230, materials: 8, textures: 14, maxTextureRes: 4096 },
