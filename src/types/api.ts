@@ -198,6 +198,17 @@ export interface AssetMetadata {
   originalFileSizeKB?: number;
   reductionPercent?: number;
   targetProfile?: string;
+  // Phase 7 — scene metadata
+  boundingBox?: {
+    min: [number, number, number];
+    max: [number, number, number];
+  };
+  center?: [number, number, number];
+  pivot?: string;
+  estimatedScale?: {
+    unit: string;
+    confidence: string;
+  };
 }
 
 export interface CatalogIndex {

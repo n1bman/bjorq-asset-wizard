@@ -21,7 +21,7 @@ import type {
 } from "../../types/catalog.js";
 
 export const CATALOG_SCHEMA_VERSION = "1.0" as const;
-const CATALOG_VERSION = "0.6.0";
+const CATALOG_VERSION = "1.0.0";
 
 // ---------------------------------------------------------------------------
 // Required fields for a valid CatalogAssetMeta
@@ -179,6 +179,27 @@ export async function ingestAsset(
   const reductionPercent = (metadata?.reductionPercent as number) ?? undefined;
   const targetProfile = (metadata?.targetProfile as string) ?? undefined;
 
+  // --- Extract Phase 7 scene metadata from job result ---
+  const scene = jobMeta.scene as Record<string, unknown> | undefined;
+  const boundingBox = scene?.boundingBox as CatalogAssetMeta["boundingBox"] | undefined;
+  const estimatedScale = scene?.estimatedScale as CatalogAssetMeta["estimatedScale"] | undefined;
+
+  // Compute center from bounding box
+  let center: [number, number, number] | undefined;
+  if (boundingBox) {
+    center = [
+      +((boundingBox.min[0] + boundingBox.max[0]) / 2).toFixed(4),
+      +((boundingBox.min[1] + boundingBox.max[1]) / 2).toFixed(4),
+      +((boundingBox.min[2] + boundingBox.max[2]) / 2).toFixed(4),
+    ];
+  }
+
+  // Derive pivot from bounding box
+  let pivot: string | undefined;
+  if (boundingBox) {
+    pivot = Math.abs(boundingBox.min[1]) < 0.01 ? "bottom-center" : "center";
+  }
+
   // --- Build meta.json ---
   const modelRelPath = `/${category}/${subcategory}/${resolvedId}/model.glb`;
 
@@ -209,6 +230,10 @@ export async function ingestAsset(
     optimizationStatus: "optimized",
     optimizedAt: (jobMeta.timestamp as string) || new Date().toISOString(),
     jobId: jobId || undefined,
+    boundingBox,
+    center,
+    pivot,
+    estimatedScale,
   };
 
   const metaDest = join(assetDir, "meta.json");

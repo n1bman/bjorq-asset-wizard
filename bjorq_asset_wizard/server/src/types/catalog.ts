@@ -38,6 +38,18 @@ export interface CatalogAssetMeta {
   optimizationStatus?: string;
   optimizedAt?: string | null;
   jobId?: string;
+
+  // --- Scene metadata (Phase 7 — non-breaking additions) ---
+  boundingBox?: {
+    min: [number, number, number];
+    max: [number, number, number];
+  };
+  center?: [number, number, number];
+  pivot?: string;
+  estimatedScale?: {
+    unit: string;
+    confidence: string;
+  };
 }
 
 export interface CatalogSubcategory {
