@@ -126,6 +126,9 @@ class ApiClient {
       if (!res.ok) {
         if (!isJson) {
           const snippet = (await res.text()).slice(0, 200);
+          if (res.status === 413) {
+            throw new ApiError("File rejected by HA proxy (size limit). Use direct port 3500 instead of ingress for files over 10 MB.", 413, "upload");
+          }
           const hint = snippet.includes("<!") ? " (HTML error page from proxy)" : "";
           throw new ApiError(`Backend error ${res.status}${hint}`, res.status);
         }
