@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
 import { PreviewErrorBoundary } from "@/components/catalog/PreviewErrorBoundary";
 import { AssetPreviewPanel } from "@/components/catalog/AssetPreviewPanel";
+import { getAssetModelUrl } from "@/lib/asset-paths";
 import type { AssetMetadata } from "@/types/api";
 
 export default function AssetDetailPage() {
@@ -46,6 +47,33 @@ export default function AssetDetailPage() {
     } catch (e: unknown) {
       toast({ title: "Sync failed", description: e instanceof Error ? e.message : "Sync error", variant: "destructive" });
     }
+  };
+
+  const handleOptimize = () => {
+    if (!asset) return;
+    if (asset.optimizationStatus === "optimized") {
+      toast({ title: "Already optimized", description: `${asset.name} has already been optimized` });
+      return;
+    }
+    navigate("/optimize");
+  };
+
+  const handleIngest = () => {
+    if (!asset) return;
+    if (asset.ingestStatus === "ingested") {
+      toast({ title: "Already ingested", description: `${asset.name} is already in the catalog` });
+      return;
+    }
+    navigate("/ingest");
+  };
+
+  const handleExport = () => {
+    if (!asset) return;
+    if (!isConnected) {
+      toast({ title: "Export unavailable", description: "Backend not connected", variant: "destructive" });
+      return;
+    }
+    window.open(getAssetModelUrl(asset.id), "_blank");
   };
 
   if (!asset && notFound) {
@@ -86,6 +114,11 @@ export default function AssetDetailPage() {
             <OptimizationBadge status={asset.optimizationStatus} />
             <IngestBadge status={asset.ingestStatus} />
             <ConversionBadge status={asset.conversionStatus} />
+            {asset.lifecycleStatus && (
+              <Badge variant={asset.lifecycleStatus === "published" ? "default" : "secondary"} className="text-xs">
+                {asset.lifecycleStatus}
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -114,6 +147,10 @@ export default function AssetDetailPage() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Sync</span>
               <SyncDot status={asset.syncStatus} />
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Lifecycle</span>
+              <span className="text-foreground">{asset.lifecycleStatus ?? "n/a"}</span>
             </div>
           </CardContent>
         </Card>
@@ -235,13 +272,13 @@ export default function AssetDetailPage() {
 
         {/* Actions */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <Button variant="outline" className="gap-1.5">
+          <Button variant="outline" className="gap-1.5" onClick={handleOptimize}>
             <Wand2 className="h-4 w-4" /> Optimize
           </Button>
-          <Button variant="outline" className="gap-1.5">
+          <Button variant="outline" className="gap-1.5" onClick={handleIngest}>
             <FolderPlus className="h-4 w-4" /> Ingest
           </Button>
-          <Button variant="outline" className="gap-1.5">
+          <Button variant="outline" className="gap-1.5" onClick={handleExport}>
             <Download className="h-4 w-4" /> Export
           </Button>
           <Button variant="outline" className="gap-1.5" onClick={handleSync}>

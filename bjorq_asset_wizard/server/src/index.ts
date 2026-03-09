@@ -168,7 +168,6 @@ async function start() {
 
     // SPA fallback — serve index.html for all non-API, non-file routes
     server.setNotFoundHandler(async (request, reply) => {
-      // If it looks like an API call or file request, return 404 JSON
       if (
         request.url.startsWith("/health") ||
         request.url.startsWith("/version") ||
@@ -177,12 +176,13 @@ async function start() {
         request.url.startsWith("/catalog/") ||
         request.url.startsWith("/sync") ||
         request.url.startsWith("/import") ||
-        request.url.startsWith("/jobs/")
+        request.url.startsWith("/jobs/") ||
+        request.url.startsWith("/libraries") ||
+        request.url.startsWith("/assets/")
       ) {
         return reply.code(404).send({ success: false, error: "Not found" });
       }
 
-      // Serve index.html for SPA client-side routing
       return reply.sendFile("index.html", PUBLIC_PATH);
     });
   } else {

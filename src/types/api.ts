@@ -4,6 +4,8 @@
 
 export type ConnectionStatus = "connected" | "disconnected" | "checking";
 
+export type AssetLifecycleStatus = "uploaded" | "analyzed" | "optimized" | "published";
+
 export type AssetSource = "uploaded" | "optimized" | "catalog" | "synced" | "wizard";
 
 export type SyncStatus = "not_synced" | "syncing" | "synced" | "error";
@@ -194,6 +196,7 @@ export interface AssetMetadata {
   optimizedAt?: string | null;
   importType?: ImportType;
   conversionStatus?: ConversionStatus;
+  lifecycleStatus?: AssetLifecycleStatus;
   // Phase 4 fields
   originalFileSizeKB?: number;
   reductionPercent?: number;
