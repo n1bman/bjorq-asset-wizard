@@ -86,9 +86,8 @@ export async function analyzeRoutes(server: FastifyInstance) {
         analysis,
       });
     } catch (err) {
-      log.error({ err, fileName }, "Analysis failed");
+      log.error({ err, fileName, stage: "analyze" }, "Analysis failed");
 
-      // Distinguish parse errors from unexpected failures
       const message = err instanceof Error ? err.message : String(err);
       const isParseError =
         message.includes("Invalid") ||
@@ -96,11 +95,14 @@ export async function analyzeRoutes(server: FastifyInstance) {
         message.includes("JSON") ||
         message.includes("glTF");
 
+      const stage = isParseError ? "parse" : "analyze";
+
       return reply.status(isParseError ? 422 : 500).send({
         success: false,
         error: isParseError
           ? `Failed to parse model: ${message}`
           : "Analysis failed unexpectedly",
+        stage,
       });
     }
   });

@@ -123,6 +123,16 @@ async function start() {
   // --- Storage initialization ---
   await initStorage();
 
+  // --- Job cleanup ---
+  const JOB_RETENTION_HOURS = Number(process.env.JOB_RETENTION_HOURS || 168); // 7 days default
+  const FAILED_JOB_RETENTION_HOURS = 24;
+  startJobCleanup(
+    6 * 60 * 60 * 1000, // every 6 hours
+    JOB_RETENTION_HOURS / 24,
+    FAILED_JOB_RETENTION_HOURS / 24,
+    server.log,
+  );
+
   // --- API Routes ---
   await server.register(healthRoutes);
   await server.register(analyzeRoutes);

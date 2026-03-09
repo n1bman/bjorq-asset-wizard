@@ -117,6 +117,15 @@ export async function optimizeRoutes(server: FastifyInstance) {
       return reply.status(500).send({ success: false, error: "Failed to save optimization outputs", stage: "optimize" });
     }
 
+    // --- Derive target profile ---
+    const originalFileSizeKB = Math.round(fileBuffer.length / 1024);
+    const targetProfile = deriveTargetProfile(
+      result.after.triangles,
+      result.after.fileSizeKB,
+      options.placement || result.analysisAfter.placement?.candidate,
+    );
+    const reductionPercent = result.reduction.fileSizePercent;
+
     // --- Build response matching frontend OptimizeResponse ---
     const response: OptimizeResponse = {
       success: true,
@@ -153,6 +162,9 @@ export async function optimizeRoutes(server: FastifyInstance) {
           materials: result.after.materials,
           fileSizeKB: result.after.fileSizeKB,
         },
+        originalFileSizeKB,
+        reductionPercent: +reductionPercent.toFixed(1),
+        targetProfile,
       },
     };
 
