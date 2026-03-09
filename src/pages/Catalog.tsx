@@ -28,7 +28,14 @@ export default function CatalogPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Catalog</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground">Catalog</h1>
+          {allAssets.length > 0 && (
+            <Badge variant="outline" className="text-[10px] gap-1 text-muted-foreground">
+              <HardDrive className="h-3 w-3" /> Permanently stored
+            </Badge>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground mt-1">
           Browse {catalog?.totalAssets ?? "…"} assets across {categories.length} categories.
         </p>
