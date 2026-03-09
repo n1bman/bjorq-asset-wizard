@@ -15,7 +15,7 @@ image: "ghcr.io/n1bman/bjorq-asset-wizard-{arch}"
 # Supported architectures
 arch:
   - amd64
-  - aarch64
+  # - aarch64  # Temporarily disabled — QEMU crashes during cross-arch npm install
 
 # Network
 ports:
