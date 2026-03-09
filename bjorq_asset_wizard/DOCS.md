@@ -11,7 +11,7 @@ The add-on uses a **prebuilt GHCR image** — Home Assistant pulls the image dir
 | Option | Default | Description |
 |--------|---------|-------------|
 | `log_level` | `info` | Logging verbosity (`debug`, `info`, `warn`, `error`) |
-| `max_file_size_mb` | `100` | Maximum upload file size in MB |
+| `max_file_size_mb` | `100` | Maximum upload file size in MB (up to 500) |
 | `thumbnail_size` | `512` | Thumbnail dimension in pixels |
 | `thumbnail_quality` | `80` | Thumbnail JPEG/WebP quality (50–100) |
 | `max_texture_size` | `2048` | Default max texture dimension for optimization |
