@@ -47,8 +47,10 @@ export async function optimizeRoutes(server: FastifyInstance) {
     // --- Validate file ---
     if (!fileBuffer || fileBuffer.length === 0) {
       log.warn("No file provided");
-      return reply.status(400).send({ success: false, error: "No file provided. Upload a .glb or .gltf file." });
+      return reply.status(400).send({ success: false, error: "No file provided. Upload a .glb or .gltf file.", stage: "upload" });
     }
+
+    log.info({ fileName, fileSizeBytes: fileBuffer.length, fileSizeMB: +(fileBuffer.length / (1024 * 1024)).toFixed(1) }, "File received");
 
     const ext = extname(fileName).toLowerCase();
     if (!SUPPORTED_EXTENSIONS.has(ext)) {
