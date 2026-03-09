@@ -4,10 +4,12 @@ import { getCatalogIndex, syncToBjorq } from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Box, Download, Wand2, FolderPlus, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, Wand2, FolderPlus, RefreshCw } from "lucide-react";
 import { SourceBadge, SyncDot, OptimizationBadge, IngestBadge, ImportTypeBadge, ConversionBadge } from "@/components/catalog/AssetStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
+import { PreviewErrorBoundary } from "@/components/catalog/PreviewErrorBoundary";
+import { AssetPreviewPanel } from "@/components/catalog/AssetPreviewPanel";
 import type { AssetMetadata } from "@/types/api";
 
 export default function AssetDetailPage() {
@@ -16,7 +18,6 @@ export default function AssetDetailPage() {
   const { toast } = useToast();
   const { isConnected } = useConnection();
   const [asset, setAsset] = useState<AssetMetadata | null>(null);
-
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -63,153 +64,191 @@ export default function AssetDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate("/catalog")} className="gap-1">
-        <ArrowLeft className="h-4 w-4" /> Back to Catalog
-      </Button>
+    <PreviewErrorBoundary fallbackMessage="Failed to render asset detail page">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/catalog")} className="gap-1">
+          <ArrowLeft className="h-4 w-4" /> Back to Catalog
+        </Button>
 
-      <div className="aspect-video bg-muted/30 rounded-lg flex items-center justify-center">
-        <Box className="h-20 w-20 text-muted-foreground/30" />
-      </div>
+        <PreviewErrorBoundary fallbackMessage="Model preview could not be loaded">
+          <AssetPreviewPanel asset={asset} size="lg" />
+        </PreviewErrorBoundary>
 
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{asset.name}</h1>
-        <div className="flex items-center gap-2 mt-2 flex-wrap">
-          <Badge variant="outline">{asset.category}</Badge>
-          {asset.subcategory && <Badge variant="secondary">{asset.subcategory}</Badge>}
-          {asset.style && <Badge variant="secondary">{asset.style}</Badge>}
-          <SourceBadge source={asset.source} />
-          <ImportTypeBadge importType={asset.importType} />
-          <SyncDot status={asset.syncStatus} />
-          <OptimizationBadge status={asset.optimizationStatus} />
-          <IngestBadge status={asset.ingestStatus} />
-          <ConversionBadge status={asset.conversionStatus} />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{asset.name}</h1>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <Badge variant="outline">{asset.category}</Badge>
+            {asset.subcategory && <Badge variant="secondary">{asset.subcategory}</Badge>}
+            {asset.style && <Badge variant="secondary">{asset.style}</Badge>}
+            <SourceBadge source={asset.source} />
+            <ImportTypeBadge importType={asset.importType} />
+            <SyncDot status={asset.syncStatus} />
+            <OptimizationBadge status={asset.optimizationStatus} />
+            <IngestBadge status={asset.ingestStatus} />
+            <ConversionBadge status={asset.conversionStatus} />
+          </div>
+        </div>
+
+        {/* Import & Pipeline Status */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Import & Pipeline</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Import Source</span>
+              <span className="text-foreground">{asset.importType ?? asset.source ?? "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Conversion</span>
+              <span className="text-foreground">{asset.conversionStatus ?? "n/a"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Optimization</span>
+              <OptimizationBadge status={asset.optimizationStatus} />
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ingest</span>
+              <span className="text-foreground">{asset.ingestStatus ?? "n/a"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Sync</span>
+              <SyncDot status={asset.syncStatus} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Dimensions</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Width</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.width ?? "—"} m</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Depth</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.depth ?? "—"} m</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Height</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.height ?? "—"} m</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Performance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Triangles</span>
+                <span className="text-foreground">{asset.performance?.triangles?.toLocaleString() ?? "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Materials</span>
+                <span className="text-foreground">{asset.performance?.materials ?? "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">File Size</span>
+                <span className="text-foreground">{asset.performance?.fileSizeKB != null ? `${asset.performance.fileSizeKB} KB` : "—"}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Placement:</span>
+          <Badge>{asset.placement}</Badge>
+        </div>
+
+        {/* Bounding Box */}
+        {asset.boundingBox && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Bounding Box</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4 text-sm font-mono text-xs">
+              <div>
+                <p className="text-muted-foreground font-sans text-xs">Min</p>
+                <p className="text-foreground">[{asset.boundingBox.min.map(v => v.toFixed(3)).join(", ")}]</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground font-sans text-xs">Max</p>
+                <p className="text-foreground">[{asset.boundingBox.max.map(v => v.toFixed(3)).join(", ")}]</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {asset.ha && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Home Assistant</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Mappable</span>
+                <span className="text-foreground">{asset.ha.mappable ? "Yes" : "No"}</span>
+              </div>
+              {asset.ha.defaultDomain && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Domain</span>
+                  <span className="text-foreground font-mono text-xs">{asset.ha.defaultDomain}</span>
+                </div>
+              )}
+              {asset.ha.defaultKind && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kind</span>
+                  <span className="text-foreground font-mono text-xs">{asset.ha.defaultKind}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Paths */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Paths</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-xs font-mono">
+            <div>
+              <p className="text-muted-foreground font-sans text-xs">Model</p>
+              <p className="text-foreground break-all">{asset.model || "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground font-sans text-xs">Thumbnail</p>
+              <p className="text-foreground break-all">{asset.thumbnail || "null"}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {asset.lastSyncedAt && (
+          <p className="text-xs text-muted-foreground">
+            Last synced: {new Date(asset.lastSyncedAt).toLocaleString()}
+          </p>
+        )}
+
+        {/* Actions */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <Button variant="outline" className="gap-1.5">
+            <Wand2 className="h-4 w-4" /> Optimize
+          </Button>
+          <Button variant="outline" className="gap-1.5">
+            <FolderPlus className="h-4 w-4" /> Ingest
+          </Button>
+          <Button variant="outline" className="gap-1.5">
+            <Download className="h-4 w-4" /> Export
+          </Button>
+          <Button variant="outline" className="gap-1.5" onClick={handleSync}>
+            <RefreshCw className="h-4 w-4" /> Sync
+          </Button>
         </div>
       </div>
-
-      {/* Import & Pipeline Status */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Import & Pipeline</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Import Source</span>
-            <span className="text-foreground">{asset.importType ?? asset.source ?? "—"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Conversion</span>
-            <span className="text-foreground">{asset.conversionStatus ?? "n/a"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Optimization</span>
-            <OptimizationBadge status={asset.optimizationStatus} />
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Ingest</span>
-            <span className="text-foreground">{asset.ingestStatus ?? "n/a"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Sync</span>
-            <SyncDot status={asset.syncStatus} />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Dimensions</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-xs text-muted-foreground">Width</p>
-              <p className="text-foreground font-medium">{asset.dimensions.width} m</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Depth</p>
-              <p className="text-foreground font-medium">{asset.dimensions.depth} m</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Height</p>
-              <p className="text-foreground font-medium">{asset.dimensions.height} m</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Performance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Triangles</span>
-              <span className="text-foreground">{asset.performance.triangles.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Materials</span>
-              <span className="text-foreground">{asset.performance.materials}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">File Size</span>
-              <span className="text-foreground">{asset.performance.fileSizeKB} KB</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Placement:</span>
-        <Badge>{asset.placement}</Badge>
-      </div>
-
-      {asset.ha && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Home Assistant</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Mappable</span>
-              <span className="text-foreground">{asset.ha.mappable ? "Yes" : "No"}</span>
-            </div>
-            {asset.ha.defaultDomain && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Domain</span>
-                <span className="text-foreground font-mono text-xs">{asset.ha.defaultDomain}</span>
-              </div>
-            )}
-            {asset.ha.defaultKind && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Kind</span>
-                <span className="text-foreground font-mono text-xs">{asset.ha.defaultKind}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {asset.lastSyncedAt && (
-        <p className="text-xs text-muted-foreground">
-          Last synced: {new Date(asset.lastSyncedAt).toLocaleString()}
-        </p>
-      )}
-
-      {/* Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Button variant="outline" className="gap-1.5">
-          <Wand2 className="h-4 w-4" /> Optimize
-        </Button>
-        <Button variant="outline" className="gap-1.5">
-          <FolderPlus className="h-4 w-4" /> Ingest
-        </Button>
-        <Button variant="outline" className="gap-1.5">
-          <Download className="h-4 w-4" /> Export
-        </Button>
-        <Button variant="outline" className="gap-1.5" onClick={handleSync}>
-          <RefreshCw className="h-4 w-4" /> Sync
-        </Button>
-      </div>
-    </div>
+    </PreviewErrorBoundary>
   );
 }

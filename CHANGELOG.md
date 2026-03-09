@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.4] — 2026-03-09
+
+### Fixed — Viewer Hardening & Final UX Polish
+- **Preview error isolation**: Added `PreviewErrorBoundary` (React ErrorBoundary) wrapping all preview/drawer content. Viewer errors can no longer crash the page.
+- **Asset preview panel**: New `AssetPreviewPanel` component with thumbnail rendering, fallback placeholder, and hover-to-reveal path diagnostics (model path, thumbnail path).
+- **Catalog asset click stability**: Clicking catalog assets no longer causes blank/brown states. Drawer uses `key={asset.id}` for clean re-renders.
+- **Defensive rendering**: All `performance` and `dimensions` access uses optional chaining across drawer, detail page, and asset cards.
+- **Path diagnostics**: Asset detail drawer and full page now display model/thumbnail paths and bounding box data when available.
+- **Placeholder consistency**: Missing thumbnails show clean "Preview unavailable" state; failed thumbnail loads show "Thumbnail failed to load".
+
+### Changed
+- Version bump to 1.1.4 across all version sources.
+
+
 ## [1.1.3] — 2026-03-09
 
 ### Fixed — Consolidated Bugfix Pass
