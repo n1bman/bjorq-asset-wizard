@@ -2,18 +2,24 @@
 
 ## [1.1.5] — 2026-03-09
 
-### Fixed — Debug Pass: Analyze Errors, Preview Paths & Ingress
-- **Structured analyze errors**: Backend `/analyze` now returns `{ error, stage, details }` instead of generic messages. Frontend displays the actual backend error message, stage identifier, and expandable stack trace.
-- **Stage-level analyze logging**: HA add-on logs now emit `[ANALYZE] Upload received`, `[ANALYZE] Parsing GLB`, `[ANALYZE] Geometry scan`, `[ANALYZE] Texture scan`, `[ANALYZE] Bounding box calculation`, and `[ANALYZE ERROR] Stage: ... Reason: ...`.
-- **Client disconnect detection**: Analyze route detects aborted requests and logs with job context.
-- **Model-serving endpoint**: New `GET /catalog/asset/:id/model` streams GLB with `model/gltf-binary` MIME type.
-- **Ingress-safe asset paths**: New `src/lib/asset-paths.ts` resolves model/thumbnail URLs through the API client's base URL.
-- **Wizard catalog browser fixed**: Uses main `apiClient` instead of hardcoded `localhost:3500` wizard client.
-- **ApiError carries stage/details**: Parsed from backend JSON responses for structured error display.
-- **Error details in UI**: Upload/Analyze and Optimize pages show expandable error details with stage, message, and stack trace.
+### Fixed — Systems Repair & Architecture Hardening
+- **Removed WizardClient**: Deleted `wizard-client.ts`, `WizardContext.tsx`, and `wizard-mock-data.ts`. Eliminated hardcoded `localhost:3500` polling. All API communication unified on the ingress-safe `apiClient`.
+- **Wired asset action buttons**: Optimize, Ingest, Export, and Sync buttons in `AssetDetailDrawer` and `AssetDetail` now have real click handlers. Export downloads the GLB via the model endpoint. Optimize/Ingest show status toasts for already-processed assets.
+- **Implemented POST /sync**: Replaced 501 stub. Accepts `{ assetIds }`, verifies each asset exists in catalog, updates `meta.json` with `syncStatus: "synced"`, `lastSyncedAt`, and `lifecycleStatus: "published"`.
+- **Asset lifecycle status**: Added `AssetLifecycleStatus` type (`uploaded | analyzed | optimized | published`). Assets are set to `published` on catalog ingest. UI displays lifecycle badge.
+
+### Added — Dashboard-Facing Library API
+- `GET /libraries` — returns list of available libraries (currently `default` only)
+- `GET /libraries/:library/index` — returns catalog index for a specific library
+- `GET /assets/:id/meta` — returns asset metadata JSON
+- `GET /assets/:id/model` — alias for `/catalog/asset/:id/model`
+- `GET /assets/:id/thumbnail` — alias for `/catalog/asset/:id/thumbnail`
+- `GET /catalog/asset/:id/export` — download model GLB with `Content-Disposition: attachment`
 
 ### Changed
-- Version bump to 1.1.5 across all version sources.
+- README rewritten with architecture documentation, asset lifecycle, Dashboard consumption model, storage layout, and known limitations.
+- `WizardProvider` removed from App.tsx — no more duplicate context providers.
+- Server notFoundHandler updated to return 404 JSON for `/libraries` and `/assets/` prefixes.
 
 
 ## [1.1.4] — 2026-03-09
