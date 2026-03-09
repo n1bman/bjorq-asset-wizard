@@ -573,3 +573,39 @@ function OutputRow({ label, path }: { label: string; path: string }) {
     </div>
   );
 }
+
+/* ── V2 Operation Row ── */
+
+function V2OpRow({
+  label,
+  description,
+  applied,
+  skippedReason,
+  warning,
+}: {
+  label: string;
+  description: string;
+  applied: boolean;
+  skippedReason?: string;
+  warning?: string;
+}) {
+  return (
+    <div className="flex items-start gap-2 text-sm">
+      {applied ? (
+        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+      ) : (
+        <XCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+      )}
+      <div className="min-w-0">
+        <p className="font-medium text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {!applied && skippedReason && (
+          <p className="text-xs text-muted-foreground italic">Skipped: {skippedReason}</p>
+        )}
+        {warning && (
+          <p className="text-xs text-destructive">⚠ {warning}</p>
+        )}
+      </div>
+    </div>
+  );
+}
