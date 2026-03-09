@@ -77,9 +77,14 @@ async function start() {
   });
 
   // --- Plugins ---
-  await server.register(cors, {
-    origin: process.env.CORS_ORIGINS === "*" ? true : process.env.CORS_ORIGINS?.split(","),
-  });
+  // --- CORS (safe fallback — never crashes) ---
+  const corsOrigin = process.env.CORS_ORIGINS;
+  let originOption: boolean | string[] = true;
+  if (corsOrigin && corsOrigin !== "*") {
+    const parsed = corsOrigin.split(",").map(s => s.trim()).filter(Boolean);
+    if (parsed.length > 0) originOption = parsed;
+  }
+  await server.register(cors, { origin: originOption });
 
   await server.register(multipart, {
     limits: {
