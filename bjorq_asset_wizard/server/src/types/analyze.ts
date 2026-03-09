@@ -95,4 +95,5 @@ export interface AnalysisResponse {
 export interface AnalysisErrorResponse {
   success: false;
   error: string;
+  stage?: string;
 }
