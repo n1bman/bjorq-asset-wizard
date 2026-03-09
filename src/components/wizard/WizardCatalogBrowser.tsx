@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import type { AssetMetadata, CatalogIndex } from "@/types/api";
-import { wizardClient } from "@/services/wizard-client";
-import { useWizard } from "@/contexts/WizardContext";
+import { getCatalogIndex } from "@/services/api";
+import { useConnection } from "@/contexts/ConnectionContext";
 import { WizardAssetCard } from "./WizardAssetCard";
 import { WizardAssetDetail } from "./WizardAssetDetail";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, LayoutGrid, RefreshCw } from "lucide-react";
 
 export function WizardCatalogBrowser() {
-  const { enabled } = useWizard();
+  const { isConnected: _isConnected } = useConnection();
   const [catalog, setCatalog] = useState<CatalogIndex | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AssetMetadata | null>(null);
@@ -19,14 +19,18 @@ export function WizardCatalogBrowser() {
 
   const fetchCatalog = async () => {
     setLoading(true);
-    const data = await wizardClient.getCatalog();
-    setCatalog(data);
+    try {
+      const data = await getCatalogIndex();
+      setCatalog(data);
+    } catch {
+      // Handled by connection context
+    }
     setLoading(false);
   };
 
   useEffect(() => {
-    if (enabled) fetchCatalog();
-  }, [enabled]);
+    fetchCatalog();
+  }, []);
 
   const allAssets = useMemo(() => {
     if (!catalog) return [];
@@ -46,16 +50,6 @@ export function WizardCatalogBrowser() {
     setSelectedAsset(asset);
     setDetailOpen(true);
   };
-
-  if (!enabled) {
-    return (
-      <Card className="border-dashed border-muted-foreground/30">
-        <CardContent className="flex items-center justify-center py-12 text-muted-foreground">
-          Enable Wizard integration to browse assets
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>
