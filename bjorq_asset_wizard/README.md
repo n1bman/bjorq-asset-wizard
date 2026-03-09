@@ -33,7 +33,7 @@ no local Docker build is required during installation or updates.
 
 1. Update the `version` field in `bjorq_asset_wizard/config.yaml`
 2. Commit and push
-3. Create a git tag matching the version: `git tag v0.2.3 && git push origin v0.2.3`
+3. Create a git tag matching the version: `git tag v0.3.3 && git push origin v0.3.3`
 4. GitHub Actions builds and pushes the per-arch images
 5. HA picks up the new version on next add-on store refresh
 
@@ -62,7 +62,7 @@ If Home Assistant still shows an old version after a release:
 2. **Remove** the repository URL
 3. Click **Reload** (top-right ⋮ menu)
 4. **Re-add** the repository URL
-5. Verify the correct version (currently **0.3.0**) appears before clicking Install
+5. Verify the correct version (currently **0.3.3**) appears before clicking Install
 6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
 
 ## Architecture Support
