@@ -6,12 +6,13 @@
  * POST /catalog/reindex          — Force a catalog re-scan and index rebuild
  * GET  /catalog/policy           — Storage usage and limits
  * GET  /catalog/asset/:id/thumbnail — Serve asset thumbnail or 404
+ * GET  /catalog/asset/:id/model  — Serve asset GLB model or 404
  * GET  /catalog/diagnostics      — Catalog diagnostics for integrations
  */
 
 import type { FastifyInstance } from "fastify";
 import { join } from "node:path";
-import { access } from "node:fs/promises";
+import { access, readdir } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import {
@@ -170,6 +171,38 @@ export async function catalogRoutes(server: FastifyInstance) {
       return reply.send(createReadStream(thumbPath));
     } catch {
       return reply.status(404).send({ success: false, error: "No thumbnail available for this asset" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /catalog/asset/:id/model — serve asset GLB model
+  // -----------------------------------------------------------------------
+  server.get("/catalog/asset/:id/model", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    request.log.info({ assetId: id }, "Model file requested");
+
+    const assetPath = await findAssetPath(id);
+    if (!assetPath) {
+      return reply.status(404).send({ success: false, error: "Asset not found" });
+    }
+
+    // Look for model.glb or any .glb file in the asset directory
+    const modelPath = join(assetPath, "model.glb");
+    try {
+      await access(modelPath);
+      reply.type("model/gltf-binary");
+      return reply.send(createReadStream(modelPath));
+    } catch {
+      // Fallback: check for any .glb file
+      try {
+        const files = await readdir(assetPath);
+        const glbFile = files.find(f => f.endsWith(".glb"));
+        if (glbFile) {
+          reply.type("model/gltf-binary");
+          return reply.send(createReadStream(join(assetPath, glbFile)));
+        }
+      } catch { /* ignore */ }
+      return reply.status(404).send({ success: false, error: "No model file available for this asset" });
     }
   });
 

@@ -3,9 +3,10 @@
  *
  * Pure in-memory analysis of GLB/glTF files using @gltf-transform/core.
  * No temp files written — buffer in, structured result out.
+ * Emits stage-level log messages for HA add-on diagnostics.
  */
 
-import { NodeIO, Document, Accessor } from "@gltf-transform/core";
+import { NodeIO, Document } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import type {
   AnalysisResult,
@@ -278,6 +279,7 @@ export async function analyzeModel(
   const format: "glb" | "gltf" = isGlb ? "glb" : "gltf";
 
   // --- Stage: GLB parse ---
+  console.log("[ANALYZE] Parsing GLB");
   let doc: Document;
   try {
     if (isGlb) {
@@ -296,6 +298,7 @@ export async function analyzeModel(
   }
 
   // --- Stage: geometry scan ---
+  console.log("[ANALYZE] Geometry scan");
   let geometry: ReturnType<typeof countGeometry>;
   try {
     geometry = countGeometry(doc);
@@ -308,6 +311,7 @@ export async function analyzeModel(
   const materials = doc.getRoot().listMaterials();
 
   // --- Stage: texture scan ---
+  console.log("[ANALYZE] Texture scan");
   let textureDetails: TextureDetail[];
   try {
     textureDetails = extractTextures(doc);
@@ -317,6 +321,7 @@ export async function analyzeModel(
   }
 
   // --- Stage: bounding box ---
+  console.log("[ANALYZE] Bounding box calculation");
   let bb: { min: Vec3; max: Vec3 };
   try {
     bb = computeBoundingBox(doc);
@@ -359,6 +364,8 @@ export async function analyzeModel(
   }
 
   const fileSizeBytes = buffer.byteLength;
+
+  console.log("[ANALYZE] Analysis complete");
 
   return {
     fileName,
