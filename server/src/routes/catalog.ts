@@ -22,10 +22,10 @@ import {
   findLargestAsset,
   CATALOG_SCHEMA_VERSION,
 } from "../services/catalog/manager.js";
-import { getCatalogPolicy, getCatalogStorageUsage, evaluateAssetForCatalog } from "../services/catalog/policy.js";
+import { getCatalogPolicy, getCatalogStorageUsage } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
 
-const VERSION = "0.6.0";
+const VERSION = "1.0.0";
 
 export async function catalogRoutes(server: FastifyInstance) {
   // -----------------------------------------------------------------------

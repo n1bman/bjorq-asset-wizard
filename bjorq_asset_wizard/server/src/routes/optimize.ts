@@ -8,6 +8,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { extname } from "node:path";
 import type { FastifyInstance } from "fastify";
+import "@fastify/multipart";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import { storagePath } from "../lib/storage.js";
 import { optimizeModel } from "../services/optimization/optimizer.js";
