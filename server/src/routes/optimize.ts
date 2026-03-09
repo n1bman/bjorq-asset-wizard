@@ -113,8 +113,8 @@ export async function optimizeRoutes(server: FastifyInstance) {
 
       log.info({ jobDir }, "Outputs written to storage");
     } catch (err) {
-      log.error({ err }, "Failed to write outputs to storage");
-      return reply.status(500).send({ success: false, error: "Failed to save optimization outputs" });
+      log.error({ err, stage: "optimize" }, "Failed to write outputs to storage");
+      return reply.status(500).send({ success: false, error: "Failed to save optimization outputs", stage: "optimize" });
     }
 
     // --- Build response matching frontend OptimizeResponse ---
