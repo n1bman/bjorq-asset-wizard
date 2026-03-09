@@ -9,7 +9,7 @@ import { constants } from "node:fs";
 import { join } from "node:path";
 import { CATALOG_SCHEMA_VERSION } from "../services/catalog/manager.js";
 
-const VERSION = "0.6.0";
+const VERSION = "1.0.0";
 const STORAGE_PATH = process.env.STORAGE_PATH || "./storage";
 
 async function checkStorageWritable(storagePath: string): Promise<boolean> {

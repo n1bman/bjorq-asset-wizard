@@ -85,6 +85,10 @@ export const mockOptimize: OptimizeResponse = {
     syncStatus: "not_synced",
     ingestStatus: "not_ingested",
     optimizationStatus: "optimized",
+    boundingBox: { min: [-0.9, 0.0, -0.425], max: [0.9, 0.75, 0.425] },
+    center: [0, 0.375, 0],
+    pivot: "bottom-center",
+    estimatedScale: { unit: "m", confidence: "high" },
   },
 };
 

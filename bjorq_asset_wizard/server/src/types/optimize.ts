@@ -106,6 +106,15 @@ export interface OptimizeResponse {
     originalFileSizeKB: number;
     reductionPercent: number;
     targetProfile: string;
+    boundingBox?: {
+      min: [number, number, number];
+      max: [number, number, number];
+    };
+    center?: [number, number, number];
+    estimatedScale?: {
+      unit: string;
+      confidence: string;
+    };
   };
 }
 

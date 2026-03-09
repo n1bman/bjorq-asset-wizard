@@ -174,6 +174,17 @@ export async function optimizeRoutes(server: FastifyInstance) {
         originalFileSizeKB,
         reductionPercent: +reductionPercent.toFixed(1),
         targetProfile,
+        boundingBox: result.analysisAfter.boundingBox,
+        center: result.analysisAfter.boundingBox
+          ? [
+              +((result.analysisAfter.boundingBox.min[0] + result.analysisAfter.boundingBox.max[0]) / 2).toFixed(4),
+              +((result.analysisAfter.boundingBox.min[1] + result.analysisAfter.boundingBox.max[1]) / 2).toFixed(4),
+              +((result.analysisAfter.boundingBox.min[2] + result.analysisAfter.boundingBox.max[2]) / 2).toFixed(4),
+            ] as [number, number, number]
+          : undefined,
+        estimatedScale: result.analysisAfter.estimatedScale
+          ? { unit: result.analysisAfter.estimatedScale.unit, confidence: result.analysisAfter.estimatedScale.confidence }
+          : undefined,
       },
     };
 
