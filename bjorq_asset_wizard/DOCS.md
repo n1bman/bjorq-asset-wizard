@@ -42,8 +42,9 @@ The add-on exposes an HTTP API on port 3500. Key endpoints:
 | `POST` | `/catalog/ingest` | Add asset to catalog |
 | `GET` | `/catalog/index` | Browse catalog |
 | `GET` | `/catalog/policy` | Storage usage and limits |
+| `GET` | `/catalog/asset/:id/thumbnail` | Serve asset thumbnail |
 | `GET` | `/health` | Service health check |
-| `GET` | `/version` | Version info |
+| `GET` | `/version` | Version info + capabilities |
 | `GET` | `/version` | Version info |
 
 ## Troubleshooting
