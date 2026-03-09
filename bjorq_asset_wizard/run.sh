@@ -45,4 +45,4 @@ bashio::log.info "  Port:    ${PORT}"
 bashio::log.info "  Log:     ${LOG_LEVEL}"
 
 # --- Start the service ---
-exec node /app/dist/index.js
+exec node --max-old-space-size=1024 /app/dist/index.js

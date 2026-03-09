@@ -37,9 +37,12 @@ export function StorageStatusCard() {
         {isMockMode && (
           <p className="text-xs text-muted-foreground">Values shown are from demo data.</p>
         )}
-        <p className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1.5">
-          In HA, assets are stored in <code className="font-mono">/data</code> (persistent add-on storage). Data survives restarts, add-on reinstalls, and HA upgrades.
-        </p>
+        <div className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1.5 space-y-1.5">
+          <p className="font-medium text-foreground">Storage lifecycle</p>
+          <p><code className="font-mono">/data/storage/jobs/</code> — Temporary. Optimization results are cleaned after 24 hours.</p>
+          <p><code className="font-mono">/data/catalog/</code> — Permanent. Assets saved via "Save to Catalog" survive restarts, reinstalls, and HA upgrades.</p>
+          <p className="italic">Always ingest important assets into the catalog to ensure persistence.</p>
+        </div>
       </CardContent>
     </Card>
   );

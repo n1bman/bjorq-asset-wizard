@@ -18,7 +18,7 @@ arch:
 
 # Network
 ports:
-  3500/tcp: null
+  3500/tcp: 3500
 ports_description:
   3500/tcp: "Asset Wizard API (ingress only)"
 

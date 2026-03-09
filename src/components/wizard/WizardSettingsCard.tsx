@@ -115,28 +115,17 @@ export function WizardSettingsCard() {
             </p>
           </div>
 
-          {/* Method A: Direct port */}
+          {/* Direct port connection */}
           <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1.5">
-            <p className="text-xs font-medium text-foreground">Method A — Direct port (recommended)</p>
+            <p className="text-xs font-medium text-foreground">Direct port connection</p>
             <p className="text-xs text-muted-foreground">
-              In the add-on config, set port <code className="font-mono">3500</code> to a host port (e.g. <code className="font-mono">3500</code>). Then use:
+              Port 3500 is exposed by default. In the Dashboard, connect using:
             </p>
             <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
               <code className="text-xs font-mono text-foreground flex-1 break-all">http://&lt;ha-host&gt;:3500</code>
             </div>
-          </div>
-
-          {/* Method B: Supervisor proxy */}
-          <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1.5">
-            <p className="text-xs font-medium text-foreground">Method B — HA Supervisor proxy</p>
-            <p className="text-xs text-muted-foreground">
-              Use a Long-Lived Access Token in the Dashboard. Requests go via the Supervisor API:
-            </p>
-            <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
-              <code className="text-xs font-mono text-foreground flex-1 break-all">http://&lt;ha-host&gt;:8123/api/hassio/addons/bjorq_asset_wizard/proxy/</code>
-            </div>
             <p className="text-xs text-muted-foreground italic">
-              Requires header: <code className="font-mono">Authorization: Bearer &lt;token&gt;</code>
+              HA ingress URLs do not work for external clients. Always use the direct port.
             </p>
           </div>
 

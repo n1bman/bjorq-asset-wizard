@@ -149,6 +149,18 @@ export default function UploadAnalyze() {
       {/* Direct upload flow */}
       {importType === "direct-upload" && (
         <>
+          {file && file.size > 10 * 1024 * 1024 && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+              <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+              <div className="text-xs text-foreground">
+                <p className="font-medium">Large file detected ({(file.size / (1024 * 1024)).toFixed(1)} MB)</p>
+                <p className="text-muted-foreground mt-0.5">
+                  HA ingress has a size limit (~10 MB). If upload fails with a 413 error, use the direct port instead:{" "}
+                  <code className="font-mono text-foreground">http://&lt;ha-host&gt;:3500</code>
+                </p>
+              </div>
+            </div>
+          )}
           <FileUploader
             onFileSelected={handleFileSelected}
             isLoading={loading}
