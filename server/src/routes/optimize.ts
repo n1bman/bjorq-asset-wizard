@@ -82,8 +82,8 @@ export async function optimizeRoutes(server: FastifyInstance) {
       result = await optimizeModel(new Uint8Array(fileBuffer), fileName, options, log);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown optimization error";
-      log.error({ err }, "Optimization failed");
-      return reply.status(422).send({ success: false, error: `Optimization failed: ${message}` });
+      log.error({ err, stage: "optimize" }, "Optimization failed");
+      return reply.status(422).send({ success: false, error: `Optimization failed: ${message}`, stage: "optimize" });
     }
 
     // --- Write outputs to storage/jobs/<jobId>/ ---
