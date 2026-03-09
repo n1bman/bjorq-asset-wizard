@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0] — 2026-03-09
+
+### Added — Phase 5: Wizard Integration Readiness
+- **Frozen catalog schema v1**: All `meta.json` files now include `schemaVersion: "1.0"`. Breaking changes require a version bump.
+- **`schemaVersion` in catalog index**: `/catalog/index` response includes `schemaVersion: "1.0"` for consumer compatibility detection.
+- **Thumbnail support**: Ingest copies `thumb.webp` from job output when available. Missing thumbnails are `null` (not empty string).
+- **`GET /catalog/asset/:id/thumbnail`**: New route to serve asset thumbnails directly, returning `image/webp` or 404.
+- **Enhanced `/version` endpoint**: Now includes `catalogSchemaVersion` and `capabilities` array for external consumer feature detection.
+- **Phase 4 metadata in catalog**: `originalFileSizeKB`, `reductionPercent`, and `targetProfile` are now written to `meta.json` during ingest.
+- **Integration contract documentation**: `docs/bjorq-asset-wizard-infra/CATALOG_CONTRACT.md` — frozen v1 contract covering folder structure, schemas, API responses, target profiles, and versioning policy.
+
+### Changed
+- `CatalogAssetMeta.thumbnail` type changed from `string` to `string | null` — consumers should handle `null`.
+- Version bump to 0.5.0 across all version sources.
+
 ## [0.4.1] — 2026-03-09
 
 ### Fixed

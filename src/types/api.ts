@@ -264,8 +264,10 @@ export interface VersionResponse {
   name: string;
   version: string;
   node: string;
-  typescript: string;
+  uptime?: number;
   environment: string;
+  catalogSchemaVersion?: string;
+  capabilities?: string[];
 }
 
 // --- Sync ---
