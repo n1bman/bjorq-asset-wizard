@@ -2,14 +2,15 @@
  * Catalog endpoints — browse, ingest, reindex, diagnostics, asset access, and library API.
  *
  * Existing:
- * GET  /catalog/index            — Return the current catalog manifest
- * POST /catalog/ingest           — Ingest an optimized asset into the catalog
- * POST /catalog/reindex          — Force a catalog re-scan and index rebuild
- * GET  /catalog/policy           — Storage usage and limits
- * GET  /catalog/asset/:id/thumbnail — Serve asset thumbnail or 404
- * GET  /catalog/asset/:id/model  — Serve asset GLB model or 404
- * GET  /catalog/asset/:id/export — Download asset GLB with Content-Disposition
- * GET  /catalog/diagnostics      — Catalog diagnostics for integrations
+ * GET    /catalog/index            — Return the current catalog manifest
+ * POST   /catalog/ingest           — Ingest an optimized asset into the catalog
+ * POST   /catalog/reindex          — Force a catalog re-scan and index rebuild
+ * GET    /catalog/policy           — Storage usage and limits
+ * GET    /catalog/asset/:id/thumbnail — Serve asset thumbnail or 404
+ * GET    /catalog/asset/:id/model  — Serve asset GLB model or 404
+ * GET    /catalog/asset/:id/export — Download asset GLB with Content-Disposition
+ * DELETE /catalog/asset/:id        — Delete asset from catalog
+ * GET    /catalog/diagnostics      — Catalog diagnostics for integrations
  *
  * Dashboard-facing library API:
  * GET  /libraries                — List available libraries
@@ -28,6 +29,7 @@ import {
   buildCatalogIndex,
   ingestAsset,
   reindexCatalog,
+  deleteAsset,
   findAssetPath,
   findLargestAsset,
   CATALOG_SCHEMA_VERSION,
@@ -35,7 +37,7 @@ import {
 import { getCatalogPolicy, getCatalogStorageUsage } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
 
-const VERSION = "1.0.0";
+const VERSION = "1.1.7";
 
 export async function catalogRoutes(server: FastifyInstance) {
   // -----------------------------------------------------------------------
@@ -233,6 +235,27 @@ export async function catalogRoutes(server: FastifyInstance) {
       return reply.send(createReadStream(modelPath));
     } catch {
       return reply.status(404).send({ success: false, error: "No model file available for export" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // DELETE /catalog/asset/:id — remove asset from catalog
+  // -----------------------------------------------------------------------
+  server.delete("/catalog/asset/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    request.log.info({ assetId: id }, "Asset delete requested");
+
+    try {
+      await deleteAsset(id);
+      request.log.info({ assetId: id }, "Asset deleted successfully");
+      return reply.status(200).send({ success: true, deleted: id });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      request.log.error({ assetId: id, err }, "Failed to delete asset");
+      return reply.status(err instanceof Error && message.includes("not found") ? 404 : 500).send({
+        success: false,
+        error: message,
+      });
     }
   });
 
