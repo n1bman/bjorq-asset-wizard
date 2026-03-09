@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileUploader } from "@/components/upload/FileUploader";
+import { FileUploader, type UploadState } from "@/components/upload/FileUploader";
 import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { analyzeModel } from "@/services/api";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, FileBox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AnalysisResponse, ImportType } from "@/types/api";
+import type { ProcessingStage } from "@/lib/upload-limits";
 
 const CONVERSION_FORMATS = ["SketchUp (.skp)", "IFC (.ifc)", "OBJ (.obj)", "FBX (.fbx)", "STEP (.step)"];
 
@@ -18,18 +19,47 @@ export default function UploadAnalyze() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResponse | null>(null);
+  const [uploadState, setUploadState] = useState<UploadState>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<{ stage?: ProcessingStage; message?: string } | undefined>();
+
+  const handleFileSelected = (f: File) => {
+    setFile(f);
+    setResult(null);
+    setError(undefined);
+    setUploadState("selected");
+  };
 
   const handleAnalyze = async () => {
     if (!file) return;
     setLoading(true);
+    setUploadState("uploading");
+    setUploadProgress(0);
+    setError(undefined);
     try {
-      const res = await analyzeModel(file);
+      const res = await analyzeModel(file, (pct) => {
+        setUploadProgress(pct);
+        if (pct >= 100) setUploadState("processing");
+      });
       setResult(res);
+      setUploadState("complete");
     } catch (e: unknown) {
-      toast({ title: "Analysis failed", description: e instanceof Error ? e.message : "Analysis error", variant: "destructive" });
+      const msg = e instanceof Error ? e.message : "Analysis error";
+      const stage: ProcessingStage = msg.includes("parse") || msg.includes("read") ? "parse" : "analyze";
+      setError({ stage, message: msg });
+      setUploadState("error");
+      toast({ title: "Analysis failed", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    setFile(null);
+    setResult(null);
+    setError(undefined);
+    setUploadState("idle");
+    setUploadProgress(0);
   };
 
   return (
@@ -100,12 +130,20 @@ export default function UploadAnalyze() {
         </Card>
       )}
 
-      {/* Direct upload flow (unchanged behavior) */}
+      {/* Direct upload flow */}
       {importType === "direct-upload" && (
         <>
-          <FileUploader onFileSelected={setFile} isLoading={loading} />
+          <FileUploader
+            onFileSelected={handleFileSelected}
+            isLoading={loading}
+            uploadState={uploadState}
+            uploadProgress={uploadProgress}
+            processingStage="Analyzing model"
+            error={error}
+            onReset={handleReset}
+          />
 
-          {file && !result && (
+          {file && !result && uploadState === "selected" && (
             <Button onClick={handleAnalyze} disabled={loading} className="w-full">
               {loading ? "Analyzing…" : "Analyze Model"}
             </Button>

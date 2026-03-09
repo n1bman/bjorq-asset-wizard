@@ -192,6 +192,10 @@ export interface AssetMetadata {
   optimizedAt?: string | null;
   importType?: ImportType;
   conversionStatus?: ConversionStatus;
+  // Phase 4 fields
+  originalFileSizeKB?: number;
+  reductionPercent?: number;
+  targetProfile?: string;
 }
 
 export interface CatalogIndex {

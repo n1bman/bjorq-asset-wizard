@@ -35,8 +35,9 @@ import { optimizeRoutes } from "./routes/optimize.js";
 import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
+import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "0.3.3";
+const VERSION = "0.4.0";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
@@ -49,6 +50,8 @@ const PUBLIC_PATH = resolve(__dirname, "../public");
 async function start() {
   const server = Fastify({
     logger: createLoggerConfig(),
+    bodyLimit: MAX_FILE_SIZE,
+    requestTimeout: 300_000, // 5 min — supports large file uploads
   });
 
   // --- Global error handler ---
@@ -119,6 +122,16 @@ async function start() {
 
   // --- Storage initialization ---
   await initStorage();
+
+  // --- Job cleanup ---
+  const JOB_RETENTION_HOURS = Number(process.env.JOB_RETENTION_HOURS || 168); // 7 days default
+  const FAILED_JOB_RETENTION_HOURS = 24;
+  startJobCleanup(
+    6 * 60 * 60 * 1000, // every 6 hours
+    JOB_RETENTION_HOURS / 24,
+    FAILED_JOB_RETENTION_HOURS / 24,
+    server.log,
+  );
 
   // --- API Routes ---
   await server.register(healthRoutes);

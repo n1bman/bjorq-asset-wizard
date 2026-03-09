@@ -13,6 +13,7 @@ import {
   ingestAsset,
   reindexCatalog,
 } from "../services/catalog/manager.js";
+import { getCatalogPolicy, evaluateAssetForCatalog } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
 
 export async function catalogRoutes(server: FastifyInstance) {
@@ -80,6 +81,17 @@ export async function catalogRoutes(server: FastifyInstance) {
 
     log.info({ assetId: meta.id, category: meta.category, sourceJobId }, "Starting ingest");
 
+    // --- Check catalog policy ---
+    try {
+      const policy = await getCatalogPolicy();
+      if (policy.blocked) {
+        log.warn({ usage: policy.usage }, "Catalog storage limit reached");
+        return reply.status(507).send({ success: false, error: policy.warnings[0] || "Catalog storage limit reached", stage: "ingest" });
+      }
+    } catch (err) {
+      log.warn({ err }, "Could not check catalog policy — proceeding anyway");
+    }
+
     // --- Ingest ---
     try {
       const result = await ingestAsset(
@@ -111,6 +123,20 @@ export async function catalogRoutes(server: FastifyInstance) {
     } catch (err) {
       request.log.error({ err }, "Reindex failed");
       return reply.status(500).send({ success: false, error: "Failed to reindex catalog" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /catalog/policy — storage usage and limits
+  // -----------------------------------------------------------------------
+  server.get("/catalog/policy", async (request, reply) => {
+    request.log.info("Catalog policy requested");
+    try {
+      const policy = await getCatalogPolicy();
+      return reply.status(200).send(policy);
+    } catch (err) {
+      request.log.error({ err }, "Failed to get catalog policy");
+      return reply.status(500).send({ success: false, error: "Failed to get catalog policy" });
     }
   });
 }

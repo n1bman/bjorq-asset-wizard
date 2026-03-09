@@ -2,9 +2,10 @@
 
 import type { ConnectionStatus } from "@/types/api";
 
+import { REQUEST_TIMEOUT } from "@/lib/upload-limits";
+
 const STORAGE_KEY = "bjorq_api_base_url";
 const DEFAULT_URL = "http://localhost:3500";
-const REQUEST_TIMEOUT = 8000;
 
 /**
  * Detect the API base URL for HA ingress or standalone mode.
@@ -97,8 +98,13 @@ class ApiClient {
     }
   }
 
-  async request<T>(path: string, opts?: RequestInit & { timeout?: number }): Promise<T> {
-    const { timeout = REQUEST_TIMEOUT, ...init } = opts || {};
+  async request<T>(path: string, opts?: RequestInit & { timeout?: number; onUploadProgress?: (percent: number) => void }): Promise<T> {
+    const { timeout = REQUEST_TIMEOUT, onUploadProgress, ...init } = opts || {};
+
+    // Use XMLHttpRequest for upload progress when callback is provided and body is FormData
+    if (onUploadProgress && init.body instanceof FormData) {
+      return this._requestWithProgress<T>(path, init, timeout, onUploadProgress);
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
@@ -122,6 +128,43 @@ class ApiClient {
       }
       throw new ApiError("Backend unreachable", 0);
     }
+  }
+
+  /** Upload with XMLHttpRequest for progress tracking */
+  private _requestWithProgress<T>(path: string, init: RequestInit, timeout: number, onProgress: (percent: number) => void): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open(init.method || "POST", `${this._baseUrl}${path}`);
+      xhr.timeout = timeout;
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            reject(new ApiError("Invalid JSON response", xhr.status));
+          }
+        } else {
+          let message = "Request failed";
+          try {
+            const body = JSON.parse(xhr.responseText);
+            message = body.error?.message || body.error || message;
+          } catch { /* ignore */ }
+          reject(new ApiError(message, xhr.status));
+        }
+      };
+
+      xhr.onerror = () => reject(new ApiError("Backend unreachable", 0));
+      xhr.ontimeout = () => reject(new ApiError("Request timed out", 0));
+
+      xhr.send(init.body as FormData);
+    });
   }
 }
 

@@ -21,10 +21,11 @@ export async function analyzeRoutes(server: FastifyInstance) {
     try {
       file = await request.file();
     } catch (err) {
-      log.error({ err }, "Failed to read multipart upload");
+      log.error({ err, stage: "upload" }, "Failed to read multipart upload");
       return reply.status(400).send({
         success: false,
         error: "Invalid multipart request",
+        stage: "upload",
       });
     }
 
@@ -33,6 +34,7 @@ export async function analyzeRoutes(server: FastifyInstance) {
       return reply.status(400).send({
         success: false,
         error: "No file uploaded",
+        stage: "upload",
       });
     }
 
@@ -41,10 +43,11 @@ export async function analyzeRoutes(server: FastifyInstance) {
     const ext = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
 
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      log.warn({ fileName, ext }, "Unsupported file format");
+      log.warn({ fileName, ext, stage: "upload" }, "Unsupported file format");
       return reply.status(400).send({
         success: false,
         error: `Unsupported format '${ext}'. Only .glb and .gltf files are accepted`,
+        stage: "upload",
       });
     }
 
@@ -53,14 +56,15 @@ export async function analyzeRoutes(server: FastifyInstance) {
     try {
       buffer = await file.toBuffer();
     } catch (err) {
-      log.error({ err, fileName }, "Failed to read file buffer");
+      log.error({ err, fileName, stage: "upload" }, "Failed to read file buffer");
       return reply.status(400).send({
         success: false,
         error: "Failed to read uploaded file",
+        stage: "upload",
       });
     }
 
-    log.info({ fileName, fileSizeBytes: buffer.byteLength }, "File received");
+    log.info({ fileName, fileSizeBytes: buffer.byteLength, fileSizeMB: +(buffer.byteLength / (1024 * 1024)).toFixed(1) }, "File received");
 
     // 4. Analyze
     try {
@@ -82,9 +86,8 @@ export async function analyzeRoutes(server: FastifyInstance) {
         analysis,
       });
     } catch (err) {
-      log.error({ err, fileName }, "Analysis failed");
+      log.error({ err, fileName, stage: "analyze" }, "Analysis failed");
 
-      // Distinguish parse errors from unexpected failures
       const message = err instanceof Error ? err.message : String(err);
       const isParseError =
         message.includes("Invalid") ||
@@ -92,11 +95,14 @@ export async function analyzeRoutes(server: FastifyInstance) {
         message.includes("JSON") ||
         message.includes("glTF");
 
+      const stage = isParseError ? "parse" : "analyze";
+
       return reply.status(isParseError ? 422 : 500).send({
         success: false,
         error: isParseError
           ? `Failed to parse model: ${message}`
           : "Analysis failed unexpectedly",
+        stage,
       });
     }
   });

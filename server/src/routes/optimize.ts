@@ -12,6 +12,7 @@ import { createJobLogger, generateJobId } from "../lib/logger.js";
 import { storagePath } from "../lib/storage.js";
 import { optimizeModel } from "../services/optimization/optimizer.js";
 import { deriveAssetId } from "../services/optimization/slugify.js";
+import { deriveTargetProfile } from "../services/optimization/profiles.js";
 import type { OptimizeRequestOptions, OptimizeResponse, OptimizeErrorResponse } from "../types/optimize.js";
 
 const SUPPORTED_EXTENSIONS = new Set([".glb", ".gltf"]);
@@ -39,15 +40,17 @@ export async function optimizeRoutes(server: FastifyInstance) {
         }
       }
     } catch (err) {
-      log.error({ err }, "Failed to parse multipart");
-      return reply.status(400).send({ success: false, error: "Failed to parse multipart upload" });
+      log.error({ err, stage: "upload" }, "Failed to parse multipart");
+      return reply.status(400).send({ success: false, error: "Failed to parse multipart upload", stage: "upload" });
     }
 
     // --- Validate file ---
     if (!fileBuffer || fileBuffer.length === 0) {
       log.warn("No file provided");
-      return reply.status(400).send({ success: false, error: "No file provided. Upload a .glb or .gltf file." });
+      return reply.status(400).send({ success: false, error: "No file provided. Upload a .glb or .gltf file.", stage: "upload" });
     }
+
+    log.info({ fileName, fileSizeBytes: fileBuffer.length, fileSizeMB: +(fileBuffer.length / (1024 * 1024)).toFixed(1) }, "File received");
 
     const ext = extname(fileName).toLowerCase();
     if (!SUPPORTED_EXTENSIONS.has(ext)) {
@@ -79,8 +82,8 @@ export async function optimizeRoutes(server: FastifyInstance) {
       result = await optimizeModel(new Uint8Array(fileBuffer), fileName, options, log);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown optimization error";
-      log.error({ err }, "Optimization failed");
-      return reply.status(422).send({ success: false, error: `Optimization failed: ${message}` });
+      log.error({ err, stage: "optimize" }, "Optimization failed");
+      return reply.status(422).send({ success: false, error: `Optimization failed: ${message}`, stage: "optimize" });
     }
 
     // --- Write outputs to storage/jobs/<jobId>/ ---
@@ -110,9 +113,18 @@ export async function optimizeRoutes(server: FastifyInstance) {
 
       log.info({ jobDir }, "Outputs written to storage");
     } catch (err) {
-      log.error({ err }, "Failed to write outputs to storage");
-      return reply.status(500).send({ success: false, error: "Failed to save optimization outputs" });
+      log.error({ err, stage: "optimize" }, "Failed to write outputs to storage");
+      return reply.status(500).send({ success: false, error: "Failed to save optimization outputs", stage: "optimize" });
     }
+
+    // --- Derive target profile ---
+    const originalFileSizeKB = Math.round(fileBuffer.length / 1024);
+    const targetProfile = deriveTargetProfile(
+      result.after.triangles,
+      result.after.fileSizeKB,
+      options.placement || result.analysisAfter.placement?.candidate,
+    );
+    const reductionPercent = result.reduction.fileSizePercent;
 
     // --- Build response matching frontend OptimizeResponse ---
     const response: OptimizeResponse = {
@@ -150,6 +162,9 @@ export async function optimizeRoutes(server: FastifyInstance) {
           materials: result.after.materials,
           fileSizeKB: result.after.fileSizeKB,
         },
+        originalFileSizeKB,
+        reductionPercent: +reductionPercent.toFixed(1),
+        targetProfile,
       },
     };
 

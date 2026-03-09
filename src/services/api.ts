@@ -33,6 +33,7 @@ import {
   mockVersion,
 } from "./mock-data";
 import { apiClient, ApiError } from "./api-client";
+import { UPLOAD_TIMEOUT } from "@/lib/upload-limits";
 
 // When true, always use mock data. When false, try real API first, fall back to mock on network error.
 const FORCE_MOCK = false;
@@ -56,12 +57,12 @@ async function withFallback<T>(apiFn: () => Promise<T>, mockFn: () => T | Promis
 
 // --- Analyze ---
 
-export async function analyzeModel(file: File): Promise<AnalysisResponse> {
+export async function analyzeModel(file: File, onUploadProgress?: (percent: number) => void): Promise<AnalysisResponse> {
   const { data } = await withFallback(
     () => {
       const fd = new FormData();
       fd.append("file", file);
-      return apiClient.request<AnalysisResponse>("/analyze", { method: "POST", body: fd });
+      return apiClient.request<AnalysisResponse>("/analyze", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
     },
     () => ({
       ...mockAnalysis,
@@ -79,13 +80,13 @@ export async function analyzeModel(file: File): Promise<AnalysisResponse> {
 
 // --- Optimize ---
 
-export async function optimizeModel(file: File, options?: OptimizeOptions): Promise<OptimizeResponse> {
+export async function optimizeModel(file: File, options?: OptimizeOptions, onUploadProgress?: (percent: number) => void): Promise<OptimizeResponse> {
   const { data } = await withFallback(
     () => {
       const fd = new FormData();
       fd.append("file", file);
       if (options) fd.append("options", JSON.stringify(options));
-      return apiClient.request<OptimizeResponse>("/optimize", { method: "POST", body: fd });
+      return apiClient.request<OptimizeResponse>("/optimize", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
     },
     () => mockOptimize,
   );
