@@ -336,7 +336,7 @@ export async function optimizeModel(
         const beforeMaxRes = toSnapshot(analysisBefore, buffer.byteLength).maxTextureRes;
         if (beforeMaxRes > maxSize) {
           texturesResized = analysisBefore.textures.details.filter(
-            (t(t.width ?? 0) > maxSize || (t.height ?? 0)height > maxSize) && t.type === "baseColor",
+            (t) => ((t.width ?? 0) > maxSize || (t.height ?? 0) > maxSize) && t.type === "baseColor",
           ).length;
           // Fallback: at least 1 if before max was bigger
           if (texturesResized === 0) texturesResized = 1;
