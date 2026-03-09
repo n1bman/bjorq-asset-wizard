@@ -35,6 +35,7 @@ import { optimizeRoutes } from "./routes/optimize.js";
 import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
+import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
 const VERSION = "0.3.3";
 const PORT = Number(process.env.PORT) || 3500;
