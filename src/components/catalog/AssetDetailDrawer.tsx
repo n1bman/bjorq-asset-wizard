@@ -92,15 +92,15 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: Props) {
             <CardContent className="grid grid-cols-3 gap-3 text-sm">
               <div>
                 <p className="text-xs text-muted-foreground">Width</p>
-                <p className="text-foreground font-medium">{asset.dimensions.width} m</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.width ?? "—"} m</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Depth</p>
-                <p className="text-foreground font-medium">{asset.dimensions.depth} m</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.depth ?? "—"} m</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Height</p>
-                <p className="text-foreground font-medium">{asset.dimensions.height} m</p>
+                <p className="text-foreground font-medium">{asset.dimensions?.height ?? "—"} m</p>
               </div>
             </CardContent>
           </Card>
@@ -113,15 +113,15 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: Props) {
             <CardContent className="space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Triangles</span>
-                <span className="text-foreground">{asset.performance.triangles.toLocaleString()}</span>
+                <span className="text-foreground">{asset.performance?.triangles?.toLocaleString() ?? "—"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Materials</span>
-                <span className="text-foreground">{asset.performance.materials}</span>
+                <span className="text-foreground">{asset.performance?.materials ?? "—"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">File Size</span>
-                <span className="text-foreground">{asset.performance.fileSizeKB} KB</span>
+                <span className="text-foreground">{asset.performance?.fileSizeKB != null ? `${asset.performance.fileSizeKB} KB` : "—"}</span>
               </div>
             </CardContent>
           </Card>
