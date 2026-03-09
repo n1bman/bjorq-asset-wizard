@@ -406,8 +406,9 @@ curl http://localhost:3500/catalog/index
 
 ```json
 {
-  "version": "1.0.0",
-  "generatedAt": "2026-03-08T14:30:00.000Z",
+  "schemaVersion": "1.0",
+  "version": "0.5.0",
+  "generatedAt": "2026-03-09T14:30:00.000Z",
   "totalAssets": 24,
   "categories": [
     {
@@ -417,35 +418,16 @@ curl http://localhost:3500/catalog/index
           "name": "sofas",
           "assets": [
             {
+              "schemaVersion": "1.0",
               "id": "nordic-sofa-01",
               "name": "Nordic Sofa",
               "style": "modern",
-              "model": "furniture/sofas/nordic-sofa-01/model.glb",
-              "thumbnail": "furniture/sofas/nordic-sofa-01/thumb.webp",
+              "model": "/furniture/sofas/nordic-sofa-01/model.glb",
+              "thumbnail": "/furniture/sofas/nordic-sofa-01/thumb.webp",
               "dimensions": { "width": 1.8, "depth": 0.85, "height": 0.75 },
               "placement": "floor",
-              "performance": { "triangles": 48210, "materials": 3, "fileSizeKB": 820 }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "devices",
-      "subcategories": [
-        {
-          "name": "speakers",
-          "assets": [
-            {
-              "id": "google-home-mini",
-              "name": "Google Home Mini",
-              "style": "modern",
-              "model": "devices/speakers/google-home-mini/model.glb",
-              "thumbnail": "devices/speakers/google-home-mini/thumb.webp",
-              "dimensions": { "width": 0.1, "depth": 0.1, "height": 0.04 },
-              "placement": "table",
-              "ha": { "mappable": true, "defaultDomain": "media_player", "defaultKind": "speaker" },
-              "performance": { "triangles": 12400, "materials": 2, "fileSizeKB": 340 }
+              "performance": { "triangles": 48210, "materials": 3, "fileSizeKB": 820 },
+              "targetProfile": "tablet"
             }
           ]
         }
