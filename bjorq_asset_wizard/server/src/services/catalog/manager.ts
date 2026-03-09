@@ -20,7 +20,7 @@ import type {
   IngestResponse,
 } from "../../types/catalog.js";
 
-const CATALOG_VERSION = "0.4.0";
+const CATALOG_VERSION = "0.4.1";
 
 // ---------------------------------------------------------------------------
 // Build catalog index by scanning the directory tree

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.1] — 2026-03-09
+
+### Fixed
+- Added missing `stage` property to `OptimizeErrorResponse` and `AnalysisErrorResponse` TypeScript types, fixing Docker build failure (TS2353).
+
 ## [0.4.0] — 2026-03-09
 
 ### Added
