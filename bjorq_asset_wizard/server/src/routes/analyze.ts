@@ -99,9 +99,10 @@ export async function analyzeRoutes(server: FastifyInstance) {
         analysis,
       });
     } catch (err) {
-      log.error({ err, fileName, stage: "analyze" }, "Analysis failed");
-
       const message = err instanceof Error ? err.message : String(err);
+      const stack = err instanceof Error ? err.stack : undefined;
+
+      log.error({ err, fileName, stage: "analyze", errorMessage: message, stack }, "Analysis failed");
 
       // Detect OOM-style errors
       const isOOM =
