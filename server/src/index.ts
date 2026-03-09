@@ -35,7 +35,7 @@ import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
 
-const VERSION = "0.3.0";
+const VERSION = "0.3.2";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;

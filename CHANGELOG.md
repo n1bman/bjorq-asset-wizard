@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2] — 2026-03-09
+
+### Fixed
+- **Docker build**: Removed frontend source exclusions from `.dockerignore` that blocked the multi-stage Vite build (`"/public": not found`).
+
+### Changed
+- Version bump to 0.3.2 across all version sources.
+
 ## [0.3.0] — 2026-03-09
 
 ### Added
