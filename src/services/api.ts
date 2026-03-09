@@ -33,6 +33,7 @@ import {
   mockVersion,
 } from "./mock-data";
 import { apiClient, ApiError } from "./api-client";
+import { UPLOAD_TIMEOUT } from "@/lib/upload-limits";
 
 // When true, always use mock data. When false, try real API first, fall back to mock on network error.
 const FORCE_MOCK = false;
