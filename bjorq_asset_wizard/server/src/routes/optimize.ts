@@ -190,7 +190,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
         subcategory: options.subcategory || "",
         style: options.style || "",
         model: `/jobs/${jobId}/optimized.glb`,
-        thumbnail: null,
+        thumbnail: `/jobs/${jobId}/thumb.webp`,
         dimensions: result.analysisAfter.dimensions,
         placement: options.placement || result.analysisAfter.placement?.candidate || "unknown",
         performance: {

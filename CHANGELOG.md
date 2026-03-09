@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.9] — 2026-03-09
+
+### Fixed — Final Runtime Fixes
+- **Large model 413 error**: Exposed port 3500 by default in HA config to bypass ingress proxy size limits. Added `--max-old-space-size=1024` to Node process. Frontend detects 413 errors and suggests direct port access. Files >10 MB show a warning banner.
+- **Thumbnail generation**: New `thumbnail.ts` generates a branded info-card image (name, triangles, materials, file size) using `sharp` during optimization. `thumb.webp` is created automatically for every optimized asset and carried through to the catalog.
+- **Dashboard asset flow**: Bumped catalog VERSION to 1.1.9. Simplified `WizardSettingsCard` to show only the direct port method (removed confusing Method B).
+- **Storage persistence clarity**: Updated `StorageStatusCard` with explicit lifecycle documentation (jobs = temporary 24h, catalog = permanent). Added "save to keep" warning in optimization results.
+
+### Changed
+- Version bump to 1.1.9 across all surfaces.
+
 ## [1.1.8] — 2026-03-09
 
 ### Fixed — Runtime Stabilization
