@@ -241,6 +241,9 @@ export async function ingestAsset(
     center,
     pivot,
     estimatedScale,
+    normalizationApplied,
+    floorAlignmentApplied,
+    textureOptimizationApplied,
   };
 
   const metaDest = join(assetDir, "meta.json");
