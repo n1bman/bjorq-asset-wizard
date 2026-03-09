@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.8] — 2026-03-09
+
+### Fixed — Runtime Stabilization
+- **HTML response detection**: `api-client.ts` now checks `Content-Type` header before parsing JSON in both `fetch` and `XHR` paths. Non-JSON responses (HTML error pages from HA ingress proxy) produce descriptive errors instead of generic "Request failed".
+- **Wizard Integration page crash**: Added optional chaining and fallback values for `dimensions` and `performance` in `WizardAssetCard` and `WizardAssetDetail`. Made both fields optional in `AssetMetadata` type to match real catalog data.
+- **Dashboard connection guidance**: Replaced generic "copy this URL" with two documented methods: direct port exposure (recommended) and HA Supervisor proxy with Long-Lived Access Token. Clarified that ingress URLs are internal-only.
+
+### Changed
+- **Storage persistence note**: Added clarification that `/data` is persistent HA add-on storage surviving restarts and upgrades.
+- Version bump to 1.1.8 across all surfaces.
+
 ## [1.1.7] — 2026-03-09
 
 ### Fixed — Stabilization Patch

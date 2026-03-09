@@ -111,15 +111,44 @@ export function WizardSettingsCard() {
           <div>
             <Label className="text-xs font-medium text-foreground">Dashboard Integration</Label>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Configure your Bjorq Dashboard to connect to this Wizard API URL:
+              The Dashboard needs a direct connection to the Wizard API. HA ingress URLs do not work for external clients.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
-            <code className="text-xs font-mono text-foreground flex-1 break-all">{baseUrl}</code>
-            <Button size="sm" variant="ghost" onClick={handleCopyUrl} className="h-7 w-7 p-0 shrink-0">
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-            </Button>
+          {/* Method A: Direct port */}
+          <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1.5">
+            <p className="text-xs font-medium text-foreground">Method A — Direct port (recommended)</p>
+            <p className="text-xs text-muted-foreground">
+              In the add-on config, set port <code className="font-mono">3500</code> to a host port (e.g. <code className="font-mono">3500</code>). Then use:
+            </p>
+            <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
+              <code className="text-xs font-mono text-foreground flex-1 break-all">http://&lt;ha-host&gt;:3500</code>
+            </div>
+          </div>
+
+          {/* Method B: Supervisor proxy */}
+          <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1.5">
+            <p className="text-xs font-medium text-foreground">Method B — HA Supervisor proxy</p>
+            <p className="text-xs text-muted-foreground">
+              Use a Long-Lived Access Token in the Dashboard. Requests go via the Supervisor API:
+            </p>
+            <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
+              <code className="text-xs font-mono text-foreground flex-1 break-all">http://&lt;ha-host&gt;:8123/api/hassio/addons/bjorq_asset_wizard/proxy/</code>
+            </div>
+            <p className="text-xs text-muted-foreground italic">
+              Requires header: <code className="font-mono">Authorization: Bearer &lt;token&gt;</code>
+            </p>
+          </div>
+
+          {/* Current URL for reference */}
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground font-medium">Current Wizard URL (ingress — internal use only):</p>
+            <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
+              <code className="text-xs font-mono text-foreground flex-1 break-all">{baseUrl}</code>
+              <Button size="sm" variant="ghost" onClick={handleCopyUrl} className="h-7 w-7 p-0 shrink-0">
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-1">
