@@ -160,7 +160,7 @@ export interface StatsSnapshot {
 // --- Asset / Catalog ---
 
 export interface AssetMetadata {
-  id: string;
+  schemaVersion?: "1.0";
   name: string;
   category: string;
   subcategory?: string;
