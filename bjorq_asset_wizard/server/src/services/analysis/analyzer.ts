@@ -6,6 +6,7 @@
  */
 
 import { NodeIO, Document, Accessor } from "@gltf-transform/core";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import type {
   AnalysisResult,
   AnalysisStatus,
