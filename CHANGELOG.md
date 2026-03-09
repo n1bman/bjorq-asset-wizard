@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.10] — 2026-03-09
+
+### Added — Persistence Diagnostics + Large-file UX
+- **Catalog startup diagnostics**: Server logs `CATALOG_PATH`, lists directory contents, and counts assets on every boot. Enables definitive persistence testing.
+- **Catalog info in `/health`**: Health endpoint now returns `catalog.path`, `catalog.exists`, and `catalog.assetCount` for remote verification without SSH.
+- **Direct mode link**: Upload & Optimize pages show a clickable "Open Wizard in direct mode (Port 3500)" link for large files. Sidebar shows the link when running inside HA ingress.
+- **Persistence indicators**: Catalog page header shows "Permanently stored" badge. Published assets show a "Persistent" badge on cards.
+
+### Changed
+- Version bump to 1.1.10 across all surfaces.
+
 ## [1.1.9] — 2026-03-09
 
 ### Fixed — Final Runtime Fixes

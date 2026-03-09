@@ -31,6 +31,11 @@ export function AssetCard({ asset, onClick }: Props) {
             <Badge variant="secondary" className="text-xs">{asset.subcategory}</Badge>
           )}
           <SourceBadge source={asset.source} />
+          {asset.lifecycleStatus === "published" && (
+            <Badge variant="outline" className="text-[10px] gap-0.5 text-muted-foreground">
+              <HardDrive className="h-2.5 w-2.5" /> Persistent
+            </Badge>
+          )}
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{asset.performance?.triangles?.toLocaleString() ?? "—"} tris</span>

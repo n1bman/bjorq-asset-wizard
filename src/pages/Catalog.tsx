@@ -7,6 +7,7 @@ import { SyncStatusBar } from "@/components/sync/SyncStatusBar";
 import type { AssetMetadata } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useApi } from "@/hooks/use-api";
 import { AlertTriangle, PackageOpen, HardDrive } from "lucide-react";
 

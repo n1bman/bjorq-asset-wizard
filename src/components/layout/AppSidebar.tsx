@@ -84,6 +84,24 @@ export function AppSidebar() {
         {renderGroup("Catalog", catalogItems)}
         {renderGroup("System", systemItems)}
         {renderGroup("Integration", integrationItems)}
+        {isIngress && (
+          <div className="px-4 py-3 mt-auto">
+            <a
+              href={directUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ExternalLink className="h-3 w-3" />
+              {!collapsed && <span>Direct mode (Port 3500)</span>}
+            </a>
+            {!collapsed && (
+              <p className="text-[10px] text-muted-foreground/60 mt-1">
+                Recommended for large file uploads
+              </p>
+            )}
+          </div>
+        )}
       </SidebarContent>
     </Sidebar>
   );

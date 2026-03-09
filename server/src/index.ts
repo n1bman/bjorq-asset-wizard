@@ -128,6 +128,26 @@ async function start() {
   // --- Storage initialization ---
   await initStorage();
 
+  // --- Catalog startup diagnostics ---
+  try {
+    const catExists = await access(CATALOG_PATH_RESOLVED).then(() => true).catch(() => false);
+    if (catExists) {
+      const allFiles = await readdir(CATALOG_PATH_RESOLVED, { recursive: true });
+      const metaFiles = (allFiles as string[]).filter(f => f.endsWith("metadata.json") || f.endsWith("meta.json"));
+      server.log.info(
+        { catalogPath: CATALOG_PATH_RESOLVED, totalFiles: allFiles.length, assetCount: metaFiles.length },
+        `Catalog startup scan: ${metaFiles.length} asset(s) found in ${CATALOG_PATH_RESOLVED}`,
+      );
+      if (metaFiles.length > 0 && metaFiles.length <= 20) {
+        server.log.info({ assets: metaFiles }, "Catalog assets on disk");
+      }
+    } else {
+      server.log.warn({ catalogPath: CATALOG_PATH_RESOLVED }, "Catalog directory does not exist at startup");
+    }
+  } catch (err) {
+    server.log.error({ err, catalogPath: CATALOG_PATH_RESOLVED }, "Catalog startup scan failed");
+  }
+
   // --- Job cleanup ---
   const JOB_RETENTION_HOURS = Number(process.env.JOB_RETENTION_HOURS || 168); // 7 days default
   const FAILED_JOB_RETENTION_HOURS = 24;

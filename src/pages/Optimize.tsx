@@ -198,6 +198,25 @@ export default function OptimizePage() {
 
       <PipelineStepper steps={steps} currentStep={step} />
 
+      {/* Large-file direct-mode hint */}
+      {step === 0 && (
+        <div className="flex items-start gap-2 rounded-md border border-muted bg-muted/30 p-3">
+          <ExternalLink className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+          <div className="text-xs text-muted-foreground">
+            <p>For files larger than ~10 MB, use direct mode to avoid HA ingress limits.</p>
+            <a
+              href={directUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:underline font-medium mt-1"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Open Wizard in direct mode (Port 3500)
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Step 0: Upload */}
       {step === 0 && (
         <FileUploader
