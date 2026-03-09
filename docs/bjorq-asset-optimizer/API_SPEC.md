@@ -475,11 +475,38 @@ curl http://localhost:3500/version
 
 ```json
 {
-  "name": "bjorq-asset-optimizer",
-  "version": "1.0.0",
+  "name": "bjorq-asset-wizard",
+  "version": "0.5.0",
   "node": "v20.11.0",
-  "typescript": "5.4.0",
-  "environment": "production"
+  "uptime": 84320,
+  "environment": "production",
+  "catalogSchemaVersion": "1.0",
+  "capabilities": ["analyze", "optimize", "catalog", "policy"]
+}
+```
+
+---
+
+## GET /catalog/asset/:id/thumbnail
+
+Serve the thumbnail image for a specific asset.
+
+### Request
+
+```bash
+curl http://localhost:3500/catalog/asset/nordic-sofa-01/thumbnail
+```
+
+### Response `200 OK`
+
+`Content-Type: image/webp` — binary image data.
+
+### Response `404 Not Found`
+
+```json
+{
+  "success": false,
+  "error": "No thumbnail available for this asset"
 }
 ```
 
