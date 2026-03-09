@@ -24,7 +24,7 @@ interface FileUploaderProps {
   /** Current state of the upload flow */
   uploadState?: UploadState;
   /** Error info */
-  error?: { stage?: ProcessingStage; message?: string };
+  error?: { stage?: ProcessingStage; message?: string; details?: string };
   /** Called when user wants to reset / try again */
   onReset?: () => void;
 }
@@ -115,6 +115,16 @@ export function FileUploader({
                 <p className="text-xs text-muted-foreground/70">
                   Failed at stage: <span className="font-mono">{error.stage}</span>
                 </p>
+              )}
+              {error.details && (
+                <details className="mt-2 text-left">
+                  <summary className="text-xs text-muted-foreground/50 cursor-pointer hover:text-muted-foreground">
+                    Show details
+                  </summary>
+                  <pre className="mt-1 text-[10px] text-muted-foreground/50 font-mono whitespace-pre-wrap break-all max-h-32 overflow-y-auto bg-muted/30 rounded p-2">
+                    {error.details}
+                  </pre>
+                </details>
               )}
             </div>
             <Button variant="outline" size="sm" onClick={handleReset}>

@@ -5,6 +5,7 @@ import { OptimizeOptionsPanel } from "@/components/optimize/OptimizeOptions";
 import { StatsComparison } from "@/components/optimize/StatsComparison";
 import { PipelineStepper } from "@/components/optimize/PipelineStepper";
 import { analyzeModel, optimizeModel, ingestAsset } from "@/services/api";
+import { ApiError } from "@/services/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +64,7 @@ export default function OptimizePage() {
   const [result, setResult] = useState<OptimizeResponse | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
-  const [error, setError] = useState<{ stage?: ProcessingStage; message?: string } | undefined>();
+  const [error, setError] = useState<{ stage?: ProcessingStage; message?: string; details?: string } | undefined>();
 
   const isConversion = importType === "converted-project";
   const steps = useMemo(() => (isConversion ? CONVERT_STEPS : DIRECT_STEPS), [isConversion]);
@@ -73,6 +74,23 @@ export default function OptimizePage() {
   const optimizeStep = isConversion ? 4 : 3;
   const reviewStep = isConversion ? 5 : 4;
   const doneStep = isConversion ? 6 : 5;
+
+  /** Extract structured error from ApiError or generic Error */
+  function extractError(e: unknown, fallbackStage: ProcessingStage): { stage: ProcessingStage; message: string; details?: string } {
+    if (e instanceof ApiError) {
+      let stage = fallbackStage;
+      if (e.stage && ["upload", "parse", "analyze", "optimize", "ingest"].includes(e.stage)) {
+        stage = e.stage as ProcessingStage;
+      } else if (e.stage === "glb_parse") {
+        stage = "parse";
+      } else if (e.stage === "geometry_scan" || e.stage === "texture_scan" || e.stage === "bounding_box") {
+        stage = "analyze";
+      }
+      return { stage, message: e.message, details: e.details };
+    }
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return { stage: fallbackStage, message: msg };
+  }
 
   const handleFileSelected = (f: File) => {
     setFile(f);
@@ -94,11 +112,10 @@ export default function OptimizePage() {
       setUploadState("complete");
       setStep(configStep);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Analysis error";
-      const stage: ProcessingStage = msg.includes("parse") ? "parse" : "analyze";
-      setError({ stage, message: msg });
+      const err = extractError(e, "analyze");
+      setError(err);
       setUploadState("error");
-      toast({ title: "Analysis failed", description: msg, variant: "destructive" });
+      toast({ title: "Analysis failed", description: err.message, variant: "destructive" });
       setStep(0);
     } finally {
       setLoading(false);
@@ -122,10 +139,10 @@ export default function OptimizePage() {
       setStep(reviewStep);
       toast({ title: "Optimization complete", description: `Job ID: ${res.jobId}` });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Optimization error";
-      setError({ stage: "optimize", message: msg });
+      const err = extractError(e, "optimize");
+      setError(err);
       setUploadState("error");
-      toast({ title: "Optimization failed", description: msg, variant: "destructive" });
+      toast({ title: "Optimization failed", description: err.message, variant: "destructive" });
       setStep(configStep);
     } finally {
       setLoading(false);
@@ -149,9 +166,9 @@ export default function OptimizePage() {
       toast({ title: "Saved to catalog", description: `Asset ${meta.name} ingested successfully.` });
       setStep(doneStep);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Ingest error";
-      setError({ stage: "ingest", message: msg });
-      toast({ title: "Save failed", description: msg, variant: "destructive" });
+      const err = extractError(e, "ingest");
+      setError(err);
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -262,6 +279,16 @@ export default function OptimizePage() {
               {error.stage ? STAGE_LABELS[error.stage] : "Processing failed"}
             </p>
             <p className="text-xs text-muted-foreground">{error.message}</p>
+            {error.details && (
+              <details className="text-left max-w-md mx-auto">
+                <summary className="text-xs text-muted-foreground/50 cursor-pointer hover:text-muted-foreground">
+                  Show details
+                </summary>
+                <pre className="mt-1 text-[10px] text-muted-foreground/50 font-mono whitespace-pre-wrap break-all max-h-32 overflow-y-auto bg-muted/30 rounded p-2">
+                  {error.details}
+                </pre>
+              </details>
+            )}
             <Button variant="outline" size="sm" onClick={handleReset}>
               Start Over
             </Button>
@@ -311,7 +338,7 @@ function ReviewSection({
   originalFileSizeBytes?: number;
   onSave: () => void;
   saving?: boolean;
-  ingestError?: { stage?: ProcessingStage; message?: string };
+  ingestError?: { stage?: ProcessingStage; message?: string; details?: string };
 }) {
   const optimizedSizeKB = result.stats.after.fileSizeKB;
   const optimizedSizeMB = optimizedSizeKB / 1024;
@@ -458,117 +485,94 @@ function ReviewSection({
           </CardHeader>
           <CardContent className="flex flex-wrap gap-1.5">
             {result.optimization.applied.map((op) => (
-              <Badge key={op} variant="secondary" className="text-xs">{op}</Badge>
+              <Badge key={op} variant="default" className="text-xs gap-1">
+                <CheckCircle2 className="h-3 w-3" /> {op}
+              </Badge>
+            ))}
+            {result.optimization.skipped.map((s) => (
+              <TooltipProvider key={s.operation}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="text-xs gap-1 opacity-60">
+                      <XCircle className="h-3 w-3" /> {s.operation}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-xs">
+                    {s.reason}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ))}
           </CardContent>
         </Card>
       </div>
 
-      {/* Skipped & Warnings */}
-      {(result.optimization.skipped.length > 0 || result.optimization.warnings.length > 0) && (
-        <div className="grid sm:grid-cols-2 gap-4">
-          {result.optimization.skipped.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-muted-foreground">Skipped</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-1.5">
-                <TooltipProvider>
-                  {result.optimization.skipped.map((s) => (
-                    <Tooltip key={s.operation}>
-                      <TooltipTrigger>
-                        <Badge variant="outline" className="text-xs">{s.operation}</Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">{s.reason}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </TooltipProvider>
-              </CardContent>
-            </Card>
-          )}
-
-          {result.optimization.warnings.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-1.5">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                  Warnings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1.5 text-sm">
-                {result.optimization.warnings.map((w, i) => (
-                  <p key={i} className="text-muted-foreground">
-                    <span className="font-medium text-foreground">{w.operation}:</span> {w.message}
-                  </p>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </div>
+      {/* Optimization Explanations */}
+      {result.optimization.explanations && result.optimization.explanations.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Optimization Notes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {result.optimization.explanations.map((note, i) => (
+              <p key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <span className="text-primary mt-0.5">•</span>
+                {note}
+              </p>
+            ))}
+          </CardContent>
+        </Card>
       )}
 
-      {/* Metadata preview */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Generated Metadata</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <pre className="text-xs font-mono bg-muted/50 rounded-lg p-3 overflow-auto max-h-48 text-foreground">
-            {JSON.stringify({
-              ...result.metadata,
-              originalFileSizeKB: originalKB,
-              reductionPercent: +reductionPct.toFixed(1),
-              targetProfile,
-            }, null, 2)}
-          </pre>
-        </CardContent>
-      </Card>
+      {/* Warnings */}
+      {result.optimization.warnings.length > 0 && (
+        <Card className="border-yellow-500/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              Warnings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {result.optimization.warnings.map((w, i) => (
+              <p key={i} className="text-xs text-muted-foreground">
+                <span className="font-mono text-yellow-500">{w.operation}</span>: {w.message}
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Ingest error */}
       {ingestError && (
-        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2">
-          <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-destructive">{STAGE_LABELS.ingest}</p>
+        <Card className="border-destructive/30">
+          <CardContent className="py-4 text-center space-y-2">
+            <AlertCircle className="mx-auto h-6 w-6 text-destructive" />
+            <p className="text-sm font-medium text-destructive">
+              {ingestError.stage ? STAGE_LABELS[ingestError.stage] : "Save failed"}
+            </p>
             <p className="text-xs text-muted-foreground">{ingestError.message}</p>
-          </div>
-        </div>
+            {ingestError.details && (
+              <details className="text-left max-w-md mx-auto">
+                <summary className="text-xs text-muted-foreground/50 cursor-pointer">Show details</summary>
+                <pre className="mt-1 text-[10px] text-muted-foreground/50 font-mono whitespace-pre-wrap break-all max-h-24 overflow-y-auto bg-muted/30 rounded p-2">
+                  {ingestError.details}
+                </pre>
+              </details>
+            )}
+          </CardContent>
+        </Card>
       )}
 
+      {/* Save Action */}
       <div className="flex gap-3">
-        <Button className="flex-1 gap-1.5" onClick={onSave} disabled={saving}>
-          <FolderPlus className="h-4 w-4" /> {saving ? "Saving…" : "Save to Catalog"}
+        <Button onClick={onSave} disabled={saving} className="flex-1 gap-1.5">
+          <FolderPlus className="h-4 w-4" />
+          {saving ? "Saving…" : "Save to Catalog"}
         </Button>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="flex-1">
-                <Button className="w-full gap-1.5" variant="outline" disabled>
-                  <RefreshCw className="h-4 w-4" /> Sync to Bjorq
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-xs">Dashboard sync not yet available</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </div>
-  );
-}
-
-/* ── Output row helper ── */
-
-function OutputRow({ label, path }: { label: string; path: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Download className="h-4 w-4 text-muted-foreground shrink-0" />
-      <div className="min-w-0">
-        <p className="text-foreground">{label}</p>
-        <p className="text-xs text-muted-foreground font-mono truncate">{path}</p>
+        <Button variant="outline" className="gap-1.5" disabled>
+          <Download className="h-4 w-4" /> Download
+        </Button>
       </div>
     </div>
   );
@@ -592,20 +596,35 @@ function V2OpRow({
   return (
     <div className="flex items-start gap-2 text-sm">
       {applied ? (
-        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
       ) : (
-        <XCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+        <XCircle className="h-4 w-4 text-muted-foreground/50 mt-0.5 shrink-0" />
       )}
-      <div className="min-w-0">
-        <p className="font-medium text-foreground">{label}</p>
+      <div className="flex-1 min-w-0">
+        <p className={applied ? "text-foreground" : "text-muted-foreground/70"}>
+          {label}
+        </p>
         <p className="text-xs text-muted-foreground">{description}</p>
-        {!applied && skippedReason && (
-          <p className="text-xs text-muted-foreground italic">Skipped: {skippedReason}</p>
+        {skippedReason && !applied && (
+          <p className="text-xs text-muted-foreground/70 italic mt-0.5">Skipped: {skippedReason}</p>
         )}
         {warning && (
-          <p className="text-xs text-destructive">⚠ {warning}</p>
+          <p className="text-xs text-yellow-500 mt-0.5">⚠ {warning}</p>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ── Output Row ── */
+
+function OutputRow({ label, path }: { label: string; path: string }) {
+  return (
+    <div className="flex justify-between items-center gap-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-foreground font-mono text-xs truncate max-w-[200px]" title={path}>
+        {path}
+      </span>
     </div>
   );
 }

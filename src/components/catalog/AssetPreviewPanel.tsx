@@ -1,6 +1,7 @@
 import type { AssetMetadata } from "@/types/api";
 import { Box, ImageOff } from "lucide-react";
 import { useState } from "react";
+import { getAssetThumbnailUrl } from "@/lib/asset-paths";
 
 interface Props {
   asset: AssetMetadata;
@@ -14,11 +15,14 @@ export function AssetPreviewPanel({ asset, className = "", size = "sm" }: Props)
   const showImage = hasThumbnail && !imgError;
   const aspectClass = size === "lg" ? "aspect-video" : "aspect-video";
 
+  // Use the ingress-safe thumbnail endpoint
+  const thumbnailSrc = hasThumbnail ? getAssetThumbnailUrl(asset.id) : null;
+
   return (
     <div className={`${aspectClass} bg-muted/30 rounded-lg flex flex-col items-center justify-center relative overflow-hidden ${className}`}>
-      {showImage ? (
+      {showImage && thumbnailSrc ? (
         <img
-          src={asset.thumbnail!}
+          src={thumbnailSrc}
           alt={`${asset.name} preview`}
           className="w-full h-full object-contain"
           onError={() => setImgError(true)}

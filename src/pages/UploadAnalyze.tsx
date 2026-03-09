@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileBox } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ApiError } from "@/services/api-client";
 import type { AnalysisResponse, ImportType } from "@/types/api";
 import type { ProcessingStage } from "@/lib/upload-limits";
 
@@ -21,7 +22,7 @@ export default function UploadAnalyze() {
   const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState<{ stage?: ProcessingStage; message?: string } | undefined>();
+  const [error, setError] = useState<{ stage?: ProcessingStage; message?: string; details?: string } | undefined>();
 
   const handleFileSelected = (f: File) => {
     setFile(f);
@@ -44,9 +45,24 @@ export default function UploadAnalyze() {
       setResult(res);
       setUploadState("complete");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Analysis error";
-      const stage: ProcessingStage = msg.includes("parse") || msg.includes("read") ? "parse" : "analyze";
-      setError({ stage, message: msg });
+      let msg = "Analysis error";
+      let stage: ProcessingStage = "analyze";
+      let details: string | undefined;
+
+      if (e instanceof ApiError) {
+        msg = e.message;
+        if (e.stage && ["upload", "parse", "analyze", "optimize", "ingest"].includes(e.stage)) {
+          stage = e.stage as ProcessingStage;
+        } else if (e.stage === "glb_parse") {
+          stage = "parse";
+        }
+        details = e.details;
+      } else if (e instanceof Error) {
+        msg = e.message;
+        stage = msg.includes("parse") || msg.includes("read") ? "parse" : "analyze";
+      }
+
+      setError({ stage, message: msg, details });
       setUploadState("error");
       toast({ title: "Analysis failed", description: msg, variant: "destructive" });
     } finally {

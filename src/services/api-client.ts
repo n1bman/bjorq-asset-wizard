@@ -38,10 +38,15 @@ function detectBaseUrl(): string {
 
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  stage?: string;
+  details?: string;
+
+  constructor(message: string, status: number, stage?: string, details?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.stage = stage;
+    this.details = details;
   }
 }
 
@@ -117,7 +122,8 @@ class ApiClient {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: { message: res.statusText } }));
-        throw new ApiError(body.error?.message || body.error || "Request failed", res.status);
+        const errorMsg = body.error?.message || body.error || "Request failed";
+        throw new ApiError(errorMsg, res.status, body.stage, body.details);
       }
       return res.json();
     } catch (err) {
@@ -152,11 +158,15 @@ class ApiClient {
           }
         } else {
           let message = "Request failed";
+          let stage: string | undefined;
+          let details: string | undefined;
           try {
             const body = JSON.parse(xhr.responseText);
             message = body.error?.message || body.error || message;
+            stage = body.stage;
+            details = body.details;
           } catch { /* ignore */ }
-          reject(new ApiError(message, xhr.status));
+          reject(new ApiError(message, xhr.status, stage, details));
         }
       };
 
