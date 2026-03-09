@@ -37,9 +37,11 @@ const REQUIRED_META_FIELDS: (keyof CatalogAssetMeta)[] = [
 ];
 
 /** Validate that an asset meta object has all required fields */
-function validateAssetMeta(meta: Record<string, unknown>): meta is CatalogAssetMeta {
+function validateAssetMeta(meta: unknown): meta is CatalogAssetMeta {
+  if (!meta || typeof meta !== "object") return false;
+  const record = meta as Record<string, unknown>;
   for (const field of REQUIRED_META_FIELDS) {
-    if (meta[field] === undefined || meta[field] === null || meta[field] === "") {
+    if (record[field] === undefined || record[field] === null || record[field] === "") {
       return false;
     }
   }
