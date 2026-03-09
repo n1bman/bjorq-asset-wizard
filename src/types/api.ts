@@ -196,6 +196,7 @@ export interface AssetMetadata {
   optimizedAt?: string | null;
   importType?: ImportType;
   conversionStatus?: ConversionStatus;
+  lifecycleStatus?: AssetLifecycleStatus;
   // Phase 4 fields
   originalFileSizeKB?: number;
   reductionPercent?: number;
