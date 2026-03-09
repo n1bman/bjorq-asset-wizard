@@ -115,9 +115,13 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onDeleted }: Prop
 
         <PreviewErrorBoundary fallbackMessage="Asset detail could not be rendered">
           <div className="space-y-5 mt-4">
-            {/* Preview */}
+            {/* Preview — show thumbnail image if available */}
             <PreviewErrorBoundary fallbackMessage="Model preview could not be loaded">
-              <AssetPreviewPanel asset={asset} />
+              {asset.thumbnail ? (
+                <ThumbnailPreview asset={asset} />
+              ) : (
+                <AssetPreviewPanel asset={asset} />
+              )}
             </PreviewErrorBoundary>
 
             {/* Status */}
