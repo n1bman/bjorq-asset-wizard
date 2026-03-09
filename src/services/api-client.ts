@@ -120,10 +120,22 @@ class ApiClient {
       });
       clearTimeout(timer);
 
+      const contentType = res.headers.get("content-type") || "";
+      const isJson = contentType.includes("application/json");
+
       if (!res.ok) {
+        if (!isJson) {
+          const snippet = (await res.text()).slice(0, 200);
+          const hint = snippet.includes("<!") ? " (HTML error page from proxy)" : "";
+          throw new ApiError(`Backend error ${res.status}${hint}`, res.status);
+        }
         const body = await res.json().catch(() => ({ error: { message: res.statusText } }));
         const errorMsg = body.error?.message || body.error || "Request failed";
         throw new ApiError(errorMsg, res.status, body.stage, body.details);
+      }
+
+      if (!isJson) {
+        throw new ApiError("Backend returned non-JSON response (possible proxy/ingress error)", res.status || 502);
       }
       return res.json();
     } catch (err) {
