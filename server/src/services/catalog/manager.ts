@@ -210,7 +210,7 @@ export async function ingestAsset(
     style: meta.style || (jobMeta.style as string) || "",
     model: modelRelPath,
     thumbnail: thumbnailRelPath,
-    dimensions: (jobMeta.after as Record<string, unknown>)?.dimensions as CatalogAssetMeta["dimensions"] ?? undefined,
+    dimensions: (scene?.dimensions as CatalogAssetMeta["dimensions"]) ?? undefined,
     placement: meta.placement || (jobMeta.placement as string) || "floor",
     ha: meta.ha ? { mappable: meta.ha.mappable, defaultDomain: meta.ha.defaultDomain, defaultKind: meta.ha.defaultKind } : undefined,
     performance: jobMeta.after
