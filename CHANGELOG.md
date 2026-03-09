@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.0] — 2026-03-09
+
+### Added — Phase 8: Optimization V2 (Advanced Asset Normalization)
+- **Normalize scale**: Uses `flatten()` from gltf-transform to bake all node transforms into vertex data. After flattening, all nodes have identity transforms (scale 1,1,1) while preserving world dimensions. Ensures consistent behavior in Three.js and physics systems.
+- **Set floor to Y=0**: Computes the lowest vertex Y across all POSITION accessors and shifts the model vertically so the floor sits at Y=0. Updates pivot metadata to `"bottom-center"` accordingly.
+- **Optimize base color textures**: Uses `textureResize()` from gltf-transform to downsample oversized base color textures. Respects configurable `maxTextureSize` (default 2048). Reports `texturesResized` count in reduction stats.
+- **V2 optimization flags in metadata**: `normalizationApplied`, `floorAlignmentApplied`, `textureOptimizationApplied` booleans now appear in optimize response metadata, `result.json`, and catalog `meta.json`.
+- **Active UI controls**: The three V2 options are now fully interactive in the optimization panel (no longer "Coming in V2"). Max texture size is configurable via a dropdown when texture optimization is enabled.
+
+### Changed
+- Optimizer V1_SKIPPED list reduced — `normalizeScale`, `setFloorToY0`, `optimizeBaseColorTextures`, `maxTextureSize` are now implemented.
+- Review section "Skipped (V2)" label changed to just "Skipped".
+- Version bump to 1.1.0 across all version sources.
+- `CATALOG_CONTRACT.md` updated with new optional V2 optimization flags (non-breaking under schemaVersion 1.0).
+
 ## [1.0.0] — 2026-03-09
 
 ### Added — Phase 7: Precompute Scene Metadata & Wizard 1.0

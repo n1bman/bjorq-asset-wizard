@@ -1,7 +1,8 @@
 /**
  * POST /optimize — Optimize a 3D model (GLB/glTF) with configurable options.
  *
- * V1: Conservative cleanup only (prune, dedup, remove cameras/lights/animations/empty nodes).
+ * V1: Conservative cleanup (prune, dedup, remove cameras/lights/animations/empty nodes).
+ * V2: Advanced normalization (flatten scale, floor alignment, texture resize).
  * Stores outputs in storage/jobs/<jobId>/ for isolation.
  */
 
@@ -87,6 +88,11 @@ export async function optimizeRoutes(server: FastifyInstance) {
       return reply.status(422).send({ success: false, error: `Optimization failed: ${message}`, stage: "optimize" });
     }
 
+    // --- Derive V2 optimization flags ---
+    const normalizationApplied = result.applied.includes("normalizeScale");
+    const floorAlignmentApplied = result.applied.includes("setFloorToY0");
+    const textureOptimizationApplied = result.applied.includes("optimizeBaseColorTextures");
+
     // --- Write outputs to storage/jobs/<jobId>/ ---
     const jobDir = storagePath("jobs", jobId);
     try {
@@ -117,6 +123,10 @@ export async function optimizeRoutes(server: FastifyInstance) {
           placement: result.analysisAfter.placement,
           estimatedScale: result.analysisAfter.estimatedScale,
         },
+        // Phase 8 — V2 optimization flags
+        normalizationApplied,
+        floorAlignmentApplied,
+        textureOptimizationApplied,
       };
       await writeFile(`${jobDir}/result.json`, JSON.stringify(resultJson, null, 2));
 
@@ -186,6 +196,9 @@ export async function optimizeRoutes(server: FastifyInstance) {
         estimatedScale: result.analysisAfter.estimatedScale
           ? { unit: result.analysisAfter.estimatedScale.unit, confidence: result.analysisAfter.estimatedScale.confidence }
           : undefined,
+        normalizationApplied,
+        floorAlignmentApplied,
+        textureOptimizationApplied,
       },
     };
 

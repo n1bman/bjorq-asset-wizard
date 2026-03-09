@@ -1,27 +1,26 @@
 /**
- * Bjorq Asset Wizard — V1 Optimization Service
+ * Bjorq Asset Wizard — Optimization Service (V2)
  *
- * Conservative cleanup of GLB/glTF models using @gltf-transform/functions.
- * No destructive operations: no decimation, no texture resize, no Draco.
+ * Cleanup + advanced normalization of GLB/glTF models using @gltf-transform/functions.
+ *
+ * V1: prune, dedup, remove cameras/lights/animations/empty nodes
+ * V2: normalizeScale (flatten), setFloorToY0, optimizeBaseColorTextures (textureResize)
  */
 
 import { NodeIO, Document } from "@gltf-transform/core";
-import { prune, dedup } from "@gltf-transform/functions";
+import { prune, dedup, flatten, textureResize } from "@gltf-transform/functions";
+// sharp is available as a peer dep for textureResize — not directly imported here
 import { analyzeModel } from "../analysis/analyzer.js";
 import type { OptimizeRequestOptions, OptimizeResult, StatsSnapshot } from "../../types/optimize.js";
 import type { AnalysisResult } from "../../types/analyze.js";
 import type { FastifyBaseLogger } from "fastify";
 
-// V1 options that are not yet implemented
-const V1_SKIPPED: { key: keyof OptimizeRequestOptions; reason: string }[] = [
-  { key: "normalizeScale", reason: "Not implemented in V1" },
-  { key: "normalizeOrigin", reason: "Not implemented in V1" },
-  { key: "setFloorToY0", reason: "Not implemented in V1" },
-  { key: "maxTextureSize", reason: "Texture resize not implemented in V1" },
-  { key: "optimizeBaseColorTextures", reason: "Texture optimization not implemented in V1" },
-  { key: "textureQuality", reason: "Texture compression not implemented in V1" },
-  { key: "generateThumbnail", reason: "Thumbnail generation not implemented in V1" },
-  { key: "removeUnusedVertexAttributes", reason: "Not implemented in V1" },
+// Options that are still not implemented (V3+)
+const FUTURE_SKIPPED: { key: keyof OptimizeRequestOptions; reason: string }[] = [
+  { key: "normalizeOrigin", reason: "Not implemented yet" },
+  { key: "textureQuality", reason: "Texture compression not implemented yet" },
+  { key: "generateThumbnail", reason: "Thumbnail generation not implemented yet" },
+  { key: "removeUnusedVertexAttributes", reason: "Not implemented yet" },
 ];
 
 /** Map skipped reason patterns to human-readable explanations */
@@ -30,6 +29,8 @@ const EXPLANATION_MAP: Record<string, string> = {
   "No lights found": "No lights present in the model",
   "No animations found": "No animations present in the model",
   "No empty nodes found": "No empty nodes found — scene graph is clean",
+  "Already at Y=0": "Model floor already at Y=0 — no adjustment needed",
+  "No oversized textures found": "All textures already within size limit",
 };
 
 function toSnapshot(analysis: AnalysisResult, sizeBytes: number): StatsSnapshot {
@@ -70,7 +71,7 @@ function generateExplanations(
     explanations.push("No unused textures found");
   }
 
-  // Map skipped operations (exclude user-disabled and V1-not-implemented)
+  // Map skipped operations (exclude user-disabled and not-implemented)
   for (const entry of skipped) {
     if (entry.reason === "Disabled by user") continue;
     if (entry.reason.includes("Not implemented")) continue;
@@ -83,6 +84,63 @@ function generateExplanations(
   }
 
   return explanations;
+}
+
+// ---------------------------------------------------------------------------
+// V2 helpers: floor alignment via POSITION accessor scanning
+// ---------------------------------------------------------------------------
+
+/** Compute the minimum Y value across all POSITION accessors in the document */
+function computeMinY(doc: Document): number {
+  let minY = Infinity;
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const position = prim.getAttribute("POSITION");
+      if (!position) continue;
+      const count = position.getCount();
+      for (let i = 0; i < count; i++) {
+        const y = position.getElement(i, [0, 0, 0])[1];
+        if (y < minY) minY = y;
+      }
+    }
+  }
+  return minY === Infinity ? 0 : minY;
+}
+
+/** Shift all POSITION accessor Y values by the given offset */
+function shiftVerticesY(doc: Document, offsetY: number): void {
+  // Track already-shifted accessors to avoid double-shifting shared accessors
+  const shifted = new Set<string>();
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const position = prim.getAttribute("POSITION");
+      if (!position) continue;
+      const name = position.getName() || `acc_${position.getCount()}`;
+      if (shifted.has(name)) continue;
+      shifted.add(name);
+
+      const count = position.getCount();
+      const vec = [0, 0, 0] as [number, number, number];
+      for (let i = 0; i < count; i++) {
+        position.getElement(i, vec);
+        vec[1] += offsetY;
+        position.setElement(i, vec);
+      }
+    }
+  }
+}
+
+/** Check if any base color texture exceeds the max size */
+function hasOversizedBaseColorTextures(doc: Document, maxSize: number): boolean {
+  for (const material of doc.getRoot().listMaterials()) {
+    const baseColorTexture = material.getBaseColorTexture();
+    if (!baseColorTexture) continue;
+    const size = baseColorTexture.getSize();
+    if (size && (size[0] > maxSize || size[1] > maxSize)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export async function optimizeModel(
@@ -112,8 +170,8 @@ export async function optimizeModel(
   const analysisBefore = await analyzeModel(buffer, fileName);
   log.info({ before: toSnapshot(analysisBefore, buffer.byteLength) }, "Before analysis complete");
 
-  // 3. Collect skipped V1 operations that user requested
-  for (const entry of V1_SKIPPED) {
+  // 3. Collect skipped future operations that user requested
+  for (const entry of FUTURE_SKIPPED) {
     const val = options[entry.key];
     if (val !== undefined && val !== false) {
       skipped.push({ operation: entry.key, reason: entry.reason });
@@ -135,7 +193,6 @@ export async function optimizeModel(
   // Deduplicate materials (explicit user toggle — dedup above handles accessors/meshes,
   // but we log it separately when the user explicitly requests material dedup)
   if (options.deduplicateMaterials !== false) {
-    // dedup() already handles materials, so just log it
     applied.push("deduplicateMaterials");
     log.info("Applied: deduplicateMaterials (via dedup)");
   } else {
@@ -195,7 +252,6 @@ export async function optimizeModel(
   // Remove empty nodes
   if (options.removeEmptyNodes !== false) {
     let removedCount = 0;
-    // Iterate until no more empty leaf nodes
     let changed = true;
     while (changed) {
       changed = false;
@@ -209,7 +265,7 @@ export async function optimizeModel(
           node.dispose();
           removedCount++;
           changed = true;
-          break; // restart iteration since list changed
+          break;
         }
       }
     }
@@ -223,13 +279,71 @@ export async function optimizeModel(
     skipped.push({ operation: "removeEmptyNodes", reason: "Disabled by user" });
   }
 
-  // Remove unused nodes (nodes not contributing to scene)
+  // Remove unused nodes
   if (options.removeUnusedNodes !== false) {
-    // prune() already handles this, log it
     applied.push("removeUnusedNodes");
     log.info("Applied: removeUnusedNodes (via prune)");
   } else {
     skipped.push({ operation: "removeUnusedNodes", reason: "Disabled by user" });
+  }
+
+  // --- V2: Normalize Scale (flatten transforms into geometry) ---
+  if (options.normalizeScale !== false) {
+    try {
+      await doc.transform(flatten());
+      applied.push("normalizeScale");
+      log.info("Applied: normalizeScale (flatten transforms)");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      warnings.push({ operation: "normalizeScale", message: `Flatten failed: ${msg}` });
+      log.warn({ err }, "normalizeScale failed — continuing");
+    }
+  } else {
+    skipped.push({ operation: "normalizeScale", reason: "Disabled by user" });
+  }
+
+  // --- V2: Set Floor to Y=0 ---
+  if (options.setFloorToY0 !== false) {
+    const minY = computeMinY(doc);
+    if (Math.abs(minY) > 0.0001) {
+      shiftVerticesY(doc, -minY);
+      applied.push("setFloorToY0");
+      log.info({ minY, offset: -minY }, "Applied: setFloorToY0");
+    } else {
+      skipped.push({ operation: "setFloorToY0", reason: "Already at Y=0" });
+    }
+  } else {
+    skipped.push({ operation: "setFloorToY0", reason: "Disabled by user" });
+  }
+
+  // --- V2: Optimize Base Color Textures (resize oversized textures) ---
+  let texturesResized = 0;
+  if (options.optimizeBaseColorTextures !== false) {
+    const maxSize = options.maxTextureSize ?? 2048;
+    if (hasOversizedBaseColorTextures(doc, maxSize)) {
+      try {
+        await doc.transform(
+          textureResize({ size: [maxSize, maxSize], slots: /baseColor/ }),
+        );
+        applied.push("optimizeBaseColorTextures");
+        log.info({ maxSize }, "Applied: optimizeBaseColorTextures (textureResize)");
+        const beforeMaxRes = toSnapshot(analysisBefore, buffer.byteLength).maxTextureRes;
+        if (beforeMaxRes > maxSize) {
+          texturesResized = analysisBefore.textures.details.filter(
+            (t) => (t.width > maxSize || t.height > maxSize) && t.type === "baseColor",
+          ).length;
+          if (texturesResized === 0) texturesResized = 1;
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        warnings.push({ operation: "optimizeBaseColorTextures", message: `Texture resize failed: ${msg}` });
+        log.warn({ err }, "optimizeBaseColorTextures failed — continuing");
+      }
+    } else {
+      skipped.push({ operation: "optimizeBaseColorTextures", reason: "No oversized textures found" });
+    }
+  } else {
+    skipped.push({ operation: "optimizeBaseColorTextures", reason: "Disabled by user" });
   }
 
   // 5. Write optimized GLB
@@ -249,7 +363,7 @@ export async function optimizeModel(
       : 0,
     materialsRemoved: Math.max(0, before.materials - after.materials),
     texturesRemoved: Math.max(0, before.textures - after.textures),
-    texturesResized: 0, // V1: no texture resize
+    texturesResized,
   };
 
   // 8. Generate explanations

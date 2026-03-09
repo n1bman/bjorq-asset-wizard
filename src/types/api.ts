@@ -209,6 +209,10 @@ export interface AssetMetadata {
     unit: string;
     confidence: string;
   };
+  // Phase 8 — V2 optimization flags
+  normalizationApplied?: boolean;
+  floorAlignmentApplied?: boolean;
+  textureOptimizationApplied?: boolean;
 }
 
 export interface CatalogIndex {

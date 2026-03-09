@@ -89,6 +89,9 @@ export const mockOptimize: OptimizeResponse = {
     center: [0, 0.375, 0],
     pivot: "bottom-center",
     estimatedScale: { unit: "m", confidence: "high" },
+    normalizationApplied: true,
+    floorAlignmentApplied: true,
+    textureOptimizationApplied: true,
   },
 };
 
@@ -164,7 +167,7 @@ export const mockHealth: HealthResponse = {
 
 export const mockVersion: VersionResponse = {
   name: "bjorq-asset-optimizer",
-  version: "1.0.0",
+  version: "1.1.0",
   node: "v20.11.0",
   environment: "development",
 };
