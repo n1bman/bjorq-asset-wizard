@@ -12,10 +12,9 @@ url: "https://github.com/n1bman/bjorq-asset-wizard"
 # Prebuilt image — HA pulls from GHCR instead of building locally
 image: "ghcr.io/n1bman/bjorq-asset-wizard-{arch}"
 
-# Supported architectures
+# Supported architectures (aarch64 temporarily disabled — QEMU crashes in CI)
 arch:
   - amd64
-  # - aarch64  # Temporarily disabled — QEMU crashes during cross-arch npm install
 
 # Network
 ports:

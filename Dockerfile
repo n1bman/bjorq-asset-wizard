@@ -12,17 +12,17 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy backend package files and install all deps (incl. devDeps for tsc)
-COPY server/package.json ./
-RUN npm install
+# Copy backend package files — use npm ci for deterministic installs
+COPY server/package.json server/package-lock.json* ./
+RUN npm ci || npm install
 
+# Copy source and compile TypeScript
 COPY server/tsconfig.json ./
 COPY server/src/ ./src/
-
-RUN npm run build
+RUN npx tsc
 
 # --- Stage 2: Production ---
-FROM node:20-alpine AS production
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -34,8 +34,8 @@ RUN addgroup -g 1001 -S bjorq && \
 COPY --from=builder /app/dist ./dist
 
 # Install production deps only (sharp bundles its own libvips)
-COPY server/package.json ./
-RUN npm install --omit=dev
+COPY server/package.json server/package-lock.json* ./
+RUN npm ci --omit=dev || npm install --omit=dev
 
 # Create storage directories
 RUN mkdir -p \
