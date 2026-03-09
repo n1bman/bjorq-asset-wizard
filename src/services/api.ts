@@ -80,13 +80,13 @@ export async function analyzeModel(file: File, onUploadProgress?: (percent: numb
 
 // --- Optimize ---
 
-export async function optimizeModel(file: File, options?: OptimizeOptions): Promise<OptimizeResponse> {
+export async function optimizeModel(file: File, options?: OptimizeOptions, onUploadProgress?: (percent: number) => void): Promise<OptimizeResponse> {
   const { data } = await withFallback(
     () => {
       const fd = new FormData();
       fd.append("file", file);
       if (options) fd.append("options", JSON.stringify(options));
-      return apiClient.request<OptimizeResponse>("/optimize", { method: "POST", body: fd });
+      return apiClient.request<OptimizeResponse>("/optimize", { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT, onUploadProgress });
     },
     () => mockOptimize,
   );

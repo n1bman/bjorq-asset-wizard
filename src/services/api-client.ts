@@ -131,5 +131,43 @@ class ApiClient {
   }
 }
 
+  /** Upload with XMLHttpRequest for progress tracking */
+  private _requestWithProgress<T>(path: string, init: RequestInit, timeout: number, onProgress: (percent: number) => void): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open(init.method || "POST", `${this._baseUrl}${path}`);
+      xhr.timeout = timeout;
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            reject(new ApiError("Invalid JSON response", xhr.status));
+          }
+        } else {
+          let message = "Request failed";
+          try {
+            const body = JSON.parse(xhr.responseText);
+            message = body.error?.message || body.error || message;
+          } catch { /* ignore */ }
+          reject(new ApiError(message, xhr.status));
+        }
+      };
+
+      xhr.onerror = () => reject(new ApiError("Backend unreachable", 0));
+      xhr.ontimeout = () => reject(new ApiError("Request timed out", 0));
+
+      xhr.send(init.body as FormData);
+    });
+  }
+}
+
 // Singleton
 export const apiClient = new ApiClient();
