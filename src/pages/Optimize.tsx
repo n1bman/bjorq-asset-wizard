@@ -382,6 +382,39 @@ function ReviewSection({
 
       <StatsComparison stats={result.stats} />
 
+      {/* V2 Operations Summary */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">V2 Optimization Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <V2OpRow
+            label="Normalize Scale"
+            description="Flatten transforms into vertex data"
+            applied={result.optimization.applied.includes("normalizeScale")}
+            warning={result.optimization.warnings.find((w) => w.operation === "normalizeScale")?.message}
+          />
+          <V2OpRow
+            label="Floor Alignment (Y=0)"
+            description="Shift model so lowest point sits at Y=0"
+            applied={result.optimization.applied.includes("setFloorToY0")}
+            skippedReason={result.optimization.skipped.find((s) => s.operation === "setFloorToY0")?.reason}
+          />
+          <V2OpRow
+            label="Texture Optimization"
+            description={`Resize oversized base color textures (max ${result.stats.before.maxTextureRes}px → ${result.stats.after.maxTextureRes}px)`}
+            applied={result.optimization.applied.includes("optimizeBaseColorTextures")}
+            skippedReason={result.optimization.skipped.find((s) => s.operation === "optimizeBaseColorTextures")?.reason}
+            warning={result.optimization.warnings.find((w) => w.operation === "optimizeBaseColorTextures")?.message}
+          />
+          {result.stats.reduction.texturesResized > 0 && (
+            <p className="text-xs text-muted-foreground ml-6">
+              {result.stats.reduction.texturesResized} texture(s) resized
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Catalog size warning */}
       {catalogWarn && (
         <div className="flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/5 px-3 py-2">
