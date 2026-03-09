@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.5] — 2026-03-09
+## [1.1.6] — 2026-03-09
 
 ### Fixed — Systems Repair & Architecture Hardening
 - **Removed WizardClient**: Deleted `wizard-client.ts`, `WizardContext.tsx`, and `wizard-mock-data.ts`. Eliminated hardcoded `localhost:3500` polling. All API communication unified on the ingress-safe `apiClient`.
