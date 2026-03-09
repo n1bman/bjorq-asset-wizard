@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.11] — 2026-03-09
+
+### Fixed — Persistence, Thumbnails, Dimensions, Optimization Profiles
+- **Catalog persistence fix**: Changed all fallback storage defaults from relative paths (`./storage`, `./public/catalog`) to persistent HA paths (`/data/storage`, `/data/catalog`). This ensures catalog assets survive add-on restarts even if environment variables are not set. Affected files: `storage.ts`, `index.ts`, `health.ts` (both server/ and bjorq_asset_wizard/).
+- **Thumbnail display**: `AssetCard` and `AssetDetailDrawer` now render actual `<img>` thumbnails from the catalog API (`/catalog/files/...`) instead of always showing a placeholder icon. Includes error fallback.
+- **Dimensions pipeline fix**: Catalog ingest now reads dimensions from `scene.dimensions` (populated by the optimize route) instead of `after.dimensions` (which is a StatsSnapshot with no dimensions field). Dimensions now persist through the full pipeline: Analyze → Optimize → Save to Catalog → UI.
+- **Optimization profiles**: Added High Quality / Balanced / Low Power profile selector in the optimize UI. Server applies profile presets (texture size, cleanup aggressiveness) with explicit user options overriding profile defaults.
+
+### Changed
+- Version bump to 1.1.11 across all surfaces.
+- CATALOG_VERSION bumped to 1.1.11.
+
 ## [1.1.10] — 2026-03-09
 
 ### Added — Persistence Diagnostics + Large-file UX

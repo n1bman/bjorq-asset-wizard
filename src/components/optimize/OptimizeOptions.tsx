@@ -1,10 +1,12 @@
-import type { OptimizeOptions as Opts } from "@/types/api";
+import type { OptimizeOptions as Opts, OptimizationProfile } from "@/types/api";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Zap, Scale, Sparkles } from "lucide-react";
 
 interface Props {
   options: Opts;
@@ -37,6 +39,21 @@ const TEXTURE_SIZE_OPTIONS = [
   { value: "4096", label: "4096 px" },
 ];
 
+const PROFILE_INFO: Record<OptimizationProfile, { label: string; description: string }> = {
+  "high-quality": {
+    label: "High Quality",
+    description: "Minimal cleanup, preserves textures and animations",
+  },
+  balanced: {
+    label: "Balanced",
+    description: "Standard cleanup + normalization + texture resize (2048)",
+  },
+  "low-power": {
+    label: "Low Power",
+    description: "Aggressive cleanup, small textures (512), all normalization",
+  },
+};
+
 export function OptimizeOptionsPanel({ options, onChange }: Props) {
   const toggle = (key: keyof Opts) =>
     onChange({ ...options, [key]: !options[key] });
@@ -44,12 +61,50 @@ export function OptimizeOptionsPanel({ options, onChange }: Props) {
   const set = (key: keyof Opts, value: string) =>
     onChange({ ...options, [key]: value });
 
+  const handleProfileChange = (value: string) => {
+    if (!value) return;
+    const profile = value as OptimizationProfile;
+    // Reset individual options when switching profile — let server apply presets
+    onChange({
+      profile,
+      assetName: options.assetName,
+      category: options.category,
+      subcategory: options.subcategory,
+      style: options.style,
+      placement: options.placement,
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Optimization Options</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
+        {/* Profile selector */}
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground uppercase tracking-wide">Optimization Profile</Label>
+          <ToggleGroup
+            type="single"
+            value={options.profile || "balanced"}
+            onValueChange={handleProfileChange}
+            className="justify-start"
+          >
+            <ToggleGroupItem value="high-quality" className="gap-1.5 text-xs">
+              <Sparkles className="h-3.5 w-3.5" /> High Quality
+            </ToggleGroupItem>
+            <ToggleGroupItem value="balanced" className="gap-1.5 text-xs">
+              <Scale className="h-3.5 w-3.5" /> Balanced
+            </ToggleGroupItem>
+            <ToggleGroupItem value="low-power" className="gap-1.5 text-xs">
+              <Zap className="h-3.5 w-3.5" /> Low Power
+            </ToggleGroupItem>
+          </ToggleGroup>
+          {options.profile && (
+            <p className="text-xs text-muted-foreground">{PROFILE_INFO[options.profile].description}</p>
+          )}
+        </div>
+
         {/* Always-on defaults */}
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground uppercase tracking-wide">Default Steps</Label>

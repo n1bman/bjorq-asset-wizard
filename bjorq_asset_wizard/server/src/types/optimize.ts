@@ -9,7 +9,10 @@ import type { AnalysisResult } from "./analyze.js";
 
 // --- Request ---
 
+export type OptimizationProfile = "high-quality" | "balanced" | "low-power";
+
 export interface OptimizeRequestOptions {
+  profile?: OptimizationProfile;
   removeEmptyNodes?: boolean;
   removeUnusedNodes?: boolean;
   removeCameras?: boolean;

@@ -207,9 +207,16 @@ export async function optimizeModel(
   options: OptimizeRequestOptions,
   log: FastifyBaseLogger,
 ): Promise<OptimizeResult> {
+  // Apply profile presets before processing
+  options = applyProfile(options);
+
   const applied: string[] = [];
   const skipped: { operation: string; reason: string }[] = [];
   const warnings: { operation: string; message: string }[] = [];
+
+  if (options.profile) {
+    log.info({ profile: options.profile }, `Using optimization profile: ${options.profile}`);
+  }
 
   // 1. Parse document
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);

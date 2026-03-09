@@ -99,7 +99,10 @@ export interface Recommendation {
 
 // --- Optimize ---
 
+export type OptimizationProfile = "high-quality" | "balanced" | "low-power";
+
 export interface OptimizeOptions {
+  profile?: OptimizationProfile;
   removeEmptyNodes?: boolean;
   removeUnusedNodes?: boolean;
   removeCameras?: boolean;

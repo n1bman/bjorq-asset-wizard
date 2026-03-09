@@ -9,9 +9,9 @@ import { constants } from "node:fs";
 import { join, resolve } from "node:path";
 import { CATALOG_SCHEMA_VERSION } from "../services/catalog/manager.js";
 
-const VERSION = "1.1.10";
-const STORAGE_PATH = process.env.STORAGE_PATH || "./storage";
-const CATALOG_PATH = resolve(process.env.CATALOG_PATH || "./public/catalog");
+const VERSION = "1.1.11";
+const STORAGE_PATH = process.env.STORAGE_PATH || "/data/storage";
+const CATALOG_PATH = resolve(process.env.CATALOG_PATH || "/data/catalog");
 
 async function checkStorageWritable(storagePath: string): Promise<boolean> {
   const testFile = join(storagePath, `.health-check-${Date.now()}`);
