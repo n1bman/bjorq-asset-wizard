@@ -1,18 +1,27 @@
 /**
- * Catalog endpoints — browse, ingest, reindex, diagnostics, and asset access.
+ * Catalog endpoints — browse, ingest, reindex, diagnostics, asset access, and library API.
  *
+ * Existing:
  * GET  /catalog/index            — Return the current catalog manifest
  * POST /catalog/ingest           — Ingest an optimized asset into the catalog
  * POST /catalog/reindex          — Force a catalog re-scan and index rebuild
  * GET  /catalog/policy           — Storage usage and limits
  * GET  /catalog/asset/:id/thumbnail — Serve asset thumbnail or 404
  * GET  /catalog/asset/:id/model  — Serve asset GLB model or 404
+ * GET  /catalog/asset/:id/export — Download asset GLB with Content-Disposition
  * GET  /catalog/diagnostics      — Catalog diagnostics for integrations
+ *
+ * Dashboard-facing library API:
+ * GET  /libraries                — List available libraries
+ * GET  /libraries/:library/index — Get library catalog index
+ * GET  /assets/:id/meta          — Get asset metadata JSON
+ * GET  /assets/:id/model         — Alias for /catalog/asset/:id/model
+ * GET  /assets/:id/thumbnail     — Alias for /catalog/asset/:id/thumbnail
  */
 
 import type { FastifyInstance } from "fastify";
 import { join } from "node:path";
-import { access, readdir } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import {
@@ -65,14 +74,12 @@ export async function catalogRoutes(server: FastifyInstance) {
         } else if (part.type === "file" && part.fieldname === "file") {
           fileBuffer = await part.toBuffer();
         }
-        // thumbnail ignored for now (V2)
       }
     } catch (err) {
       log.error({ err }, "Failed to parse multipart");
       return reply.status(400).send({ success: false, error: "Failed to parse multipart upload" });
     }
 
-    // --- Validate meta ---
     if (!metaRaw) {
       log.warn("No meta field provided");
       return reply.status(400).send({ success: false, error: "Missing 'meta' field with asset metadata JSON" });
@@ -93,7 +100,6 @@ export async function catalogRoutes(server: FastifyInstance) {
 
     log.info({ assetId: meta.id, category: meta.category, sourceJobId }, "Starting ingest");
 
-    // --- Check catalog policy ---
     try {
       const policy = await getCatalogPolicy();
       if (policy.blocked) {
@@ -104,13 +110,8 @@ export async function catalogRoutes(server: FastifyInstance) {
       log.warn({ err }, "Could not check catalog policy — proceeding anyway");
     }
 
-    // --- Ingest ---
     try {
-      const result = await ingestAsset(
-        meta,
-        sourceJobId || undefined,
-        fileBuffer || undefined,
-      );
+      const result = await ingestAsset(meta, sourceJobId || undefined, fileBuffer || undefined);
       log.info({ path: result.catalogEntry.path }, "Ingest successful");
       return reply.status(200).send(result);
     } catch (err) {
@@ -139,7 +140,7 @@ export async function catalogRoutes(server: FastifyInstance) {
   });
 
   // -----------------------------------------------------------------------
-  // GET /catalog/policy — storage usage and limits
+  // GET /catalog/policy
   // -----------------------------------------------------------------------
   server.get("/catalog/policy", async (request, reply) => {
     request.log.info("Catalog policy requested");
@@ -153,7 +154,7 @@ export async function catalogRoutes(server: FastifyInstance) {
   });
 
   // -----------------------------------------------------------------------
-  // GET /catalog/asset/:id/thumbnail — serve asset thumbnail
+  // GET /catalog/asset/:id/thumbnail
   // -----------------------------------------------------------------------
   server.get("/catalog/asset/:id/thumbnail", async (request, reply) => {
     const { id } = request.params as { id: string };
@@ -175,7 +176,7 @@ export async function catalogRoutes(server: FastifyInstance) {
   });
 
   // -----------------------------------------------------------------------
-  // GET /catalog/asset/:id/model — serve asset GLB model
+  // GET /catalog/asset/:id/model
   // -----------------------------------------------------------------------
   server.get("/catalog/asset/:id/model", async (request, reply) => {
     const { id } = request.params as { id: string };
@@ -186,14 +187,12 @@ export async function catalogRoutes(server: FastifyInstance) {
       return reply.status(404).send({ success: false, error: "Asset not found" });
     }
 
-    // Look for model.glb or any .glb file in the asset directory
     const modelPath = join(assetPath, "model.glb");
     try {
       await access(modelPath);
       reply.type("model/gltf-binary");
       return reply.send(createReadStream(modelPath));
     } catch {
-      // Fallback: check for any .glb file
       try {
         const files = await readdir(assetPath);
         const glbFile = files.find(f => f.endsWith(".glb"));
@@ -207,7 +206,38 @@ export async function catalogRoutes(server: FastifyInstance) {
   });
 
   // -----------------------------------------------------------------------
-  // GET /catalog/diagnostics — catalog diagnostics for integrations
+  // GET /catalog/asset/:id/export — download model with Content-Disposition
+  // -----------------------------------------------------------------------
+  server.get("/catalog/asset/:id/export", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    request.log.info({ assetId: id }, "Asset export requested");
+
+    const assetPath = await findAssetPath(id);
+    if (!assetPath) {
+      return reply.status(404).send({ success: false, error: "Asset not found" });
+    }
+
+    // Read meta for name
+    let assetName = id;
+    try {
+      const raw = await readFile(join(assetPath, "meta.json"), "utf-8");
+      const meta = JSON.parse(raw);
+      if (meta.name) assetName = meta.name.replace(/[^a-zA-Z0-9_-]/g, "_");
+    } catch { /* use id as fallback */ }
+
+    const modelPath = join(assetPath, "model.glb");
+    try {
+      await access(modelPath);
+      reply.type("model/gltf-binary");
+      reply.header("Content-Disposition", `attachment; filename="${assetName}.glb"`);
+      return reply.send(createReadStream(modelPath));
+    } catch {
+      return reply.status(404).send({ success: false, error: "No model file available for export" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /catalog/diagnostics
   // -----------------------------------------------------------------------
   server.get("/catalog/diagnostics", async (request, reply) => {
     request.log.info("Catalog diagnostics requested");
@@ -230,6 +260,113 @@ export async function catalogRoutes(server: FastifyInstance) {
     } catch (err) {
       request.log.error({ err }, "Failed to get catalog diagnostics");
       return reply.status(500).send({ success: false, error: "Failed to get catalog diagnostics" });
+    }
+  });
+
+  // =======================================================================
+  // Dashboard-facing Library API
+  // =======================================================================
+
+  // -----------------------------------------------------------------------
+  // GET /libraries — list available libraries
+  // -----------------------------------------------------------------------
+  server.get("/libraries", async (request, reply) => {
+    request.log.info("Libraries list requested");
+    try {
+      const index = await buildCatalogIndex();
+      return reply.status(200).send({
+        libraries: [
+          {
+            id: "default",
+            name: "Default Library",
+            assetCount: index.totalAssets,
+            schemaVersion: CATALOG_SCHEMA_VERSION,
+          },
+        ],
+      });
+    } catch (err) {
+      request.log.error({ err }, "Failed to list libraries");
+      return reply.status(500).send({ success: false, error: "Failed to list libraries" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /libraries/:library/index — get library catalog index
+  // -----------------------------------------------------------------------
+  server.get("/libraries/:library/index", async (request, reply) => {
+    const { library } = request.params as { library: string };
+    request.log.info({ library }, "Library index requested");
+
+    // Currently only "default" library exists
+    if (library !== "default") {
+      return reply.status(404).send({ success: false, error: `Library "${library}" not found` });
+    }
+
+    try {
+      const index = await buildCatalogIndex();
+      return reply.status(200).send(index);
+    } catch (err) {
+      request.log.error({ err }, "Failed to build library index");
+      return reply.status(500).send({ success: false, error: "Failed to build library index" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /assets/:id/meta — get asset metadata JSON
+  // -----------------------------------------------------------------------
+  server.get("/assets/:id/meta", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    request.log.info({ assetId: id }, "Asset metadata requested");
+
+    const assetPath = await findAssetPath(id);
+    if (!assetPath) {
+      return reply.status(404).send({ success: false, error: "Asset not found" });
+    }
+
+    try {
+      const raw = await readFile(join(assetPath, "meta.json"), "utf-8");
+      const meta = JSON.parse(raw);
+      return reply.status(200).send(meta);
+    } catch {
+      return reply.status(404).send({ success: false, error: "Asset metadata not found" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /assets/:id/model — alias for /catalog/asset/:id/model
+  // -----------------------------------------------------------------------
+  server.get("/assets/:id/model", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const assetPath = await findAssetPath(id);
+    if (!assetPath) {
+      return reply.status(404).send({ success: false, error: "Asset not found" });
+    }
+    const modelPath = join(assetPath, "model.glb");
+    try {
+      await access(modelPath);
+      reply.type("model/gltf-binary");
+      return reply.send(createReadStream(modelPath));
+    } catch {
+      return reply.status(404).send({ success: false, error: "No model file available" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /assets/:id/thumbnail — alias for /catalog/asset/:id/thumbnail
+  // -----------------------------------------------------------------------
+  server.get("/assets/:id/thumbnail", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const assetPath = await findAssetPath(id);
+    if (!assetPath) {
+      return reply.status(404).send({ success: false, error: "Asset not found" });
+    }
+    const thumbPath = join(assetPath, "thumb.webp");
+    try {
+      await access(thumbPath);
+      reply.type("image/webp");
+      return reply.send(createReadStream(thumbPath));
+    } catch {
+      return reply.status(404).send({ success: false, error: "No thumbnail available" });
     }
   });
 }
