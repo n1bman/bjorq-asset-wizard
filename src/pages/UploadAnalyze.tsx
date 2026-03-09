@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileBox } from "lucide-react";
+import { Upload, FileBox, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/services/api-client";
 import type { AnalysisResponse, ImportType } from "@/types/api";
