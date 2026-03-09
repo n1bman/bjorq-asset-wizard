@@ -8,7 +8,7 @@ import type { AssetMetadata } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApi } from "@/hooks/use-api";
-import { AlertTriangle, PackageOpen } from "lucide-react";
+import { AlertTriangle, PackageOpen, HardDrive } from "lucide-react";
 
 export default function CatalogPage() {
   const { data: catalog, loading, error } = useApi(getCatalogIndex);
