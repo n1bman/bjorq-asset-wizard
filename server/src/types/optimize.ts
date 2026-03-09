@@ -5,7 +5,7 @@
  * Mirrors the frontend OptimizeOptions / OptimizeResponse shape.
  */
 
-import type { AnalysisResult, Recommendation } from "./analyze.js";
+import type { AnalysisResult } from "./analyze.js";
 
 // --- Request ---
 

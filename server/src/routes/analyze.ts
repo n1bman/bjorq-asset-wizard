@@ -6,6 +6,7 @@
  */
 
 import type { FastifyInstance } from "fastify";
+import "@fastify/multipart";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import { analyzeModel } from "../services/analysis/analyzer.js";
 
