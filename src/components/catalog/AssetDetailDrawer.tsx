@@ -25,6 +25,25 @@ import { useConnection } from "@/contexts/ConnectionContext";
 import { PreviewErrorBoundary } from "./PreviewErrorBoundary";
 import { AssetPreviewPanel } from "./AssetPreviewPanel";
 import { downloadAssetBlob } from "@/lib/asset-paths";
+import { apiClient } from "@/services/api-client";
+
+function ThumbnailPreview({ asset }: { asset: AssetMetadata }) {
+  const [imgError, setImgError] = useState(false);
+  const url = `${apiClient.baseUrl}/catalog/files${asset.thumbnail}`;
+
+  if (imgError) return <AssetPreviewPanel asset={asset} />;
+
+  return (
+    <div className="rounded-lg overflow-hidden bg-muted/30 aspect-video flex items-center justify-center">
+      <img
+        src={url}
+        alt={asset.name}
+        className="w-full h-full object-contain"
+        onError={() => setImgError(true)}
+      />
+    </div>
+  );
+}
 
 interface Props {
   asset: AssetMetadata | null;
@@ -115,9 +134,13 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onDeleted }: Prop
 
         <PreviewErrorBoundary fallbackMessage="Asset detail could not be rendered">
           <div className="space-y-5 mt-4">
-            {/* Preview */}
+            {/* Preview — show thumbnail image if available */}
             <PreviewErrorBoundary fallbackMessage="Model preview could not be loaded">
-              <AssetPreviewPanel asset={asset} />
+              {asset.thumbnail ? (
+                <ThumbnailPreview asset={asset} />
+              ) : (
+                <AssetPreviewPanel asset={asset} />
+              )}
             </PreviewErrorBoundary>
 
             {/* Status */}

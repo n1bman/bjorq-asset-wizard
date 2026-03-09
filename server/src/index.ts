@@ -39,12 +39,12 @@ import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "1.1.10";
+const VERSION = "1.1.11";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
-const STORAGE_PATH = resolve(process.env.STORAGE_PATH || "./storage");
-const CATALOG_PATH_RESOLVED = resolve(process.env.CATALOG_PATH || "./public/catalog");
+const STORAGE_PATH = resolve(process.env.STORAGE_PATH || "/data/storage");
+const CATALOG_PATH_RESOLVED = resolve(process.env.CATALOG_PATH || "/data/catalog");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PUBLIC_PATH = resolve(__dirname, "../public");

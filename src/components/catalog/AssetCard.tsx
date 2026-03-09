@@ -1,8 +1,10 @@
+import { useState } from "react";
 import type { AssetMetadata } from "@/types/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Box, HardDrive } from "lucide-react";
 import { SourceBadge, SyncDot } from "./AssetStatusBadge";
+import { apiClient } from "@/services/api-client";
 
 interface Props {
   asset: AssetMetadata;
@@ -10,13 +12,30 @@ interface Props {
 }
 
 export function AssetCard({ asset, onClick }: Props) {
+  const [imgError, setImgError] = useState(false);
+
+  // Resolve thumbnail URL via the catalog API endpoint
+  const thumbnailUrl = asset.thumbnail
+    ? `${apiClient.baseUrl}/catalog/files${asset.thumbnail}`
+    : null;
+
   return (
     <Card
       className="cursor-pointer hover:border-primary/50 transition-colors group"
       onClick={onClick}
     >
-      <div className="aspect-square bg-muted/30 flex items-center justify-center rounded-t-lg relative">
-        <Box className="h-12 w-12 text-muted-foreground/40" />
+      <div className="aspect-square bg-muted/30 flex items-center justify-center rounded-t-lg relative overflow-hidden">
+        {thumbnailUrl && !imgError ? (
+          <img
+            src={thumbnailUrl}
+            alt={asset.name}
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+            loading="lazy"
+          />
+        ) : (
+          <Box className="h-12 w-12 text-muted-foreground/40" />
+        )}
         {asset.syncStatus && (
           <div className="absolute top-2 right-2">
             <SyncDot status={asset.syncStatus} />

@@ -74,8 +74,8 @@ USER bjorq
 ENV NODE_ENV=production \
     PORT=3500 \
     HOST=0.0.0.0 \
-    STORAGE_PATH=./storage \
-    CATALOG_PATH=./public/catalog \
+    STORAGE_PATH=/data/storage \
+    CATALOG_PATH=/data/catalog \
     LOG_LEVEL=info \
     CORS_ORIGINS=*
 

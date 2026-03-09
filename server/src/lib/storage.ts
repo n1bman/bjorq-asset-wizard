@@ -8,8 +8,8 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 
-export const STORAGE_PATH = process.env.STORAGE_PATH || "./storage";
-export const CATALOG_PATH = process.env.CATALOG_PATH || "./public/catalog";
+export const STORAGE_PATH = process.env.STORAGE_PATH || "/data/storage";
+export const CATALOG_PATH = process.env.CATALOG_PATH || "/data/catalog";
 
 /** All directories that must exist for the service to operate. */
 const REQUIRED_DIRS = [
