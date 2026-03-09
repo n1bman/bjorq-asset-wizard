@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0] — 2026-03-09
+
+### Added
+- **Frontend UI in Docker**: Both Dockerfiles now include a Vite build stage, compiling the React frontend and serving it via Fastify. The HA ingress panel now shows the full Wizard UI instead of raw JSON.
+- **SPA routing**: Fastify serves `index.html` as fallback for all non-API routes, enabling React Router client-side navigation.
+- **HA ingress support**: API client auto-detects `/api/hassio_ingress/<token>/` base path. React Router uses dynamic `basename` for correct subpath routing.
+- **`prepare-addon.sh` stages frontend**: The script now copies both `server/` and frontend source into the add-on build context.
+
+### Changed
+- **Vite base path**: Set `base: "./"` for relative asset paths (required for HA ingress subpath).
+- **Catalog version synced**: `CATALOG_VERSION` now matches wizard version (`0.3.0`) instead of independent `1.0.0`.
+- **API client**: `detectBaseUrl()` replaces hardcoded `localhost:3500` — supports HA ingress, same-origin Docker, and localStorage override.
+- Version bump to 0.3.0 across all version sources.
+
 ## [0.2.9] — 2026-03-09
 
 ### Fixed

@@ -13,6 +13,7 @@
  *   /catalog/reindex — rebuild catalog manifest
  *   /jobs/* — static file serving for job outputs
  *   /catalog/files/* — static file serving for catalog assets
+ *   SPA frontend — served from public/ with index.html fallback
  *
  * Stubs (501):
  *   /sync — dashboard sync (coming next)
@@ -23,7 +24,8 @@ import Fastify, { FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
+import { access } from "node:fs/promises";
 import { createLoggerConfig } from "./lib/logger.js";
 import { initStorage } from "./lib/storage.js";
 import { healthRoutes } from "./routes/health.js";
@@ -33,12 +35,13 @@ import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
 
-const VERSION = "0.2.9";
+const VERSION = "0.3.0";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
 const STORAGE_PATH = resolve(process.env.STORAGE_PATH || "./storage");
 const CATALOG_PATH_RESOLVED = resolve(process.env.CATALOG_PATH || "./public/catalog");
+const PUBLIC_PATH = resolve(__dirname, "../public");
 
 async function start() {
   const server = Fastify({
@@ -114,7 +117,7 @@ async function start() {
   // --- Storage initialization ---
   await initStorage();
 
-  // --- Routes ---
+  // --- API Routes ---
   await server.register(healthRoutes);
   await server.register(analyzeRoutes);
   await server.register(optimizeRoutes);
@@ -122,13 +125,54 @@ async function start() {
   await server.register(syncRoutes);
   await server.register(importRoutes);
 
-  // --- Root route (safe landing for HA ingress probes) ---
-  server.get("/", async () => ({
-    service: "bjorq-asset-wizard",
-    status: "running",
-    version: VERSION,
-    endpoints: ["/health", "/version", "/analyze", "/optimize", "/catalog/index", "/catalog/ingest"],
-  }));
+  // --- SPA frontend serving ---
+  // Check if public/index.html exists (frontend was built into the image)
+  let hasFrontend = false;
+  try {
+    await access(join(PUBLIC_PATH, "index.html"));
+    hasFrontend = true;
+  } catch {
+    // No frontend build — API-only mode
+  }
+
+  if (hasFrontend) {
+    // Serve static frontend assets (JS, CSS, images)
+    await server.register(fastifyStatic, {
+      root: PUBLIC_PATH,
+      prefix: "/",
+      decorateReply: false,
+      serve: true,
+      wildcard: false,
+    });
+
+    // SPA fallback — serve index.html for all non-API, non-file routes
+    server.setNotFoundHandler(async (request, reply) => {
+      // If it looks like an API call or file request, return 404 JSON
+      if (
+        request.url.startsWith("/health") ||
+        request.url.startsWith("/version") ||
+        request.url.startsWith("/analyze") ||
+        request.url.startsWith("/optimize") ||
+        request.url.startsWith("/catalog/") ||
+        request.url.startsWith("/sync") ||
+        request.url.startsWith("/import") ||
+        request.url.startsWith("/jobs/")
+      ) {
+        return reply.code(404).send({ success: false, error: "Not found" });
+      }
+
+      // Serve index.html for SPA client-side routing
+      return reply.sendFile("index.html", PUBLIC_PATH);
+    });
+  } else {
+    // No frontend — serve JSON root route for API-only mode
+    server.get("/", async () => ({
+      service: "bjorq-asset-wizard",
+      status: "running",
+      version: VERSION,
+      endpoints: ["/health", "/version", "/analyze", "/optimize", "/catalog/index", "/catalog/ingest"],
+    }));
+  }
 
   // --- Graceful shutdown ---
   const shutdown = async (signal: string) => {
@@ -152,7 +196,12 @@ async function start() {
   // --- Start ---
   try {
     await server.listen({ port: PORT, host: HOST });
-    server.log.info(`Bjorq Asset Wizard listening on ${HOST}:${PORT}`);
+    server.log.info(`Bjorq Asset Wizard v${VERSION} listening on ${HOST}:${PORT}`);
+    if (hasFrontend) {
+      server.log.info("Frontend UI available at /");
+    } else {
+      server.log.info("API-only mode (no frontend build detected)");
+    }
   } catch (err: unknown) {
     if (err instanceof Error) {
       server.log.error(err);

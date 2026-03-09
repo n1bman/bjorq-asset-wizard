@@ -1,13 +1,27 @@
 # ============================================
 # Bjorq Asset Wizard — Production Dockerfile
 # ============================================
-# Multi-stage build for the backend service.
-# Frontend is built separately (Vite static site).
+# Multi-stage build: frontend (Vite) + backend (Fastify).
 #
 # Build:  docker build -t bjorq-asset-wizard .
 # Run:    docker run -p 3500:3500 -v wizard-data:/app/storage bjorq-asset-wizard
 
-# --- Stage 1: Build ---
+# --- Stage 1: Build frontend ---
+FROM node:20-alpine AS frontend
+
+WORKDIR /app
+
+# Install frontend dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci || npm install
+
+# Copy frontend source and build
+COPY index.html vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json tailwind.config.ts postcss.config.js components.json ./
+COPY src/ ./src/
+COPY public/ ./public/
+RUN npx vite build --base="./"
+
+# --- Stage 2: Build backend ---
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -21,7 +35,7 @@ COPY server/tsconfig.json ./
 COPY server/src/ ./src/
 RUN npx tsc
 
-# --- Stage 2: Production ---
+# --- Stage 3: Production ---
 FROM node:20-alpine
 
 WORKDIR /app
@@ -32,6 +46,9 @@ RUN addgroup -g 1001 -S bjorq && \
 
 # Copy built output from builder
 COPY --from=builder /app/dist ./dist
+
+# Copy built frontend into public/ for static serving
+COPY --from=frontend /app/dist ./public
 
 # Install production deps only (sharp bundles its own libvips)
 COPY server/package.json server/package-lock.json* ./

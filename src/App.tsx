@@ -17,6 +17,20 @@ import WizardIntegration from "@/pages/WizardIntegration";
 
 const queryClient = new QueryClient();
 
+/**
+ * Detect HA ingress base path for React Router.
+ * HA serves add-on UIs at /api/hassio_ingress/<token>/
+ * React Router needs this as `basename` to handle routing correctly.
+ */
+function getBasename(): string {
+  const path = window.location.pathname;
+  const ingressMatch = path.match(/^(\/api\/hassio_ingress\/[^/]+)/);
+  if (ingressMatch) {
+    return ingressMatch[1];
+  }
+  return "/";
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -24,7 +38,7 @@ const App = () => (
         <WizardProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter basename={getBasename()}>
             <Routes>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<UploadAnalyze />} />

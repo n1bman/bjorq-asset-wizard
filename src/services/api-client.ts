@@ -1,10 +1,39 @@
-// Base API client with connection tracking and fallback support
+// Base API client with connection tracking, HA ingress support, and fallback
 
 import type { ConnectionStatus } from "@/types/api";
 
 const STORAGE_KEY = "bjorq_api_base_url";
 const DEFAULT_URL = "http://localhost:3500";
 const REQUEST_TIMEOUT = 8000;
+
+/**
+ * Detect the API base URL for HA ingress or standalone mode.
+ *
+ * HA ingress serves the UI at /api/hassio_ingress/<token>/
+ * In that case, API calls go to the same origin + ingress prefix.
+ * Otherwise, fall back to localStorage or localhost:3500.
+ */
+function detectBaseUrl(): string {
+  // Check localStorage override first
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) return stored;
+
+  // Detect HA ingress path
+  const path = window.location.pathname;
+  const ingressMatch = path.match(/^(\/api\/hassio_ingress\/[^/]+)/);
+  if (ingressMatch) {
+    // Running inside HA ingress — API is at same origin + ingress prefix
+    return `${window.location.origin}${ingressMatch[1]}`;
+  }
+
+  // Check if we're served from the same origin as the API (production Docker)
+  if (window.location.port === "3500" || window.location.pathname === "/") {
+    // Could be running from the Fastify server directly
+    return window.location.origin;
+  }
+
+  return DEFAULT_URL;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -24,7 +53,7 @@ class ApiClient {
   private _lastLatency: number | null = null;
 
   constructor() {
-    this._baseUrl = localStorage.getItem(STORAGE_KEY) || DEFAULT_URL;
+    this._baseUrl = detectBaseUrl();
   }
 
   get baseUrl() { return this._baseUrl; }
@@ -34,6 +63,12 @@ class ApiClient {
   setBaseUrl(url: string) {
     this._baseUrl = url.replace(/\/+$/, "");
     localStorage.setItem(STORAGE_KEY, this._baseUrl);
+  }
+
+  /** Clear the stored override and re-detect */
+  resetBaseUrl() {
+    localStorage.removeItem(STORAGE_KEY);
+    this._baseUrl = detectBaseUrl();
   }
 
   subscribe(listener: ConnectionListener) {
