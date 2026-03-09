@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useWizard } from "@/contexts/WizardContext";
+import { useConnection } from "@/contexts/ConnectionContext";
 import { Activity, Server, Clock, AlertTriangle } from "lucide-react";
 
 function formatUptime(seconds: number) {
@@ -9,17 +9,7 @@ function formatUptime(seconds: number) {
 }
 
 export function WizardStatusWidget() {
-  const { enabled, status, health, version } = useWizard();
-
-  if (!enabled) {
-    return (
-      <Card className="border-dashed border-muted-foreground/30">
-        <CardContent className="flex items-center justify-center py-8 text-muted-foreground">
-          <span className="text-sm">Wizard integration is disabled</span>
-        </CardContent>
-      </Card>
-    );
-  }
+  const { status, health, version, isMockMode } = useConnection();
 
   if (status === "disconnected") {
     return (
@@ -27,7 +17,9 @@ export function WizardStatusWidget() {
         <CardContent className="flex flex-col items-center justify-center gap-2 py-8">
           <AlertTriangle className="h-8 w-8 text-destructive" />
           <p className="text-sm font-medium text-destructive">Wizard Unreachable</p>
-          <p className="text-xs text-muted-foreground">Using mock data for preview</p>
+          {isMockMode && (
+            <p className="text-xs text-muted-foreground">Using mock data for preview</p>
+          )}
         </CardContent>
       </Card>
     );

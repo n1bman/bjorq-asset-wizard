@@ -76,15 +76,18 @@ async function start() {
 
   // --- Request duration logging ---
   server.addHook("onResponse", (request, reply, done) => {
-    request.log.info(
-      {
-        method: request.method,
-        url: request.url,
-        statusCode: reply.statusCode,
-        responseTime: reply.elapsedTime,
-      },
-      "Request completed",
-    );
+    const isPolling = request.url === "/health" || request.url === "/version";
+    if (!isPolling) {
+      request.log.info(
+        {
+          method: request.method,
+          url: request.url,
+          statusCode: reply.statusCode,
+          responseTime: reply.elapsedTime,
+        },
+        "Request completed",
+      );
+    }
     done();
   });
 

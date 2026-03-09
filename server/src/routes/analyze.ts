@@ -132,7 +132,7 @@ export async function analyzeRoutes(server: FastifyInstance) {
         success: false,
         error: isParseError
           ? `Failed to parse model: ${message}`
-          : "Analysis failed unexpectedly",
+          : `Analyze failed: ${message}`,
         stage,
       });
     }
