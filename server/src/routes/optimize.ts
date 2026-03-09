@@ -131,6 +131,21 @@ export async function optimizeRoutes(server: FastifyInstance) {
       };
       await writeFile(`${jobDir}/result.json`, JSON.stringify(resultJson, null, 2));
 
+      // Generate thumbnail
+      try {
+        const thumbBuffer = await generateThumbnail({
+          name: assetName,
+          triangles: result.after.triangles,
+          fileSizeKB: result.after.fileSizeKB,
+          materials: result.after.materials,
+          category: options.category,
+        });
+        await writeFile(`${jobDir}/thumb.webp`, thumbBuffer);
+        log.info("Thumbnail generated");
+      } catch (thumbErr) {
+        log.warn({ err: thumbErr }, "Thumbnail generation failed — continuing without thumbnail");
+      }
+
       log.info({ jobDir }, "Outputs written to storage");
     } catch (err) {
       log.error({ err, stage: "optimize" }, "Failed to write outputs to storage");
