@@ -81,6 +81,17 @@ export async function catalogRoutes(server: FastifyInstance) {
 
     log.info({ assetId: meta.id, category: meta.category, sourceJobId }, "Starting ingest");
 
+    // --- Check catalog policy ---
+    try {
+      const policy = await getCatalogPolicy();
+      if (policy.blocked) {
+        log.warn({ usage: policy.usage }, "Catalog storage limit reached");
+        return reply.status(507).send({ success: false, error: policy.warnings[0] || "Catalog storage limit reached", stage: "ingest" });
+      }
+    } catch (err) {
+      log.warn({ err }, "Could not check catalog policy — proceeding anyway");
+    }
+
     // --- Ingest ---
     try {
       const result = await ingestAsset(
