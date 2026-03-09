@@ -129,7 +129,6 @@ class ApiClient {
       throw new ApiError("Backend unreachable", 0);
     }
   }
-}
 
   /** Upload with XMLHttpRequest for progress tracking */
   private _requestWithProgress<T>(path: string, init: RequestInit, timeout: number, onProgress: (percent: number) => void): Promise<T> {
