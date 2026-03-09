@@ -1,14 +1,14 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19
 FROM ${BUILD_FROM}
 
-# Install Node.js and native build deps for sharp
-RUN apk add --no-cache nodejs npm python3 make g++ vips-dev
+# Install Node.js only — sharp bundles its own libvips
+RUN apk add --no-cache nodejs npm
 
 WORKDIR /app
 
 # Install dependencies (staged by prepare-addon.sh)
 COPY server/package.json server/package-lock.json* ./
-RUN npm install
+RUN npm ci || npm install
 
 # Build TypeScript → dist/
 COPY server/tsconfig.json ./

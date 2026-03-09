@@ -4,7 +4,7 @@
 # Reference: https://developers.home-assistant.io/docs/add-ons/configuration
 
 name: Bjorq Asset Wizard
-version: "0.2.3"
+version: "0.2.5"
 slug: bjorq_asset_wizard
 description: "3D asset analysis, optimization, and catalog service for Bjorq"
 url: "https://github.com/n1bman/bjorq-asset-wizard"
@@ -12,10 +12,9 @@ url: "https://github.com/n1bman/bjorq-asset-wizard"
 # Prebuilt image — HA pulls from GHCR instead of building locally
 image: "ghcr.io/n1bman/bjorq-asset-wizard-{arch}"
 
-# Supported architectures
+# Supported architectures (aarch64 temporarily disabled — QEMU crashes in CI)
 arch:
   - amd64
-  # - aarch64  # Temporarily disabled — QEMU crashes during cross-arch npm install
 
 # Network
 ports:
