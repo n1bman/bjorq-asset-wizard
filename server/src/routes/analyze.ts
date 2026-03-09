@@ -56,10 +56,11 @@ export async function analyzeRoutes(server: FastifyInstance) {
     try {
       buffer = await file.toBuffer();
     } catch (err) {
-      log.error({ err, fileName }, "Failed to read file buffer");
+      log.error({ err, fileName, stage: "upload" }, "Failed to read file buffer");
       return reply.status(400).send({
         success: false,
         error: "Failed to read uploaded file",
+        stage: "upload",
       });
     }
 
