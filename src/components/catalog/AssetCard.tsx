@@ -1,7 +1,7 @@
 import type { AssetMetadata } from "@/types/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Box } from "lucide-react";
+import { Box, HardDrive } from "lucide-react";
 import { SourceBadge, SyncDot } from "./AssetStatusBadge";
 
 interface Props {
