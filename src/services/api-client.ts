@@ -98,8 +98,13 @@ class ApiClient {
     }
   }
 
-  async request<T>(path: string, opts?: RequestInit & { timeout?: number }): Promise<T> {
-    const { timeout = REQUEST_TIMEOUT, ...init } = opts || {};
+  async request<T>(path: string, opts?: RequestInit & { timeout?: number; onUploadProgress?: (percent: number) => void }): Promise<T> {
+    const { timeout = REQUEST_TIMEOUT, onUploadProgress, ...init } = opts || {};
+
+    // Use XMLHttpRequest for upload progress when callback is provided and body is FormData
+    if (onUploadProgress && init.body instanceof FormData) {
+      return this._requestWithProgress<T>(path, init, timeout, onUploadProgress);
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
