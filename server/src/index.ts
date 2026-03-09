@@ -24,7 +24,8 @@ import Fastify, { FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
-import { resolve, join } from "node:path";
+import { resolve, join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { access } from "node:fs/promises";
 import { createLoggerConfig } from "./lib/logger.js";
 import { initStorage } from "./lib/storage.js";
@@ -41,6 +42,8 @@ const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
 const STORAGE_PATH = resolve(process.env.STORAGE_PATH || "./storage");
 const CATALOG_PATH_RESOLVED = resolve(process.env.CATALOG_PATH || "./public/catalog");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const PUBLIC_PATH = resolve(__dirname, "../public");
 
 async function start() {
