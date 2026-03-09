@@ -41,7 +41,9 @@ The add-on exposes an HTTP API on port 3500. Key endpoints:
 | `POST` | `/optimize` | Full optimization pipeline |
 | `POST` | `/catalog/ingest` | Add asset to catalog |
 | `GET` | `/catalog/index` | Browse catalog |
+| `GET` | `/catalog/policy` | Storage usage and limits |
 | `GET` | `/health` | Service health check |
+| `GET` | `/version` | Version info |
 | `GET` | `/version` | Version info |
 
 ## Troubleshooting
