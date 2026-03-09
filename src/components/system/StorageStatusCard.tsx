@@ -37,6 +37,9 @@ export function StorageStatusCard() {
         {isMockMode && (
           <p className="text-xs text-muted-foreground">Values shown are from demo data.</p>
         )}
+        <p className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1.5">
+          In HA, assets are stored in <code className="font-mono">/data</code> (persistent add-on storage). Data survives restarts, add-on reinstalls, and HA upgrades.
+        </p>
       </CardContent>
     </Card>
   );

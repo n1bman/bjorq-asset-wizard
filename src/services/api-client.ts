@@ -162,13 +162,25 @@ class ApiClient {
       };
 
       xhr.onload = () => {
+        const ct = xhr.getResponseHeader("content-type") || "";
+        const isJson = ct.includes("application/json");
+
         if (xhr.status >= 200 && xhr.status < 300) {
+          if (!isJson) {
+            reject(new ApiError("Backend returned non-JSON response (possible proxy/ingress error)", xhr.status || 502));
+            return;
+          }
           try {
             resolve(JSON.parse(xhr.responseText));
           } catch {
             reject(new ApiError("Invalid JSON response", xhr.status));
           }
         } else {
+          if (!isJson) {
+            const hint = xhr.responseText?.slice(0, 200).includes("<!") ? " (HTML error page from proxy)" : "";
+            reject(new ApiError(`Backend error ${xhr.status}${hint}`, xhr.status));
+            return;
+          }
           let message = "Request failed";
           let stage: string | undefined;
           let details: string | undefined;

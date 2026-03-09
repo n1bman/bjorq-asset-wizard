@@ -171,7 +171,7 @@ export interface AssetMetadata {
   style?: string;
   model: string;
   thumbnail: string | null;
-  dimensions: {
+  dimensions?: {
     width: number;
     depth: number;
     height: number;
@@ -182,7 +182,7 @@ export interface AssetMetadata {
     defaultDomain: string | null;
     defaultKind: string | null;
   };
-  performance: {
+  performance?: {
     triangles: number;
     materials: number;
     fileSizeKB: number;

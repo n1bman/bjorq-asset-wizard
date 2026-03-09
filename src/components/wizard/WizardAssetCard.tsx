@@ -32,11 +32,11 @@ export function WizardAssetCard({ asset, onClick }: Props) {
         <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
           <span className="flex items-center gap-0.5">
             <Triangle className="h-2.5 w-2.5" />
-            {(asset.performance.triangles / 1000).toFixed(1)}k
+            {((asset.performance?.triangles ?? 0) / 1000).toFixed(1)}k
           </span>
-          <span>{asset.performance.fileSizeKB} KB</span>
+          <span>{asset.performance?.fileSizeKB ?? "?"} KB</span>
           <span>
-            {asset.dimensions.width.toFixed(2)} × {asset.dimensions.height.toFixed(2)}m
+            {asset.dimensions?.width?.toFixed(2) ?? "?"} × {asset.dimensions?.height?.toFixed(2) ?? "?"}m
           </span>
         </div>
       </CardContent>

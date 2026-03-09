@@ -83,23 +83,25 @@ export function WizardAssetDetail({ asset, open, onOpenChange }: Props) {
           <Separator />
 
           {/* Performance */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-foreground">Performance</h4>
-            <div className="flex gap-4 text-sm">
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Triangle className="h-3 w-3" />
-                {(asset.performance.triangles / 1000).toFixed(1)}k tris
-              </div>
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Layers className="h-3 w-3" />
-                {asset.performance.materials} mats
-              </div>
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <HardDrive className="h-3 w-3" />
-                {asset.performance.fileSizeKB} KB
+          {asset.performance && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-foreground">Performance</h4>
+              <div className="flex gap-4 text-sm">
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Triangle className="h-3 w-3" />
+                  {((asset.performance.triangles ?? 0) / 1000).toFixed(1)}k tris
+                </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Layers className="h-3 w-3" />
+                  {asset.performance.materials ?? 0} mats
+                </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <HardDrive className="h-3 w-3" />
+                  {asset.performance.fileSizeKB ?? "?"} KB
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <Separator />
 
