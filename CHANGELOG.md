@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.5] — 2026-03-09
+
+### Fixed — Debug Pass: Analyze Errors, Preview Paths & Ingress
+- **Structured analyze errors**: Backend `/analyze` now returns `{ error, stage, details }` instead of generic messages. Frontend displays the actual backend error message, stage identifier, and expandable stack trace.
+- **Stage-level analyze logging**: HA add-on logs now emit `[ANALYZE] Upload received`, `[ANALYZE] Parsing GLB`, `[ANALYZE] Geometry scan`, `[ANALYZE] Texture scan`, `[ANALYZE] Bounding box calculation`, and `[ANALYZE ERROR] Stage: ... Reason: ...`.
+- **Client disconnect detection**: Analyze route detects aborted requests and logs with job context.
+- **Model-serving endpoint**: New `GET /catalog/asset/:id/model` streams GLB with `model/gltf-binary` MIME type.
+- **Ingress-safe asset paths**: New `src/lib/asset-paths.ts` resolves model/thumbnail URLs through the API client's base URL.
+- **Wizard catalog browser fixed**: Uses main `apiClient` instead of hardcoded `localhost:3500` wizard client.
+- **ApiError carries stage/details**: Parsed from backend JSON responses for structured error display.
+- **Error details in UI**: Upload/Analyze and Optimize pages show expandable error details with stage, message, and stack trace.
+
+### Changed
+- Version bump to 1.1.5 across all version sources.
+
+
 ## [1.1.4] — 2026-03-09
 
 ### Fixed — Viewer Hardening & Final UX Polish
