@@ -28,10 +28,12 @@ export interface CleanupResult {
  * Clean stale job directories.
  * @param maxAgeDays Remove jobs older than this (default 7)
  * @param failedMaxAgeDays Remove failed jobs (no result.json) older than this (default 1)
+ * @param logger Optional logger for per-job removal details
  */
 export async function cleanStaleJobs(
   maxAgeDays = 7,
   failedMaxAgeDays = 1,
+  logger?: { info: (obj: object, msg: string) => void },
 ): Promise<CleanupResult> {
   const result: CleanupResult = { scanned: 0, removed: 0, errors: 0, freedBytes: 0 };
 
@@ -74,6 +76,19 @@ export async function cleanStaleJobs(
         await rm(jobDir, { recursive: true, force: true });
         result.removed++;
         result.freedBytes += dirSize;
+
+        // Log per-job removal details
+        if (logger) {
+          logger.info(
+            {
+              jobId: entry,
+              ageDays: +ageDays.toFixed(1),
+              reason: hasResult ? "expired" : "failed/incomplete",
+              freedMB: +(dirSize / (1024 * 1024)).toFixed(2),
+            },
+            "Removed stale job",
+          );
+        }
       }
     } catch {
       result.errors++;
@@ -111,15 +126,16 @@ export function startJobCleanup(
   logger?: { info: (obj: object, msg: string) => void },
 ): () => void {
   const run = async () => {
-    const result = await cleanStaleJobs(maxAgeDays, failedMaxAgeDays);
-    if (result.removed > 0 && logger) {
+    const result = await cleanStaleJobs(maxAgeDays, failedMaxAgeDays, logger);
+    if (logger) {
       logger.info(
         {
           scanned: result.scanned,
           removed: result.removed,
+          errors: result.errors,
           freedMB: +(result.freedBytes / (1024 * 1024)).toFixed(1),
         },
-        "Job cleanup completed",
+        result.removed > 0 ? "Job cleanup completed" : "Job cleanup scan — nothing to remove",
       );
     }
   };

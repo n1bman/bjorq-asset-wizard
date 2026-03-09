@@ -60,6 +60,7 @@ export interface OptimizeResult {
   applied: string[];
   skipped: { operation: string; reason: string }[];
   warnings: { operation: string; message: string }[];
+  explanations: string[];
   analysisBefore: AnalysisResult;
   analysisAfter: AnalysisResult;
 }
@@ -74,6 +75,7 @@ export interface OptimizeResponse {
     applied: string[];
     skipped: { operation: string; reason: string }[];
     warnings: { operation: string; message: string }[];
+    explanations: string[];
   };
   stats: {
     before: StatsSnapshot;

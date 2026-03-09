@@ -129,6 +129,7 @@ export interface OptimizeResponse {
     applied: string[];
     skipped: { operation: string; reason: string }[];
     warnings: { operation: string; message: string }[];
+    explanations?: string[];
   };
   stats: {
     before: StatsSnapshot;
@@ -200,6 +201,7 @@ export interface AssetMetadata {
 }
 
 export interface CatalogIndex {
+  schemaVersion?: "1.0";
   version: string;
   generatedAt: string;
   totalAssets: number;

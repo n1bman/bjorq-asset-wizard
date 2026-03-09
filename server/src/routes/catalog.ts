@@ -1,11 +1,12 @@
 /**
- * Catalog endpoints — browse, ingest, reindex, and asset access.
+ * Catalog endpoints — browse, ingest, reindex, diagnostics, and asset access.
  *
  * GET  /catalog/index            — Return the current catalog manifest
  * POST /catalog/ingest           — Ingest an optimized asset into the catalog
  * POST /catalog/reindex          — Force a catalog re-scan and index rebuild
  * GET  /catalog/policy           — Storage usage and limits
  * GET  /catalog/asset/:id/thumbnail — Serve asset thumbnail or 404
+ * GET  /catalog/diagnostics      — Catalog diagnostics for integrations
  */
 
 import type { FastifyInstance } from "fastify";
@@ -18,9 +19,13 @@ import {
   ingestAsset,
   reindexCatalog,
   findAssetPath,
+  findLargestAsset,
+  CATALOG_SCHEMA_VERSION,
 } from "../services/catalog/manager.js";
-import { getCatalogPolicy, evaluateAssetForCatalog } from "../services/catalog/policy.js";
+import { getCatalogPolicy, getCatalogStorageUsage, evaluateAssetForCatalog } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
+
+const VERSION = "0.6.0";
 
 export async function catalogRoutes(server: FastifyInstance) {
   // -----------------------------------------------------------------------
@@ -165,6 +170,33 @@ export async function catalogRoutes(server: FastifyInstance) {
       return reply.send(createReadStream(thumbPath));
     } catch {
       return reply.status(404).send({ success: false, error: "No thumbnail available for this asset" });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // GET /catalog/diagnostics — catalog diagnostics for integrations
+  // -----------------------------------------------------------------------
+  server.get("/catalog/diagnostics", async (request, reply) => {
+    request.log.info("Catalog diagnostics requested");
+    try {
+      const [usage, index, largest] = await Promise.all([
+        getCatalogStorageUsage(),
+        buildCatalogIndex(),
+        findLargestAsset(),
+      ]);
+
+      return reply.status(200).send({
+        catalogSizeMB: usage.totalMB,
+        assetCount: index.totalAssets,
+        storageUsage: usage,
+        largestAssetMB: largest?.sizeMB ?? 0,
+        largestAssetId: largest?.id ?? null,
+        schemaVersion: CATALOG_SCHEMA_VERSION,
+        version: VERSION,
+      });
+    } catch (err) {
+      request.log.error({ err }, "Failed to get catalog diagnostics");
+      return reply.status(500).send({ success: false, error: "Failed to get catalog diagnostics" });
     }
   });
 }

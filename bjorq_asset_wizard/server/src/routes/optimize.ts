@@ -107,6 +107,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
         applied: result.applied,
         skipped: result.skipped,
         warnings: result.warnings,
+        explanations: result.explanations,
         timestamp: new Date().toISOString(),
       };
       await writeFile(`${jobDir}/result.json`, JSON.stringify(resultJson, null, 2));
@@ -135,6 +136,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
         applied: result.applied,
         skipped: result.skipped,
         warnings: result.warnings,
+        explanations: result.explanations,
       },
       stats: {
         before: result.before,
@@ -168,7 +170,7 @@ export async function optimizeRoutes(server: FastifyInstance) {
       },
     };
 
-    log.info({ jobId, assetId, reduction: result.reduction }, "Optimize response ready");
+    log.info({ jobId, assetId, reduction: result.reduction, explanations: result.explanations }, "Optimize response ready");
     return reply.status(200).send(response);
   });
 }

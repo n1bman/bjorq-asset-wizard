@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0] — 2026-03-09
+
+### Added — Phase 6: Pipeline Validation and Diagnostics
+- **Defensive catalog validation**: `validateAssetMeta()` checks required fields (`id`, `name`, `category`, `schemaVersion`, `model`, `placement`) before including assets in the catalog index. Invalid assets are silently skipped.
+- **Sorted catalog output**: Categories, subcategories, and assets are now sorted alphabetically for consistent ordering across rebuilds.
+- **Optimization explanations**: New `explanations: string[]` field in optimize response provides human-readable reasons when optimization achieves low/zero reduction (e.g., "No duplicate materials detected", "Model was already well-optimized").
+- **`GET /catalog/diagnostics`**: New endpoint returning catalog health metrics — `catalogSizeMB`, `assetCount`, `largestAssetMB`, `largestAssetId`, `schemaVersion`, and storage usage details.
+- **Analyze robustness**: Added 100 MB safety limit check before analysis, OOM error detection with clear error messages, and improved buffer size logging.
+- **Enhanced cleanup logging**: Job cleanup now logs per-job removal details (job ID, age, reason, freed size) and always logs scan summaries.
+- **`diagnostics` capability**: `/version` endpoint now includes `"diagnostics"` in capabilities array.
+
+### Changed
+- Version bump to 0.6.0 across all version sources.
+
 ## [0.5.0] — 2026-03-09
 
 ### Added — Phase 5: Wizard Integration Readiness

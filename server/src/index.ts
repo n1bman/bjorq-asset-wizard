@@ -12,6 +12,7 @@
  *   /catalog/ingest — save optimized assets to catalog
  *   /catalog/reindex — rebuild catalog manifest
  *   /catalog/asset/:id/thumbnail — serve asset thumbnail
+ *   /catalog/diagnostics — catalog health diagnostics
  *   /jobs/* — static file serving for job outputs
  *   /catalog/files/* — static file serving for catalog assets
  *   SPA frontend — served from public/ with index.html fallback
@@ -38,7 +39,7 @@ import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "0.5.0";
+const VERSION = "0.6.0";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
@@ -187,7 +188,7 @@ async function start() {
       service: "bjorq-asset-wizard",
       status: "running",
       version: VERSION,
-      endpoints: ["/health", "/version", "/analyze", "/optimize", "/catalog/index", "/catalog/ingest", "/catalog/asset/:id/thumbnail"],
+      endpoints: ["/health", "/version", "/analyze", "/optimize", "/catalog/index", "/catalog/ingest", "/catalog/asset/:id/thumbnail", "/catalog/diagnostics"],
     }));
   }
 
