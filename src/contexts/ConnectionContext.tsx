@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-// v1.1.2 — connection context
+// v1.1.9 — connection context
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { apiClient } from "@/services/api-client";
 import type { ConnectionStatus, HealthResponse, VersionResponse } from "@/types/api";
