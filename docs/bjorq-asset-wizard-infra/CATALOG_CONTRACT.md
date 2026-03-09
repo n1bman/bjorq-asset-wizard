@@ -74,6 +74,18 @@ interface CatalogAssetMeta {
   reductionPercent?: number;         // File size reduction percentage
   targetProfile?: string;            // "mobile" | "tablet" | "wall" | "desktop" | "heavy"
 
+  // --- Scene metadata (Phase 7 — non-breaking additions) ---
+  boundingBox?: {
+    min: [number, number, number];   // World-space minimum
+    max: [number, number, number];   // World-space maximum
+  };
+  center?: [number, number, number]; // Computed midpoint of bounding box
+  pivot?: string;                    // "center" | "bottom-center" — derived from bounding box
+  estimatedScale?: {
+    unit: string;                    // e.g., "m"
+    confidence: string;              // "high" | "medium" | "low"
+  };
+
   // --- Status ---
   source?: string;                   // "optimized" | "uploaded" | "catalog" | "synced"
   ingestStatus?: string;             // "ingested" | "not_ingested" | "error"

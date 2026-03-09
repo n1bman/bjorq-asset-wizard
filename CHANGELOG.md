@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0] — 2026-03-09
+
+### Added — Phase 7: Precompute Scene Metadata & Wizard 1.0
+- **Scene metadata in catalog**: `boundingBox`, `center`, `pivot`, and `estimatedScale` are now computed during optimization and persisted into `meta.json` during ingest. External consumers no longer need to reprocess the GLB.
+- **Scene data in optimize response**: `OptimizeResponse.metadata` now includes `boundingBox`, `center`, and `estimatedScale` for immediate frontend use.
+- **Scene data in result.json**: The optimize route writes a `scene` block to `result.json` containing `boundingBox`, `dimensions`, `placement`, and `estimatedScale` for ingest consumption.
+- **Pivot derivation**: Automatically computed from bounding box — `"bottom-center"` if model sits on Y=0, otherwise `"center"`.
+
+### Changed
+- Version bump to 1.0.0 — stable Wizard release.
+- `CATALOG_CONTRACT.md` updated with new optional scene metadata fields (non-breaking under schemaVersion 1.0).
+
 ## [0.6.0] — 2026-03-09
 
 ### Added — Phase 6: Pipeline Validation and Diagnostics
