@@ -125,4 +125,18 @@ export async function catalogRoutes(server: FastifyInstance) {
       return reply.status(500).send({ success: false, error: "Failed to reindex catalog" });
     }
   });
+
+  // -----------------------------------------------------------------------
+  // GET /catalog/policy — storage usage and limits
+  // -----------------------------------------------------------------------
+  server.get("/catalog/policy", async (request, reply) => {
+    request.log.info("Catalog policy requested");
+    try {
+      const policy = await getCatalogPolicy();
+      return reply.status(200).send(policy);
+    } catch (err) {
+      request.log.error({ err }, "Failed to get catalog policy");
+      return reply.status(500).send({ success: false, error: "Failed to get catalog policy" });
+    }
+  });
 }

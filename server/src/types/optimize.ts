@@ -101,6 +101,9 @@ export interface OptimizeResponse {
       materials: number;
       fileSizeKB: number;
     };
+    originalFileSizeKB: number;
+    reductionPercent: number;
+    targetProfile: string;
   };
 }
 
