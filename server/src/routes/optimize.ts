@@ -109,6 +109,13 @@ export async function optimizeRoutes(server: FastifyInstance) {
         warnings: result.warnings,
         explanations: result.explanations,
         timestamp: new Date().toISOString(),
+        // Phase 7 — scene metadata for ingest
+        scene: {
+          boundingBox: result.analysisAfter.boundingBox,
+          dimensions: result.analysisAfter.dimensions,
+          placement: result.analysisAfter.placement,
+          estimatedScale: result.analysisAfter.estimatedScale,
+        },
       };
       await writeFile(`${jobDir}/result.json`, JSON.stringify(resultJson, null, 2));
 
