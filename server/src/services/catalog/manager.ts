@@ -186,6 +186,11 @@ export async function ingestAsset(
   const boundingBox = scene?.boundingBox as CatalogAssetMeta["boundingBox"] | undefined;
   const estimatedScale = scene?.estimatedScale as CatalogAssetMeta["estimatedScale"] | undefined;
 
+  // --- Extract Phase 8 V2 optimization flags from job result ---
+  const normalizationApplied = (jobMeta.normalizationApplied as boolean) ?? undefined;
+  const floorAlignmentApplied = (jobMeta.floorAlignmentApplied as boolean) ?? undefined;
+  const textureOptimizationApplied = (jobMeta.textureOptimizationApplied as boolean) ?? undefined;
+
   // Compute center from bounding box
   let center: [number, number, number] | undefined;
   if (boundingBox) {
