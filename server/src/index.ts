@@ -107,6 +107,9 @@ async function start() {
     },
   });
 
+  // --- Storage initialization (must run BEFORE fastifyStatic) ---
+  await initStorage();
+
   // --- Static file serving for job outputs ---
   await server.register(fastifyStatic, {
     root: resolve(STORAGE_PATH, "jobs"),
@@ -124,9 +127,6 @@ async function start() {
     serve: true,
     wildcard: true,
   });
-
-  // --- Storage initialization ---
-  await initStorage();
 
   // --- Catalog startup diagnostics ---
   try {
