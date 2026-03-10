@@ -16,17 +16,17 @@ services:
       - "3500:3500"
     volumes:
       # Persistent storage — survives container restarts
-      - wizard-storage:/app/storage
+      - wizard-storage:/data/storage
       # Catalog output — shared with frontend if needed
-      - wizard-catalog:/app/public/catalog
+      - wizard-catalog:/data/catalog
     environment:
       - NODE_ENV=development
       - PORT=3500
       - HOST=0.0.0.0
       - LOG_LEVEL=debug
-      - LOG_FILE=/app/storage/logs/wizard.log
-      - STORAGE_PATH=./storage
-      - CATALOG_PATH=./public/catalog
+      - LOG_FILE=/data/storage/logs/wizard.log
+      - STORAGE_PATH=/data/storage
+      - CATALOG_PATH=/data/catalog
       - MAX_FILE_SIZE_MB=100
       - THUMBNAIL_SIZE=512
       - THUMBNAIL_FORMAT=webp

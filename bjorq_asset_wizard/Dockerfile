@@ -6,6 +6,16 @@ RUN apk add --no-cache nodejs npm
 
 WORKDIR /app
 
+# --- Pre-create /data structure (safety net — run.sh also creates) ---
+RUN mkdir -p \
+    /data/storage/uploads \
+    /data/storage/jobs \
+    /data/storage/originals \
+    /data/storage/optimized \
+    /data/storage/thumbs \
+    /data/storage/logs \
+    /data/catalog
+
 # --- Build frontend ---
 # Copy frontend source (staged by prepare-addon.sh)
 COPY frontend/package.json frontend/package-lock.json* ./frontend/
