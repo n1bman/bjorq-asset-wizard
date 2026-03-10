@@ -4,10 +4,16 @@
 
 ## Features
 
-- **Analyze** — Upload GLB/glTF models and get detailed analysis (mesh count, textures, file size breakdown)
-- **Optimize** — Automated optimization pipeline (texture compression, mesh cleanup, file size reduction)
-- **Catalog** — Organize optimized assets into a structured catalog by category
-- **Dashboard** — Web UI for managing the full asset pipeline
+- **Analyze** — Upload GLB/glTF models and get detailed analysis (mesh count, textures, file size breakdown, bounding box, placement detection)
+- **Optimize** — Full optimization pipeline with three profiles:
+  - **High Quality** — Conservative cleanup (prune, dedup, remove cameras/lights)
+  - **Balanced** — Standard optimization with texture resize (2048px), normalization, and ~25% mesh simplification
+  - **Low Power** — Aggressive optimization with texture resize (512px) and ~50% mesh simplification for mobile/embedded
+- **Mesh Simplification** — Triangle reduction via `meshoptimizer` (weld + simplify) for Balanced and Low Power profiles
+- **Catalog** — Organize optimized assets with metadata, thumbnails, and structured categories
+- **Asset Lifecycle** — Full CRUD: ingest, browse, export (download), and delete assets
+- **Client-side Thumbnails** — Real 3D model renders captured via Three.js in the browser
+- **Dashboard Integration** — Library API for Bjorq Dashboard asset browsing
 
 ## Installation
 
@@ -25,7 +31,7 @@ no local Docker build is required during installation or updates.
 ### How it works
 
 1. A GitHub Actions workflow (`.github/workflows/docker.yml`) builds per-architecture images on each `v*` tag
-2. Images are pushed to GHCR as `ghcr.io/n1bman/bjorq-asset-wizard-amd64` and `ghcr.io/n1bman/bjorq-asset-wizard-aarch64`
+2. Images are pushed to GHCR as `ghcr.io/n1bman/bjorq-asset-wizard-amd64`
 3. `config.yaml` contains `image: ghcr.io/n1bman/bjorq-asset-wizard-{arch}` — HA resolves `{arch}` at install time
 4. Version updates are controlled by bumping the version in `config.yaml` and publishing a matching tagged image
 
@@ -33,7 +39,7 @@ no local Docker build is required during installation or updates.
 
 1. Update the `version` field in `bjorq_asset_wizard/config.yaml`
 2. Commit and push
-3. Create a git tag matching the version: `git tag v1.0.0 && git push origin v1.0.0`
+3. Create a git tag matching the version: `git tag v2.0.7 && git push origin v2.0.7`
 4. GitHub Actions builds and pushes the per-arch images
 5. HA picks up the new version on next add-on store refresh
 
@@ -62,7 +68,7 @@ If Home Assistant still shows an old version after a release:
 2. **Remove** the repository URL
 3. Click **Reload** (top-right ⋮ menu)
 4. **Re-add** the repository URL
-5. Verify the correct version (currently **1.0.0**) appears before clicking Install
+5. Verify the correct version (currently **2.0.7**) appears before clicking Install
 6. If still stale, restart **Supervisor** or **Home Assistant Core** from **Settings → System → Restart**
 
 ## Upload Limits

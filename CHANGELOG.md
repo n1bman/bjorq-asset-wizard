@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.8 (Unreleased)
+
+### Added
+- **Mesh simplification** — Balanced profile reduces triangles ~25%, Low Power ~50%, using meshoptimizer (weld + simplify)
+- **Client-side 3D thumbnails** — Real model renders captured via Three.js instead of SVG info-cards
+- **Download button** — Download optimized model directly from the Review step
+- **Thumbnail upload on ingest** — Client-rendered thumbnails are uploaded alongside the model during catalog save
+
+### Changed
+- Updated optimization profiles with `simplifyRatio` and `simplifyError` parameters
+- Ingest endpoint now accepts optional `thumbnail` file in multipart upload
+- Updated add-on documentation (README.md, DOCS.md) to reflect v2.0.7 features and API endpoints
+
+
+
 ## [2.0.7] — 2026-03-10
 
 ### Fixed
