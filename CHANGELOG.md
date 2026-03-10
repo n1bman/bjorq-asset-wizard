@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.3] — 2026-03-10
+
+### Fixed — HA Workflow Permission Error
+
+- **`prepare-addon.sh` execute permission**: Added `chmod +x` before running the
+  script in `ha-addon.yml`. Git checkout doesn't preserve the execute bit, causing
+  exit code 126 on the CI runner.
+- Version bump to 2.0.3 across all surfaces.
+
 ## [2.0.2] — 2026-03-10
 
 ### Fixed — HA Image Build Pipeline
