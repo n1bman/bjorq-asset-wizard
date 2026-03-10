@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.9] — 2026-03-10
+
+### Fixed
+- Add missing `@react-three/fiber` and `@react-three/drei` dependencies (fixes frontend build)
+- Remove duplicate `import sharp` in optimizer.ts (fixes server build)
+- Update CATALOG_VERSION constant to match release
+
 ## [2.0.8] — 2026-03-10
 
 ### Added
