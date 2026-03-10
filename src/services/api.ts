@@ -21,6 +21,7 @@ import type {
   HealthResponse,
   VersionResponse,
   SyncResponse,
+  ImportCatalogResponse,
 } from "@/types/api";
 import {
   mockCatalog,
