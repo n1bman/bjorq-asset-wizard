@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.8 (Unreleased)
+## [2.0.8] — 2026-03-10
 
 ### Added
 - **Catalog Export/Import** — Backup and restore entire catalog as `.tar.gz` archive; merge or overwrite strategy
