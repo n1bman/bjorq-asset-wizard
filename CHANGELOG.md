@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.0] — 2026-03-10
+
+### Added
+- **Dashboard-compatible API** — All catalog endpoints (`/catalog/index`, `/libraries/:lib/index`) now include a flat `assets` array with dashboard-friendly field aliases (`triangleCount`, `fileSize`, `thumbnailUrl`, `modelUrl`)
+- **Library items alias** — `/libraries` response includes `items` array for broader client compatibility
+
+### Changed
+- Catalog index response is backwards-compatible: nested `categories` structure is preserved alongside the new flat `assets` array
+
 ## [2.0.9] — 2026-03-10
 
 ### Fixed

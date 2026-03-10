@@ -40,7 +40,27 @@ import {
 import { getCatalogPolicy, getCatalogStorageUsage } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
 
-const VERSION = "2.0.9";
+const VERSION = "2.1.0";
+
+/** Flatten nested categories > subcategories > assets into a flat array with dashboard-friendly field aliases. */
+function flattenCatalogAssets(categories: import("../types/catalog.js").CatalogCategory[]) {
+  const flat: Record<string, unknown>[] = [];
+  for (const cat of categories) {
+    for (const sub of cat.subcategories) {
+      for (const asset of sub.assets) {
+        flat.push({
+          ...asset,
+          // Dashboard-compatible aliases
+          triangleCount: asset.performance?.triangles ?? 0,
+          fileSize: asset.performance?.fileSizeKB ? asset.performance.fileSizeKB * 1024 : 0,
+          thumbnailUrl: `/assets/${asset.id}/thumbnail`,
+          modelUrl: `/assets/${asset.id}/model`,
+        });
+      }
+    }
+  }
+  return flat;
+}
 
 export async function catalogRoutes(server: FastifyInstance) {
   // -----------------------------------------------------------------------
@@ -50,7 +70,8 @@ export async function catalogRoutes(server: FastifyInstance) {
     request.log.info("Catalog index requested");
     try {
       const index = await buildCatalogIndex();
-      return reply.status(200).send(index);
+      const assets = flattenCatalogAssets(index.categories);
+      return reply.status(200).send({ ...index, assets });
     } catch (err) {
       request.log.error({ err }, "Failed to build catalog index");
       return reply.status(500).send({ success: false, error: "Failed to build catalog index" });
@@ -433,15 +454,17 @@ export async function catalogRoutes(server: FastifyInstance) {
     request.log.info("Libraries list requested");
     try {
       const index = await buildCatalogIndex();
+      const libraryEntry = {
+        id: "default",
+        name: "Default Library",
+        assetCount: index.totalAssets,
+        schemaVersion: CATALOG_SCHEMA_VERSION,
+      };
+      // Return both wrapped object and top-level array for maximum compatibility
       return reply.status(200).send({
-        libraries: [
-          {
-            id: "default",
-            name: "Default Library",
-            assetCount: index.totalAssets,
-            schemaVersion: CATALOG_SCHEMA_VERSION,
-          },
-        ],
+        libraries: [libraryEntry],
+        // Some dashboards expect a plain array — include items alias
+        items: [libraryEntry],
       });
     } catch (err) {
       request.log.error({ err }, "Failed to list libraries");
@@ -473,14 +496,13 @@ export async function catalogRoutes(server: FastifyInstance) {
         })).filter(sub => sub.assets.length > 0),
       })).filter(cat => cat.subcategories.length > 0);
 
-      const totalPublished = filteredCategories.reduce(
-        (sum, cat) => sum + cat.subcategories.reduce((s, sub) => s + sub.assets.length, 0), 0
-      );
+      const assets = flattenCatalogAssets(filteredCategories);
 
       return reply.status(200).send({
         ...index,
         categories: filteredCategories,
-        totalAssets: totalPublished,
+        totalAssets: assets.length,
+        assets,
       });
     } catch (err) {
       request.log.error({ err }, "Failed to build library index");
