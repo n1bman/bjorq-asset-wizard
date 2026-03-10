@@ -21,7 +21,7 @@ import type {
 } from "../../types/catalog.js";
 
 export const CATALOG_SCHEMA_VERSION = "1.0" as const;
-const CATALOG_VERSION = "2.0.3";
+const CATALOG_VERSION = "2.0.5";
 
 // ---------------------------------------------------------------------------
 // Required fields for a valid CatalogAssetMeta

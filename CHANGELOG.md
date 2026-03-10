@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.5] — 2026-03-10
+
+### Changed
+- Version bump to 2.0.5 — forces HA to pull a clean, never-cached image tag.
+- No functional changes from 2.0.3.
+
 ## [2.0.3] — 2026-03-10
 
 ### Fixed — HA Workflow Permission Error
