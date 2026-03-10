@@ -34,6 +34,8 @@ export interface OptimizeRequestOptions {
   subcategory?: string;
   style?: string;
   placement?: string | null;
+  simplifyRatio?: number;
+  simplifyError?: number;
 }
 
 // --- Stats ---

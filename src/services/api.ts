@@ -84,7 +84,7 @@ export async function ingestAsset(meta: IngestMeta, file?: File, thumbnail?: Fil
       const fd = new FormData();
       fd.append("meta", JSON.stringify(meta));
       if (file) fd.append("file", file);
-      if (thumbnail) fd.append("thumbnail", thumbnail);
+      if (thumbnail) fd.append("thumbnail", thumbnail, "thumb.webp");
       if (jobId) fd.append("jobId", jobId);
       return apiClient.request<IngestResponse>("/catalog/ingest", { method: "POST", body: fd });
     },

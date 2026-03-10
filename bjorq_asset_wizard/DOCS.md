@@ -2,7 +2,7 @@
 
 ## Overview
 
-Bjorq Asset Wizard provides 3D asset analysis, optimization, and catalog management as a Home Assistant add-on. Upload GLB/glTF models, optimize them for web use, and manage a structured catalog of 3D assets for your smart home visualization.
+Bjorq Asset Wizard provides 3D asset analysis, optimization, and catalog management as a Home Assistant add-on. Upload GLB/glTF models, optimize them for web use with mesh simplification and texture compression, and manage a structured catalog of 3D assets for your smart home visualization.
 
 The add-on uses a **prebuilt GHCR image** — Home Assistant pulls the image directly during install/update. No local Docker build is required.
 
@@ -25,6 +25,18 @@ The add-on uses a **prebuilt GHCR image** — Home Assistant pulls the image dir
 3. Upload, analyze, and optimize 3D assets through the dashboard
 4. Browse and manage your asset catalog
 
+### Optimization Profiles
+
+| Profile | Texture Max | Mesh Simplify | Best For |
+|---------|-------------|---------------|----------|
+| **High Quality** | 4096px | None | Desktop, high-end displays |
+| **Balanced** | 2048px | ~25% reduction | Tablets, general use |
+| **Low Power** | 512px | ~50% reduction | Mobile, embedded, wall panels |
+
+### Thumbnails
+
+The Wizard generates real 3D model thumbnails client-side using Three.js. When you save an asset to the catalog, the browser renders the optimized model and uploads the captured image alongside the model file.
+
 ## Storage
 
 All data is stored under `/data/` which persists across add-on restarts:
@@ -39,26 +51,34 @@ The add-on exposes an HTTP API on port 3500. Key endpoints:
 |--------|------|-------------|
 | `POST` | `/analyze` | Analyze a 3D model |
 | `POST` | `/optimize` | Full optimization pipeline |
-| `POST` | `/catalog/ingest` | Add asset to catalog |
+| `POST` | `/catalog/ingest` | Add asset to catalog (accepts thumbnail file) |
 | `GET` | `/catalog/index` | Browse catalog |
 | `GET` | `/catalog/policy` | Storage usage and limits |
 | `GET` | `/catalog/asset/:id/thumbnail` | Serve asset thumbnail |
+| `GET` | `/catalog/asset/:id/model` | Serve asset GLB model |
+| `GET` | `/catalog/asset/:id/export` | Download asset GLB |
+| `DELETE` | `/catalog/asset/:id` | Delete asset from catalog |
 | `GET` | `/catalog/diagnostics` | Catalog health diagnostics |
 | `GET` | `/health` | Service health check |
 | `GET` | `/version` | Version info + capabilities |
+| `GET` | `/libraries` | List available libraries |
+| `GET` | `/assets/:id/meta` | Get asset metadata |
+| `GET` | `/assets/:id/model` | Serve asset model (alias) |
+| `GET` | `/assets/:id/thumbnail` | Serve asset thumbnail (alias) |
 
 ## Troubleshooting
 
 - **Add-on won't start**: Check the log tab for errors. Ensure port 3500 is not in use.
 - **Upload fails**: Verify file is `.glb` or `.gltf` and within size limit.
 - **Panel not showing**: Ensure ingress is enabled in add-on settings.
+- **For files > 10 MB**: Use direct mode (`http://<HA-IP>:3500`) to bypass HA ingress limits.
 
 ### HA Shows Wrong Version or Fails to Update
 
 1. **Settings → Add-ons → Add-on Store** → ⋮ → **Repositories** → remove the repo URL
 2. Click **Reload** in the Add-on Store
 3. Re-add the repository URL
-4. Verify the correct version (currently **1.0.0**) appears before installing
+4. Verify the correct version (currently **2.0.7**) appears before installing
 5. If still stale: **Settings → System → Restart** (Supervisor or Core)
 
 ## Upload Limits

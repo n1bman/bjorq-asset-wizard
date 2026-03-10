@@ -9,7 +9,9 @@
 
 import { NodeIO, Document } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import { prune, dedup, flatten, textureCompress } from "@gltf-transform/functions";
+import { prune, dedup, flatten, textureCompress, weld, simplify } from "@gltf-transform/functions";
+import { MeshoptSimplifier } from "meshoptimizer";
+import sharp from "sharp";
 import sharp from "sharp";
 import { analyzeModel } from "../analysis/analyzer.js";
 import type { OptimizeRequestOptions, OptimizeResult, StatsSnapshot, OptimizationProfile } from "../../types/optimize.js";
@@ -32,6 +34,7 @@ const PROFILE_PRESETS: Record<OptimizationProfile, Partial<OptimizeRequestOption
     removeLights: true,
     removeAnimations: false,
     deduplicateMaterials: true,
+    // No mesh simplification
   },
   balanced: {
     maxTextureSize: 2048,
@@ -44,6 +47,8 @@ const PROFILE_PRESETS: Record<OptimizationProfile, Partial<OptimizeRequestOption
     removeLights: true,
     removeAnimations: true,
     deduplicateMaterials: true,
+    simplifyRatio: 0.75,
+    simplifyError: 0.001,
   },
   "low-power": {
     maxTextureSize: 512,
@@ -56,6 +61,8 @@ const PROFILE_PRESETS: Record<OptimizationProfile, Partial<OptimizeRequestOption
     removeLights: true,
     removeAnimations: true,
     deduplicateMaterials: true,
+    simplifyRatio: 0.5,
+    simplifyError: 0.01,
   },
 };
 
@@ -417,6 +424,29 @@ export async function optimizeModel(
     }
   } else {
     skipped.push({ operation: "optimizeBaseColorTextures", reason: "Disabled by user" });
+  }
+
+  // --- V3: Mesh Simplification (weld + simplify) ---
+  if (options.simplifyRatio !== undefined && options.simplifyRatio < 1.0) {
+    try {
+      await MeshoptSimplifier.ready;
+      const ratio = options.simplifyRatio;
+      const error = options.simplifyError ?? 0.001;
+      log.info({ ratio, error }, "Starting mesh simplification");
+      await doc.transform(weld({ tolerance: 0.0001 }));
+      await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio, error }));
+      applied.push("meshSimplify");
+      log.info({ ratio, error }, "Applied: meshSimplify (weld + simplify)");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      warnings.push({ operation: "meshSimplify", message: `Mesh simplification failed: ${msg}` });
+      log.warn({ err }, "meshSimplify failed — continuing");
+    }
+  } else {
+    if (options.simplifyRatio === undefined && options.profile && options.profile !== "high-quality") {
+      // Profile should have set it — this shouldn't happen
+    }
+    skipped.push({ operation: "meshSimplify", reason: options.simplifyRatio === undefined ? "Not configured" : "Ratio is 1.0 (no reduction)" });
   }
 
   // 5. Write optimized GLB

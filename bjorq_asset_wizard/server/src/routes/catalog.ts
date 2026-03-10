@@ -64,6 +64,7 @@ export async function catalogRoutes(server: FastifyInstance) {
 
     let metaRaw: string | null = null;
     let fileBuffer: Buffer | null = null;
+    let thumbnailBuffer: Buffer | null = null;
     let sourceJobId: string | null = null;
 
     // --- Parse multipart ---
@@ -75,6 +76,8 @@ export async function catalogRoutes(server: FastifyInstance) {
           if (part.fieldname === "jobId") sourceJobId = part.value as string;
         } else if (part.type === "file" && part.fieldname === "file") {
           fileBuffer = await part.toBuffer();
+        } else if (part.type === "file" && part.fieldname === "thumbnail") {
+          thumbnailBuffer = await part.toBuffer();
         }
       }
     } catch (err) {
@@ -113,7 +116,7 @@ export async function catalogRoutes(server: FastifyInstance) {
     }
 
     try {
-      const result = await ingestAsset(meta, sourceJobId || undefined, fileBuffer || undefined);
+      const result = await ingestAsset(meta, sourceJobId || undefined, fileBuffer || undefined, thumbnailBuffer || undefined);
       log.info({ path: result.catalogEntry.path }, "Ingest successful");
       return reply.status(200).send(result);
     } catch (err) {
