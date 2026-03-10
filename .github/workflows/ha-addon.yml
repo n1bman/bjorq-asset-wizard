@@ -49,5 +49,4 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/n1bman/bjorq-asset-wizard-amd64:${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/n1bman/bjorq-asset-wizard-amd64:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # No cache — prevents cross-workflow layer contamination

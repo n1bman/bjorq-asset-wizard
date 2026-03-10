@@ -9,7 +9,7 @@ import { constants } from "node:fs";
 import { join, resolve } from "node:path";
 import { CATALOG_SCHEMA_VERSION } from "../services/catalog/manager.js";
 
-const VERSION = "2.0.5";
+const VERSION = "2.0.6";
 const STORAGE_PATH = process.env.STORAGE_PATH || "/data/storage";
 const CATALOG_PATH = resolve(process.env.CATALOG_PATH || "/data/catalog");
 

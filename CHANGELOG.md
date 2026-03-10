@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.6] — 2026-03-10
+
+### Fixed
+- Isolate Docker layer cache between HA and standalone workflows to prevent stale builds
+- Removed GHA cache from `ha-addon.yml` entirely; added `scope=standalone` to `docker.yml`
+
 ## [2.0.5] — 2026-03-10
 
 ### Changed
