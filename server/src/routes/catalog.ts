@@ -465,7 +465,25 @@ export async function catalogRoutes(server: FastifyInstance) {
 
     try {
       const index = await buildCatalogIndex();
-      return reply.status(200).send(index);
+
+      // Filter to only published assets for dashboard consumption
+      const filteredCategories = index.categories.map(cat => ({
+        ...cat,
+        subcategories: cat.subcategories.map(sub => ({
+          ...sub,
+          assets: sub.assets.filter((a: any) => a.lifecycleStatus === "published" || a.syncStatus === "synced"),
+        })).filter(sub => sub.assets.length > 0),
+      })).filter(cat => cat.subcategories.length > 0);
+
+      const totalPublished = filteredCategories.reduce(
+        (sum, cat) => sum + cat.subcategories.reduce((s, sub) => s + sub.assets.length, 0), 0
+      );
+
+      return reply.status(200).send({
+        ...index,
+        categories: filteredCategories,
+        totalAssets: totalPublished,
+      });
     } catch (err) {
       request.log.error({ err }, "Failed to build library index");
       return reply.status(500).send({ success: false, error: "Failed to build library index" });

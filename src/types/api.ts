@@ -302,3 +302,12 @@ export interface SyncResponse {
   failed: number;
   timestamp: string;
 }
+
+// --- Catalog Import ---
+
+export interface ImportCatalogResponse {
+  success: boolean;
+  imported: number;
+  skipped: number;
+  errors: string[];
+}
