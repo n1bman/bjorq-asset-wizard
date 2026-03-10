@@ -9,7 +9,9 @@
 
 import { NodeIO, Document } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import { prune, dedup, flatten, textureCompress } from "@gltf-transform/functions";
+import { prune, dedup, flatten, textureCompress, weld, simplify } from "@gltf-transform/functions";
+import { MeshoptSimplifier } from "meshoptimizer";
+import sharp from "sharp";
 import sharp from "sharp";
 import { analyzeModel } from "../analysis/analyzer.js";
 import type { OptimizeRequestOptions, OptimizeResult, StatsSnapshot, OptimizationProfile } from "../../types/optimize.js";
