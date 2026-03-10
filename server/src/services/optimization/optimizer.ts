@@ -34,6 +34,7 @@ const PROFILE_PRESETS: Record<OptimizationProfile, Partial<OptimizeRequestOption
     removeLights: true,
     removeAnimations: false,
     deduplicateMaterials: true,
+    // No mesh simplification
   },
   balanced: {
     maxTextureSize: 2048,
@@ -46,6 +47,8 @@ const PROFILE_PRESETS: Record<OptimizationProfile, Partial<OptimizeRequestOption
     removeLights: true,
     removeAnimations: true,
     deduplicateMaterials: true,
+    simplifyRatio: 0.75,
+    simplifyError: 0.001,
   },
   "low-power": {
     maxTextureSize: 512,
@@ -58,6 +61,8 @@ const PROFILE_PRESETS: Record<OptimizationProfile, Partial<OptimizeRequestOption
     removeLights: true,
     removeAnimations: true,
     deduplicateMaterials: true,
+    simplifyRatio: 0.5,
+    simplifyError: 0.01,
   },
 };
 
