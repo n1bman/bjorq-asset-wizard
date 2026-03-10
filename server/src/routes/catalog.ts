@@ -25,9 +25,8 @@
 import type { FastifyInstance } from "fastify";
 import { join, resolve } from "node:path";
 import { access, readdir, readFile, mkdir, writeFile as fsWriteFile } from "node:fs/promises";
-import { createReadStream, createWriteStream } from "node:fs";
-import { pipeline } from "node:stream/promises";
-import { createGzip } from "node:zlib";
+import { createReadStream } from "node:fs";
+import { exec } from "node:child_process";
 import { exec } from "node:child_process";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import {
