@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0] — 2026-03-10
+
+### Major Release — Bjorq Asset Wizard v2
+
+Marks the first stable production release with full end-to-end asset pipeline:
+
+- **Persistent catalog storage** — assets survive HA add-on restarts (`/data/catalog`)
+- **Thumbnail rendering** — catalog cards show real asset thumbnails
+- **Dimensions pipeline** — dimensions persist through analyze → optimize → catalog → UI
+- **Optimization profiles** — High Quality / Balanced / Low Power presets
+- **Large-file UX** — direct port link for bypassing HA ingress limits
+- **Catalog diagnostics** — startup scan + /health catalog info
+- **Startup reliability** — correct initialization order, permission handling
+
+Includes all fixes from v1.0.0 through v1.1.11.
+
 ## [1.1.11] — 2026-03-09
 
 ### Fixed — Persistence, Thumbnails, Dimensions, Optimization Profiles
