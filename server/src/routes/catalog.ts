@@ -454,15 +454,17 @@ export async function catalogRoutes(server: FastifyInstance) {
     request.log.info("Libraries list requested");
     try {
       const index = await buildCatalogIndex();
+      const libraryEntry = {
+        id: "default",
+        name: "Default Library",
+        assetCount: index.totalAssets,
+        schemaVersion: CATALOG_SCHEMA_VERSION,
+      };
+      // Return both wrapped object and top-level array for maximum compatibility
       return reply.status(200).send({
-        libraries: [
-          {
-            id: "default",
-            name: "Default Library",
-            assetCount: index.totalAssets,
-            schemaVersion: CATALOG_SCHEMA_VERSION,
-          },
-        ],
+        libraries: [libraryEntry],
+        // Some dashboards expect a plain array — include items alias
+        items: [libraryEntry],
       });
     } catch (err) {
       request.log.error({ err }, "Failed to list libraries");
