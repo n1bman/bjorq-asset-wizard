@@ -1,11 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { FileUploader, type UploadState } from "@/components/upload/FileUploader";
 import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { OptimizeOptionsPanel } from "@/components/optimize/OptimizeOptions";
 import { StatsComparison } from "@/components/optimize/StatsComparison";
 import { PipelineStepper } from "@/components/optimize/PipelineStepper";
+import { ModelThumbnailCapture, dataUrlToFile } from "@/components/optimize/ModelThumbnailCapture";
 import { analyzeModel, optimizeModel, ingestAsset } from "@/services/api";
 import { ApiError } from "@/services/api-client";
+import { resolveStoragePath } from "@/lib/asset-paths";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +69,7 @@ export default function OptimizePage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [error, setError] = useState<{ stage?: ProcessingStage; message?: string; details?: string } | undefined>();
+  const [capturedThumbnail, setCapturedThumbnail] = useState<string | null>(null);
 
   const isConversion = importType === "converted-project";
   const steps = useMemo(() => (isConversion ? CONVERT_STEPS : DIRECT_STEPS), [isConversion]);
@@ -97,6 +100,7 @@ export default function OptimizePage() {
   const handleFileSelected = (f: File) => {
     setFile(f);
     setError(undefined);
+    setCapturedThumbnail(null);
     setStep(analyzeStep);
     handleAnalyze(f);
   };
@@ -131,6 +135,7 @@ export default function OptimizePage() {
     setUploadState("uploading");
     setUploadProgress(0);
     setError(undefined);
+    setCapturedThumbnail(null);
     try {
       const res = await optimizeModel(file, options, (pct) => {
         setUploadProgress(pct);
@@ -151,6 +156,10 @@ export default function OptimizePage() {
     }
   };
 
+  const handleThumbnailCapture = useCallback((dataUrl: string) => {
+    setCapturedThumbnail(dataUrl);
+  }, []);
+
   const handleSaveToCatalog = async () => {
     if (!result) return;
     setLoading(true);
@@ -164,7 +173,9 @@ export default function OptimizePage() {
         style: result.metadata.style || "",
         dimensions: result.metadata.dimensions,
       };
-      await ingestAsset(meta, undefined, undefined, result.jobId);
+      // Convert captured thumbnail to File for upload
+      const thumbnailFile = capturedThumbnail ? dataUrlToFile(capturedThumbnail) : undefined;
+      await ingestAsset(meta, undefined, thumbnailFile, result.jobId);
       toast({ title: "Saved to catalog", description: `Asset ${meta.name} ingested successfully.` });
       setStep(doneStep);
     } catch (e: unknown) {
@@ -185,7 +196,13 @@ export default function OptimizePage() {
     setUploadState("idle");
     setUploadProgress(0);
     setError(undefined);
+    setCapturedThumbnail(null);
   };
+
+  // Resolve optimized model URL for thumbnail capture
+  const optimizedModelUrl = result?.outputs?.optimizedModel
+    ? resolveStoragePath(result.outputs.optimizedModel)
+    : null;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -317,15 +334,25 @@ export default function OptimizePage() {
         </Card>
       )}
 
-      {/* Review */}
+      {/* Review — includes hidden thumbnail capture */}
       {step === reviewStep && result && (
-        <ReviewSection
-          result={result}
-          originalFileSizeBytes={file?.size}
-          onSave={handleSaveToCatalog}
-          saving={loading}
-          ingestError={error?.stage === "ingest" ? error : undefined}
-        />
+        <>
+          {optimizedModelUrl && !capturedThumbnail && (
+            <ModelThumbnailCapture
+              modelUrl={optimizedModelUrl}
+              onCapture={handleThumbnailCapture}
+              size={512}
+            />
+          )}
+          <ReviewSection
+            result={result}
+            originalFileSizeBytes={file?.size}
+            onSave={handleSaveToCatalog}
+            saving={loading}
+            ingestError={error?.stage === "ingest" ? error : undefined}
+            thumbnailDataUrl={capturedThumbnail}
+          />
+        </>
       )}
 
       {/* Done */}
@@ -354,12 +381,14 @@ function ReviewSection({
   onSave,
   saving,
   ingestError,
+  thumbnailDataUrl,
 }: {
   result: OptimizeResponse;
   originalFileSizeBytes?: number;
   onSave: () => void;
   saving?: boolean;
   ingestError?: { stage?: ProcessingStage; message?: string; details?: string };
+  thumbnailDataUrl?: string | null;
 }) {
   const optimizedSizeKB = result.stats.after.fileSizeKB;
   const optimizedSizeMB = optimizedSizeKB / 1024;
@@ -373,8 +402,42 @@ function ReviewSection({
   const reductionPct = result.stats.reduction.fileSizePercent;
   const originalKB = originalFileSizeBytes ? Math.round(originalFileSizeBytes / 1024) : result.stats.before.fileSizeKB;
 
+  const handleDownload = async () => {
+    const modelPath = result.outputs.optimizedModel;
+    const url = resolveStoragePath(modelPath);
+    if (!url) return;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${result.metadata.name || result.metadata.id}.glb`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("[Download]", err);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Thumbnail Preview */}
+      {thumbnailDataUrl && (
+        <Card>
+          <CardContent className="py-4 flex justify-center">
+            <img
+              src={thumbnailDataUrl}
+              alt={`3D preview of ${result.metadata.name}`}
+              className="rounded-lg max-w-[256px] max-h-[256px] object-contain border border-border"
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Asset Identity */}
       <Card>
         <CardContent className="py-4">
@@ -454,6 +517,13 @@ function ReviewSection({
             applied={result.optimization.applied.includes("optimizeBaseColorTextures")}
             skippedReason={result.optimization.skipped.find((s) => s.operation === "optimizeBaseColorTextures")?.reason}
             warning={result.optimization.warnings.find((w) => w.operation === "optimizeBaseColorTextures")?.message}
+          />
+          <V2OpRow
+            label="Mesh Simplification"
+            description="Reduce triangle count via weld + simplify"
+            applied={result.optimization.applied.includes("meshSimplify")}
+            skippedReason={result.optimization.skipped.find((s) => s.operation === "meshSimplify")?.reason}
+            warning={result.optimization.warnings.find((w) => w.operation === "meshSimplify")?.message}
           />
           {result.stats.reduction.texturesResized > 0 && (
             <p className="text-xs text-muted-foreground ml-6">
@@ -591,7 +661,7 @@ function ReviewSection({
           <FolderPlus className="h-4 w-4" />
           {saving ? "Saving…" : "Save to Catalog"}
         </Button>
-        <Button variant="outline" className="gap-1.5" disabled>
+        <Button variant="outline" className="gap-1.5" onClick={handleDownload}>
           <Download className="h-4 w-4" /> Download
         </Button>
       </div>
