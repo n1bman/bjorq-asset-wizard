@@ -432,7 +432,7 @@ export async function optimizeModel(
       const ratio = options.simplifyRatio;
       const error = options.simplifyError ?? 0.001;
       log.info({ ratio, error }, "Starting mesh simplification");
-      await doc.transform(weld({ tolerance: 0.0001 }));
+      await doc.transform(weld());
       await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio, error }));
       applied.push("meshSimplify");
       log.info({ ratio, error }, "Applied: meshSimplify (weld + simplify)");
