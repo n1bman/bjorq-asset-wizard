@@ -41,6 +41,7 @@ export interface CatalogAssetMeta {
   optimizationStatus?: string;
   optimizedAt?: string | null;
   lifecycleStatus?: "uploaded" | "analyzed" | "optimized" | "published";
+  syncStatus?: "pending" | "synced" | "failed";
   jobId?: string;
 
   // --- Scene metadata (Phase 7 — non-breaking additions) ---
