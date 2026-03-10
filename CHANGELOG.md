@@ -5,6 +5,9 @@
 ### Fixed
 - Add missing `@react-three/fiber` and `@react-three/drei` dependencies (fixes frontend build)
 - Remove duplicate `import sharp` in optimizer.ts (fixes server build)
+- Fix `no-explicit-any` lint error in library index filter
+- Add `bjorq_asset_wizard/` to frontend eslint ignores
+- Add `syncStatus` field to `CatalogAssetMeta` type
 - Update CATALOG_VERSION constant to match release
 
 ## [2.0.8] — 2026-03-10

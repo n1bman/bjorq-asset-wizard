@@ -469,7 +469,7 @@ export async function catalogRoutes(server: FastifyInstance) {
         ...cat,
         subcategories: cat.subcategories.map(sub => ({
           ...sub,
-          assets: sub.assets.filter((a: any) => a.lifecycleStatus === "published" || a.syncStatus === "synced"),
+          assets: sub.assets.filter(a => a.lifecycleStatus === "published" || a.syncStatus === "synced"),
         })).filter(sub => sub.assets.length > 0),
       })).filter(cat => cat.subcategories.length > 0);
 
