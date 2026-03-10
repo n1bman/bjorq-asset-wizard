@@ -146,9 +146,13 @@ export async function ingestAsset(
     await writeFile(modelDest, fileBuffer);
   }
 
-  // --- Copy thumbnail from job output if available ---
+  // --- Copy thumbnail: prefer uploaded thumbnail, then job output ---
   let thumbnailRelPath: string | null = null;
-  if (jobId) {
+  if (thumbnailBuffer) {
+    const thumbDest = join(assetDir, "thumb.webp");
+    await writeFile(thumbDest, thumbnailBuffer);
+    thumbnailRelPath = `/${category}/${subcategory}/${resolvedId}/thumb.webp`;
+  } else if (jobId) {
     const jobThumb = storagePath("jobs", jobId, "thumb.webp");
     try {
       await access(jobThumb);
