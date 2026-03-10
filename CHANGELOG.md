@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.2] — 2026-03-10
+
+### Fixed — HA Image Build Pipeline
+
+- **HA add-on now builds from correct Dockerfile** — CI was pushing the standalone
+  image (non-root user, no `run.sh`) instead of the HA-specific image (HA base, root
+  user, bashio integration). Added dedicated `ha-addon.yml` workflow.
+- Standalone image moved to separate GHCR tag (`bjorq-asset-wizard-standalone-amd64`)
+  to prevent collision with the HA image tag.
+
 ## [2.0.1] — 2026-03-10
 
 ### Fix — HA Startup Permission + Legacy Path Cleanup
