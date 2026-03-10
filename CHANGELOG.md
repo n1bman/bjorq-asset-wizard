@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.7] — 2026-03-10
+
+### Fixed
+- Add `init: false` to HA add-on config — fixes S6 Overlay V3 PID 1 conflict that prevented startup
+- Fix `run.sh` shebang to `#!/usr/bin/with-contenv bashio` for proper S6 environment loading
+
 ## [2.0.6] — 2026-03-10
 
 ### Fixed
