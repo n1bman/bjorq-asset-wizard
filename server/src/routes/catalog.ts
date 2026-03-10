@@ -496,14 +496,13 @@ export async function catalogRoutes(server: FastifyInstance) {
         })).filter(sub => sub.assets.length > 0),
       })).filter(cat => cat.subcategories.length > 0);
 
-      const totalPublished = filteredCategories.reduce(
-        (sum, cat) => sum + cat.subcategories.reduce((s, sub) => s + sub.assets.length, 0), 0
-      );
+      const assets = flattenCatalogAssets(filteredCategories);
 
       return reply.status(200).send({
         ...index,
         categories: filteredCategories,
-        totalAssets: totalPublished,
+        totalAssets: assets.length,
+        assets,
       });
     } catch (err) {
       request.log.error({ err }, "Failed to build library index");
