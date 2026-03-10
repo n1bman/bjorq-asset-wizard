@@ -21,6 +21,7 @@ import type {
   HealthResponse,
   VersionResponse,
   SyncResponse,
+  ImportCatalogResponse,
 } from "@/types/api";
 import {
   mockCatalog,
@@ -137,6 +138,28 @@ export async function getVersion(): Promise<VersionResponse> {
     () => mockVersion,
   );
   return data;
+}
+
+// --- Catalog Export/Import ---
+
+export async function exportCatalog(): Promise<void> {
+  const response = await fetch(`${apiClient.baseUrl}/catalog/export`);
+  if (!response.ok) throw new Error("Export failed");
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `bjorq-catalog-export-${new Date().toISOString().slice(0, 10)}.tar.gz`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export async function importCatalog(file: File, strategy: "merge" | "overwrite" = "merge"): Promise<ImportCatalogResponse> {
+  const fd = new FormData();
+  fd.append("file", file);
+  return apiClient.request<ImportCatalogResponse>(`/catalog/import?strategy=${strategy}`, { method: "POST", body: fd, timeout: UPLOAD_TIMEOUT });
 }
 
 // --- Import endpoints (future) ---

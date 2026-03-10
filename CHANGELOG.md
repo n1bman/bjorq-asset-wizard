@@ -3,6 +3,9 @@
 ## 2.0.8 (Unreleased)
 
 ### Added
+- **Catalog Export/Import** — Backup and restore entire catalog as `.tar.gz` archive; merge or overwrite strategy
+- **Library index filtering** — Dashboard library API (`/libraries/:lib/index`) now returns only published assets
+- **Onboarding Guide** — Comprehensive step-by-step guide at `docs/ONBOARDING.md`
 - **Mesh simplification** — Balanced profile reduces triangles ~25%, Low Power ~50%, using meshoptimizer (weld + simplify)
 - **Client-side 3D thumbnails** — Real model renders captured via Three.js instead of SVG info-cards
 - **Download button** — Download optimized model directly from the Review step
