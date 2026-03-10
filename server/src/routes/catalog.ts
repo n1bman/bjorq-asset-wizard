@@ -294,6 +294,136 @@ export async function catalogRoutes(server: FastifyInstance) {
     }
   });
 
+  // -----------------------------------------------------------------------
+  // GET /catalog/export — download entire catalog as .tar.gz
+  // -----------------------------------------------------------------------
+  server.get("/catalog/export", async (request, reply) => {
+    request.log.info("Catalog export requested");
+
+    const CATALOG_PATH = resolve(process.env.CATALOG_PATH || "/data/catalog");
+
+    try {
+      await access(CATALOG_PATH);
+    } catch {
+      return reply.status(404).send({ success: false, error: "No catalog directory found" });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    reply.type("application/gzip");
+    reply.header("Content-Disposition", `attachment; filename="bjorq-catalog-export-${timestamp}.tar.gz"`);
+
+    // Use tar command to stream the archive
+    return new Promise<void>((resolveP, rejectP) => {
+      const child = exec(`tar -czf - -C "${CATALOG_PATH}" .`, { maxBuffer: 500 * 1024 * 1024 });
+      if (!child.stdout) {
+        return rejectP(new Error("Failed to create tar stream"));
+      }
+      child.stdout.pipe(reply.raw);
+      child.stderr?.on("data", (d: Buffer) => request.log.warn({ stderr: d.toString() }, "tar stderr"));
+      child.on("close", (code) => {
+        if (code === 0) {
+          reply.hijack();
+          resolveP();
+        } else {
+          rejectP(new Error(`tar exited with code ${code}`));
+        }
+      });
+      child.on("error", rejectP);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // POST /catalog/import — import a catalog .tar.gz archive
+  // -----------------------------------------------------------------------
+  server.post("/catalog/import", async (request, reply) => {
+    request.log.info("Catalog import requested");
+
+    const CATALOG_PATH = resolve(process.env.CATALOG_PATH || "/data/catalog");
+    const strategy = (request.query as { strategy?: string })?.strategy || "merge";
+
+    let archiveBuffer: Buffer | null = null;
+
+    try {
+      const parts = request.parts();
+      for await (const part of parts) {
+        if (part.type === "file" && part.fieldname === "file") {
+          archiveBuffer = await part.toBuffer();
+        }
+      }
+    } catch (err) {
+      request.log.error({ err }, "Failed to parse import upload");
+      return reply.status(400).send({ success: false, error: "Failed to parse upload" });
+    }
+
+    if (!archiveBuffer) {
+      return reply.status(400).send({ success: false, error: "No archive file provided" });
+    }
+
+    // Extract to a temp dir, then merge/overwrite into catalog
+    const tmpDir = resolve("/tmp", `catalog-import-${Date.now()}`);
+    const tmpFile = `${tmpDir}.tar.gz`;
+
+    try {
+      await mkdir(tmpDir, { recursive: true });
+      await fsWriteFile(tmpFile, archiveBuffer);
+
+      // Extract archive
+      await new Promise<void>((res, rej) => {
+        exec(`tar -xzf "${tmpFile}" -C "${tmpDir}"`, (err) => {
+          if (err) rej(err); else res();
+        });
+      });
+
+      // Scan extracted dirs for asset folders (contain meta.json)
+      const extractedItems = await readdir(tmpDir, { withFileTypes: true });
+      let imported = 0;
+      let skipped = 0;
+      const errors: string[] = [];
+
+      for (const item of extractedItems) {
+        if (!item.isDirectory()) continue;
+        const srcPath = join(tmpDir, item.name);
+        const destPath = join(CATALOG_PATH, item.name);
+
+        // Check if it's actually an asset folder
+        const hasMeta = await access(join(srcPath, "meta.json")).then(() => true).catch(() => false);
+        if (!hasMeta) continue;
+
+        // Check if already exists
+        const exists = await access(destPath).then(() => true).catch(() => false);
+        if (exists && strategy === "merge") {
+          skipped++;
+          continue;
+        }
+
+        // Copy folder
+        try {
+          await new Promise<void>((res, rej) => {
+            exec(`cp -r "${srcPath}" "${destPath}"`, (err) => {
+              if (err) rej(err); else res();
+            });
+          });
+          imported++;
+        } catch (err) {
+          errors.push(`Failed to import ${item.name}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      // Cleanup tmp
+      exec(`rm -rf "${tmpDir}" "${tmpFile}"`);
+
+      // Reindex
+      await reindexCatalog();
+
+      request.log.info({ imported, skipped, errors: errors.length, strategy }, "Catalog import complete");
+      return reply.status(200).send({ success: true, imported, skipped, errors });
+    } catch (err) {
+      exec(`rm -rf "${tmpDir}" "${tmpFile}"`);
+      request.log.error({ err }, "Catalog import failed");
+      return reply.status(500).send({ success: false, error: "Failed to import catalog archive" });
+    }
+  });
+
   // =======================================================================
   // Dashboard-facing Library API
   // =======================================================================
