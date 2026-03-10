@@ -40,7 +40,27 @@ import {
 import { getCatalogPolicy, getCatalogStorageUsage } from "../services/catalog/policy.js";
 import type { IngestRequest } from "../types/catalog.js";
 
-const VERSION = "2.0.9";
+const VERSION = "2.1.0";
+
+/** Flatten nested categories > subcategories > assets into a flat array with dashboard-friendly field aliases. */
+function flattenCatalogAssets(categories: import("../types/catalog.js").CatalogCategory[]) {
+  const flat: Record<string, unknown>[] = [];
+  for (const cat of categories) {
+    for (const sub of cat.subcategories) {
+      for (const asset of sub.assets) {
+        flat.push({
+          ...asset,
+          // Dashboard-compatible aliases
+          triangleCount: asset.performance?.triangles ?? 0,
+          fileSize: asset.performance?.fileSizeKB ? asset.performance.fileSizeKB * 1024 : 0,
+          thumbnailUrl: `/assets/${asset.id}/thumbnail`,
+          modelUrl: `/assets/${asset.id}/model`,
+        });
+      }
+    }
+  }
+  return flat;
+}
 
 export async function catalogRoutes(server: FastifyInstance) {
   // -----------------------------------------------------------------------
