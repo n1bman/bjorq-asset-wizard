@@ -54,19 +54,16 @@ COPY --from=frontend /app/dist ./public
 COPY server/package.json server/package-lock.json* ./
 RUN npm ci --omit=dev || npm install --omit=dev
 
-# Create storage directories
+# Create persistent storage directories (as root, before USER switch)
 RUN mkdir -p \
-    storage/uploads \
-    storage/jobs \
-    storage/originals \
-    storage/optimized \
-    storage/thumbs \
-    storage/logs \
-    storage/catalog \
-    public/catalog/furniture \
-    public/catalog/devices \
-    public/catalog/decor && \
-    chown -R bjorq:bjorq /app
+    /data/storage/uploads \
+    /data/storage/jobs \
+    /data/storage/originals \
+    /data/storage/optimized \
+    /data/storage/thumbs \
+    /data/storage/logs \
+    /data/catalog && \
+    chown -R bjorq:bjorq /app /data
 
 USER bjorq
 
