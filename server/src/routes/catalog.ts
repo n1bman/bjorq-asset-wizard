@@ -1,7 +1,7 @@
 /**
- * Catalog endpoints — browse, ingest, reindex, diagnostics, asset access, and library API.
+ * Catalog endpoints — browse, ingest, reindex, diagnostics, asset access, library API,
+ * and full catalog export/import for backup and sharing.
  *
- * Existing:
  * GET    /catalog/index            — Return the current catalog manifest
  * POST   /catalog/ingest           — Ingest an optimized asset into the catalog
  * POST   /catalog/reindex          — Force a catalog re-scan and index rebuild
@@ -11,19 +11,24 @@
  * GET    /catalog/asset/:id/export — Download asset GLB with Content-Disposition
  * DELETE /catalog/asset/:id        — Delete asset from catalog
  * GET    /catalog/diagnostics      — Catalog diagnostics for integrations
+ * GET    /catalog/export           — Download entire catalog as .tar.gz
+ * POST   /catalog/import           — Import a catalog .tar.gz archive
  *
  * Dashboard-facing library API:
  * GET  /libraries                — List available libraries
- * GET  /libraries/:library/index — Get library catalog index
+ * GET  /libraries/:library/index — Get library catalog index (published only)
  * GET  /assets/:id/meta          — Get asset metadata JSON
  * GET  /assets/:id/model         — Alias for /catalog/asset/:id/model
  * GET  /assets/:id/thumbnail     — Alias for /catalog/asset/:id/thumbnail
  */
 
 import type { FastifyInstance } from "fastify";
-import { join } from "node:path";
-import { access, readdir, readFile } from "node:fs/promises";
-import { createReadStream } from "node:fs";
+import { join, resolve } from "node:path";
+import { access, readdir, readFile, mkdir, writeFile as fsWriteFile } from "node:fs/promises";
+import { createReadStream, createWriteStream } from "node:fs";
+import { pipeline } from "node:stream/promises";
+import { createGzip } from "node:zlib";
+import { exec } from "node:child_process";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import {
   buildCatalogIndex,
