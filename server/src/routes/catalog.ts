@@ -70,7 +70,8 @@ export async function catalogRoutes(server: FastifyInstance) {
     request.log.info("Catalog index requested");
     try {
       const index = await buildCatalogIndex();
-      return reply.status(200).send(index);
+      const assets = flattenCatalogAssets(index.categories);
+      return reply.status(200).send({ ...index, assets });
     } catch (err) {
       request.log.error({ err }, "Failed to build catalog index");
       return reply.status(500).send({ success: false, error: "Failed to build catalog index" });
