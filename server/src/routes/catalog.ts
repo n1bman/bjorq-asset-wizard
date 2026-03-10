@@ -27,7 +27,6 @@ import { join, resolve } from "node:path";
 import { access, readdir, readFile, mkdir, writeFile as fsWriteFile } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { exec } from "node:child_process";
-import { exec } from "node:child_process";
 import { createJobLogger, generateJobId } from "../lib/logger.js";
 import {
   buildCatalogIndex,

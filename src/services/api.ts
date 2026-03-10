@@ -143,8 +143,7 @@ export async function getVersion(): Promise<VersionResponse> {
 // --- Catalog Export/Import ---
 
 export async function exportCatalog(): Promise<void> {
-  const baseUrl = apiClient.getBaseUrl();
-  const response = await fetch(`${baseUrl}/catalog/export`);
+  const response = await fetch(`${apiClient.baseUrl}/catalog/export`);
   if (!response.ok) throw new Error("Export failed");
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
