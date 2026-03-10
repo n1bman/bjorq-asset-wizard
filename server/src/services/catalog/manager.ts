@@ -123,6 +123,7 @@ export async function ingestAsset(
   meta: IngestRequest,
   jobId?: string,
   fileBuffer?: Buffer,
+  thumbnailBuffer?: Buffer,
 ): Promise<IngestResponse> {
   const category = meta.category || "uncategorized";
   const subcategory = meta.subcategory || "general";
