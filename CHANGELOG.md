@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.1] — 2026-03-10
+
+### Fix — HA Startup Permission + Legacy Path Cleanup
+
+- **Pre-create `/data` directories** in HA Dockerfile so they exist at image layer (safety net)
+- **Reorder `run.sh`** — `mkdir -p` now runs before `bashio::config` reads, preventing `set -e` abort on first boot
+- **Eliminate legacy paths** — `docker-compose.yml`, `.env.example`, and `init-storage` all use `/data/storage` + `/data/catalog`
+- **Version bump** to 2.0.1 across all surfaces
+
 ## [2.0.0] — 2026-03-10
 
 ### Major Release — Bjorq Asset Wizard v2

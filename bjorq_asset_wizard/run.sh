@@ -6,6 +6,20 @@
 
 set -e
 
+# --- Ensure storage directories exist FIRST ---
+# This runs before bashio config reads so directories always exist
+# even if config parsing fails on first boot.
+mkdir -p \
+    /data/storage/uploads \
+    /data/storage/jobs \
+    /data/storage/originals \
+    /data/storage/optimized \
+    /data/storage/thumbs \
+    /data/storage/logs \
+    /data/catalog/furniture \
+    /data/catalog/devices \
+    /data/catalog/decor
+
 # --- Read HA add-on options ---
 export LOG_LEVEL=$(bashio::config 'log_level')
 export MAX_FILE_SIZE_MB=$(bashio::config 'max_file_size_mb')
@@ -25,18 +39,6 @@ export LOG_FILE=/data/storage/logs/wizard.log
 
 # --- CORS: Allow HA ingress ---
 export CORS_ORIGINS="*"
-
-# --- Ensure storage directories exist ---
-mkdir -p \
-    /data/storage/uploads \
-    /data/storage/jobs \
-    /data/storage/originals \
-    /data/storage/optimized \
-    /data/storage/thumbs \
-    /data/storage/logs \
-    /data/catalog/furniture \
-    /data/catalog/devices \
-    /data/catalog/decor
 
 bashio::log.info "Starting Bjorq Asset Wizard..."
 bashio::log.info "  Storage: ${STORAGE_PATH}"
