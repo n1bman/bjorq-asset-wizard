@@ -180,15 +180,13 @@ async function doInstall(log: FastifyBaseLogger): Promise<void> {
   }
 
   state.installProgress = 50;
-  log.info("Step 3/4: Installing dependencies");
+  log.info("Step 3/5: Installing basic dependencies");
   const venvPip = await requireExecutable(resolve(VENV_PATH, "bin/pip"), "TRELLIS virtual environment pip");
-  await runCommand(
-    venvPip,
-    ["install", "-r", resolve(REPO_PATH, "requirements.txt")],
-    log,
-    TRELLIS_TIMEOUT,
-    REPO_PATH,
-  );
+  await installRepoDependencies(venvPip, REPO_PATH, log);
+
+  state.installProgress = 70;
+  log.info("Step 4/5: Attempting GPU extensions");
+  await installGpuExtensions(venvPip, log);
 
   state.installProgress = 80;
   log.info("Step 4/4: Downloading model weights");
