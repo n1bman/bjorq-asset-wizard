@@ -105,7 +105,7 @@ export async function generateLODs(
       // Only simplify geometry — do NOT modify transforms, pivot, scale, or orientation.
       // weld + simplify operate on vertex data only, preserving all node transforms.
       await doc.transform(
-        weld({ tolerance: 0.001 }),
+        weld(),
         simplify({ simplifier: MeshoptSimplifier, ratio: config.ratio, error: 0.05 }),
         prune(),
       );

@@ -102,7 +102,7 @@ export async function normalizeStyle(
 
   // --- Step 3: Weld vertices ---
   log.info("Style normalizer: welding vertices");
-  await doc.transform(weld({ tolerance: 0.0005 }));
+  await doc.transform(weld());
 
   // --- Step 4: Geometry simplification ---
   const ratio = aggressive ? config.fallbackSimplifyRatio : config.simplifyRatio;

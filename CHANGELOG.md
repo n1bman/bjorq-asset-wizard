@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2] — 2026-03-18
+
+### Fixed
+- **Backend CI typecheck**: Removed unsupported `tolerance` option from `weld()` calls in LOD generator and style normalizer (breaking change in `@gltf-transform/functions`)
+- **Dependency pinning**: `@gltf-transform` packages pinned to exact `4.1.0` to prevent future API drift
+- Applied same fixes to add-on mirror (`bjorq_asset_wizard/server/`)
+
 ## [2.3.1] — 2026-03-18
 
 ### Changed — LOD Architecture Clarification
