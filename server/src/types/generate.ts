@@ -1,5 +1,5 @@
 /**
- * Bjorq Asset Wizard — Photo → 3D Generation Types (Backend) v2.3.0
+ * Bjorq Asset Wizard — Photo → 3D Generation Types (Backend) v2.3.9
  */
 
 export type GenerateJobState =
@@ -62,6 +62,18 @@ export interface GenerateJobResponse {
   queuePosition?: number;
 }
 
+export interface TrellisEnvironment {
+  platform: "cuda" | "hip" | "cpu-only";
+  /** Detected GPU name + VRAM, e.g. "NVIDIA A100 (48GB)" */
+  gpu: string | null;
+  /** CUDA Toolkit version, e.g. "12.4" */
+  cudaVersion: string | null;
+  /** Whether all requirements are satisfied for full TRELLIS.2 runtime */
+  meetsRequirements: boolean;
+  /** Human-readable list of missing requirements */
+  missingRequirements: string[];
+}
+
 export interface TrellisStatusResponse {
   installed: boolean;
   running: boolean;
@@ -69,6 +81,12 @@ export interface TrellisStatusResponse {
   version?: string;
   installing?: boolean;
   installProgress?: number;
+  /** Detected environment capabilities */
+  environment?: TrellisEnvironment;
+  /** Whether pretrained model weights have been downloaded */
+  weightsDownloaded?: boolean;
+  /** Map of CUDA extension name → installed (true/false) */
+  extensions?: Record<string, boolean>;
 }
 
 export interface QueueStatusResponse {
