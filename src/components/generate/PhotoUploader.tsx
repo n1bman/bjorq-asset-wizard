@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef } from "react";
-import { Camera, X, Plus, Info } from "lucide-react";
+import { Camera, X, Plus, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -136,13 +136,19 @@ export function PhotoUploader({
         </div>
       )}
 
-      {/* Helper tips */}
-      <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2">
-        <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-        <div className="text-xs text-muted-foreground space-y-0.5">
-          <p>Use <strong>2–4 photos</strong> from different angles for best results</p>
-          <p>Keep background simple · Good lighting · Show the full object</p>
+      {/* Photo tips — expanded guidance */}
+      <div className="rounded-lg border border-border bg-muted/20 p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Lightbulb className="h-4 w-4 text-primary shrink-0" />
+          <p className="text-xs font-medium text-foreground">Tips for best results</p>
         </div>
+        <ul className="text-xs text-muted-foreground space-y-1 ml-6 list-disc">
+          <li>Use <strong>2–4 photos</strong> from different angles</li>
+          <li>Keep the background <strong>clean and simple</strong></li>
+          <li>Avoid strong shadows or harsh lighting</li>
+          <li>Capture the <strong>full object</strong> in each photo</li>
+          <li>Even lighting gives the best 3D result</li>
+        </ul>
       </div>
     </div>
   );

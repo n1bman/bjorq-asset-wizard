@@ -46,7 +46,16 @@ function advanceMockJob(jobId: string): GenerateJobResponse {
           result: {
             model: `/jobs/gen_${jobId}/output.glb`,
             thumbnail: `/jobs/gen_${jobId}/thumb.webp`,
-            metadata: { style: "bjorq-cozy", triangles: 8200, fileSizeKB: 1240 },
+            metadata: {
+              style: "bjorq-cozy",
+              triangles: 6000 + Math.floor(Math.random() * 4000), // variation per generation
+              fileSizeKB: 800 + Math.floor(Math.random() * 600),
+              materials: 1 + Math.floor(Math.random() * 2),
+              gatePassed: true,
+              gateAttempt: 1,
+              forcedMinimal: false,
+              source: "generated",
+            },
           },
         }
       : {}),

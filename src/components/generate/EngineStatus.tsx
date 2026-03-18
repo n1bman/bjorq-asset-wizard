@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, AlertTriangle, XCircle, Download, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Download, Loader2, Cpu, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -49,14 +49,20 @@ export function EngineStatus({ onReady, className }: EngineStatusProps) {
   // Ready
   if (status.installed && status.running) {
     return (
-      <div className={cn("flex items-center gap-2 text-xs", className)}>
-        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-        <span className="text-muted-foreground">
-          Engine ready
-          {!status.gpu && (
-            <span className="text-yellow-500 ml-1">(CPU mode — slower)</span>
-          )}
-        </span>
+      <div className={cn("flex items-center gap-2 text-xs rounded-md border border-border bg-muted/20 px-3 py-2", className)}>
+        <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+        <span className="text-muted-foreground">Engine ready</span>
+        {status.gpu ? (
+          <span className="flex items-center gap-1 text-primary ml-auto">
+            <Zap className="h-3 w-3" />
+            GPU accelerated
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-muted-foreground ml-auto">
+            <Cpu className="h-3 w-3" />
+            CPU mode — generation will be slower
+          </span>
+        )}
       </div>
     );
   }
@@ -80,7 +86,7 @@ export function EngineStatus({ onReady, className }: EngineStatusProps) {
     return (
       <div className={cn("rounded-lg border border-border bg-muted/30 p-4 space-y-3", className)}>
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          <AlertTriangle className="h-4 w-4 text-destructive" />
           <p className="text-sm font-medium text-foreground">
             Photo-to-3D requires engine installation
           </p>
@@ -104,9 +110,9 @@ export function EngineStatus({ onReady, className }: EngineStatusProps) {
 
   // Installed but not running
   return (
-    <div className={cn("flex items-center gap-2 text-xs", className)}>
-      <XCircle className="h-3.5 w-3.5 text-destructive" />
-      <span className="text-muted-foreground">Engine not running</span>
+    <div className={cn("flex items-center gap-2 text-xs rounded-md border border-border bg-muted/20 px-3 py-2", className)}>
+      <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+      <span className="text-muted-foreground">Engine installed but not running</span>
     </div>
   );
 }
