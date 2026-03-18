@@ -2,7 +2,7 @@ ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19
 FROM ${BUILD_FROM}
 
 # Install Node.js only — sharp bundles its own libvips
-RUN apk add --no-cache nodejs npm
+RUN apk add --no-cache nodejs npm git python3 py3-pip
 
 WORKDIR /app
 
