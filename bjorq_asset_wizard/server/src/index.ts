@@ -167,6 +167,8 @@ async function start() {
   await server.register(catalogRoutes);
   await server.register(syncRoutes);
   await server.register(importRoutes);
+  await server.register(generateRoutes);
+  await server.register(trellisRoutes);
 
   // --- SPA frontend serving ---
   // Check if public/index.html exists (frontend was built into the image)
