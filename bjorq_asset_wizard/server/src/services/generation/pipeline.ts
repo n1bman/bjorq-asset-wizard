@@ -215,7 +215,14 @@ export async function runGenerationPipeline(
     const thumbPath = resolve(job.outputDir, "thumb.webp");
     try {
       const { generateThumbnail } = await import("../optimization/thumbnail.js");
-      await generateThumbnail(finalBuffer, thumbPath, profile.thumbnailSize);
+      const thumbBuffer = await generateThumbnail({
+        name: job.id,
+        triangles: gateResult.triangles,
+        fileSizeKB: gateResult.fileSizeKB,
+        materials: gateResult.materials,
+        category: categoryResult.category,
+      });
+      await writeFile(thumbPath, thumbBuffer);
     } catch (err) {
       log.warn({ err }, "Thumbnail generation failed — continuing without");
     }

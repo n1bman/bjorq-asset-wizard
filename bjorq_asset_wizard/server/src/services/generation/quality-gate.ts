@@ -131,8 +131,7 @@ export async function validateAndFix(
       fallbackSimplifyRatio: 0.05,
       maxMaterials: 1,
       maxTextureRes: 64,
-      roughnessMin: 0.85,
-      roughnessMax: 0.9,
+      roughness: 0.85,
     };
     current = await normalizeStyle(current, minimalConfig, log, true);
     measurement = await measureAsset(current, log);

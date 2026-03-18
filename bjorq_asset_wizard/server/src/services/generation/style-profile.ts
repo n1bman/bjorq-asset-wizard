@@ -11,14 +11,37 @@
 /** Named style variants — all derived from the base profile */
 export type BjorqStyleVariant = "cozy" | "soft-minimal" | "warm-wood";
 
+/** Shape of a Bjorq style profile */
+export interface BjorqStyleProfile {
+  roughness: number;
+  metallic: number;
+  baseColorTint: [number, number, number];
+  saturationClamp: number;
+  brightnessRange: [number, number];
+  textureFlattenStrength: number;
+  simplifyRatio: number;
+  fallbackRatio: number;
+  simplifyError: number;
+  microGeometryThreshold: number;
+  simplicityThreshold: number;
+  maxMaterials: number;
+  maxTextureRes: number;
+  stripNormalMaps: boolean;
+  stripAOMaps: boolean;
+  stripEmissive: boolean;
+  stripMetallicRoughnessTexture: boolean;
+  thumbnailSize: number;
+  thumbnailBackground: string;
+}
+
 /** Global Bjorq base profile — all values are FIXED, never randomized */
-export const BJORQ_STYLE_PROFILE = {
+export const BJORQ_STYLE_PROFILE: BjorqStyleProfile = {
   // --- PBR Material ---
   roughness: 0.8,
   metallic: 0.0,
-  baseColorTint: [1.0, 0.96, 0.9] as [number, number, number],
+  baseColorTint: [1.0, 0.96, 0.9],
   saturationClamp: 0.5,
-  brightnessRange: [0.3, 0.85] as [number, number],
+  brightnessRange: [0.3, 0.85],
   textureFlattenStrength: 0.6,
 
   // --- Geometry ---
@@ -39,9 +62,7 @@ export const BJORQ_STYLE_PROFILE = {
   // --- Thumbnail ---
   thumbnailSize: 512,
   thumbnailBackground: "#1a1a2e",
-} as const;
-
-export type BjorqStyleProfile = typeof BJORQ_STYLE_PROFILE;
+};
 
 /**
  * Controlled style variants — all stay within Bjorq identity bounds.
