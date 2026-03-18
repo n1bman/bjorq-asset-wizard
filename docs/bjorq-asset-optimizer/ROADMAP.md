@@ -32,13 +32,15 @@
 - [x] Asset versioning (track original → optimized lineage)
 - [ ] Batch processing support
 
-## Fas 3 — Bjorq Integration
+## Fas 3 — Bjorq Integration ✅
 
-- [ ] Pipeline integration with Bjorq dashboard import dialog
-- [ ] Asset library API for Bjorq's 3D scene editor
+- [x] Pipeline integration with Bjorq dashboard import dialog
+- [x] Asset library API for Bjorq's 3D scene editor
+- [x] Asset tagging and search
+- [x] Category auto-detection heuristics
+- [x] Photo → 3D generation with TRELLIS.2
+- [x] Style variants and drift detection
 - [ ] Webhook / callback support (notify Bjorq when optimization completes)
-- [ ] Asset tagging and search
-- [ ] Category auto-detection heuristics
 - [ ] Placement confidence improvements
 
 ## Fas 4 — Production & Deployment ✅

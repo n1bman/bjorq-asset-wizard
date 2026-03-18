@@ -157,7 +157,7 @@ The **Ingest** page allows adding pre-optimized models directly to the catalog w
 ### Add-on won't start
 
 - Check the **Log** tab in the add-on settings for errors
-- Verify the add-on version is `2.0.8` or later
+- Verify the add-on version is `2.3.1` or later
 - Ensure the add-on has proper access to storage (check volume mappings)
 
 ### Can't connect from Dashboard

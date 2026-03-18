@@ -49,6 +49,7 @@ bjorq-asset-wizard/
 |------|-------|------|---------|
 | Upload & Analyze | `/` | `UploadAnalyze.tsx` | Upload a GLB/glTF file, view analysis results |
 | Optimize | `/optimize` | `Optimize.tsx` | Multi-step optimization pipeline |
+| Photo → 3D | `/generate` | `PhotoGenerate.tsx` | Generate stylized 3D assets from photos |
 | Catalog Browse | `/catalog` | `Catalog.tsx` | Browse cataloged assets with filters |
 | Asset Detail | `/catalog/:id` | `AssetDetail.tsx` | Full asset metadata and actions |
 | Catalog Ingest | `/ingest` | `CatalogIngest.tsx` | Add new assets to the catalog |
