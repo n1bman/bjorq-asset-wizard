@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.6] — 2026-03-18
+
+### Fixed
+- **Packaging: force fresh image build** — v2.3.5 GHCR image was built before Dockerfile included `git`/`python3`. Bumped to 2.3.6 to guarantee HA pulls a new image with all runtime dependencies.
+- **Startup dependency check** — Server now logs availability of `git`, `python3`, and `pip3` at startup so missing runtime deps are immediately visible in logs.
+
 ## [2.3.5] — 2026-03-18
 
 ### Fixed

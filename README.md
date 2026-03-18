@@ -213,7 +213,7 @@ Storage persists under `/data/`. The add-on runs with ingress support.
 
 ---
 
-## Known Limitations (v2.3.1)
+## Known Limitations (v2.3.6)
 
 - **Single library only** — all assets go to "default" library. Multi-library requires storage migration (v1.2.0).
 - **TRELLIS engine required** — Photo → 3D requires TRELLIS.2 installation via the UI (GPU recommended).

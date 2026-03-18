@@ -4,7 +4,7 @@
 # Reference: https://developers.home-assistant.io/docs/add-ons/configuration
 
 name: Bjorq Asset Wizard
-version: "2.3.5"
+version: "2.3.6"
 slug: bjorq_asset_wizard
 init: false
 description: "3D asset analysis, optimization, and catalog service for Bjorq"
