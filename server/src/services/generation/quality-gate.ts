@@ -167,7 +167,7 @@ async function measureAsset(
   const { analyzeModel } = await import("../analysis/analyzer.js");
   const analysis = await analyzeModel(glbBuffer, "validation.glb");
 
-  const textureSizes = analysis.textures.details.map((t: { width: number; height: number }) => Math.max(t.width, t.height));
+  const textureSizes = analysis.textures.details.map((t) => Math.max(t.width ?? 0, t.height ?? 0));
 
   return {
     triangles: analysis.geometry.triangleCount,
