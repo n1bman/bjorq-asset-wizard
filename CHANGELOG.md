@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.8] — 2026-03-18
+
+### Fixed
+- **TRELLIS dependency install** — Replaced hardcoded `requirements.txt` assumption with auto-detected install strategy. TRELLIS.2 uses `setup.sh` with individual pip commands, not a requirements file. The installer now detects `setup.sh`, `requirements.txt`, or `pyproject.toml` and selects the correct method. Basic dependencies are installed in batches mirroring `setup.sh --basic`. GPU extensions (flash-attn) are attempted separately and gracefully skipped on CPU-only systems.
+
 ## [2.3.7] — 2026-03-18
 
 ### Fixed

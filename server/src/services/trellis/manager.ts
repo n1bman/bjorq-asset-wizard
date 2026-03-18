@@ -321,6 +321,111 @@ async function detectGpu(log: FastifyBaseLogger, pythonPath: string): Promise<bo
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Multi-strategy dependency installer                               */
+/* ------------------------------------------------------------------ */
+
+type InstallStrategy = "setup-sh" | "requirements-txt" | "pyproject" | "unknown";
+
+async function fileExists(path: string): Promise<boolean> {
+  try { await access(path); return true; } catch { return false; }
+}
+
+async function detectInstallStrategy(repoPath: string, log: FastifyBaseLogger): Promise<InstallStrategy> {
+  const checks: [string, InstallStrategy][] = [
+    [resolve(repoPath, "setup.sh"), "setup-sh"],
+    [resolve(repoPath, "requirements.txt"), "requirements-txt"],
+    [resolve(repoPath, "pyproject.toml"), "pyproject"],
+    [resolve(repoPath, "setup.py"), "pyproject"],
+  ];
+
+  for (const [path, strategy] of checks) {
+    if (await fileExists(path)) {
+      log.info({ strategy, path }, "Detected TRELLIS install strategy");
+      return strategy;
+    }
+  }
+
+  log.error({ repoPath }, "No recognized install method found in TRELLIS repo");
+  return "unknown";
+}
+
+/**
+ * TRELLIS.2 basic dependencies — mirrors `setup.sh --basic`.
+ * Split into batches to isolate failures and provide clear progress.
+ */
+const TRELLIS_BASIC_DEPS = [
+  // Batch 1: core utilities
+  ["imageio", "imageio-ffmpeg", "tqdm", "easydict", "ninja", "trimesh", "zstandard"],
+  // Batch 2: ML/vision
+  ["opencv-python-headless", "transformers", "pandas", "lpips"],
+  // Batch 3: deep learning utilities
+  ["kornia", "timm"],
+  // Batch 4: utils3d from git (pinned commit)
+  ["git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f"],
+];
+
+async function installRepoDependencies(pipPath: string, repoPath: string, log: FastifyBaseLogger): Promise<void> {
+  const strategy = await detectInstallStrategy(repoPath, log);
+
+  switch (strategy) {
+    case "setup-sh": {
+      log.info("Using TRELLIS.2 setup.sh strategy — installing basic deps via pip batches");
+      for (let i = 0; i < TRELLIS_BASIC_DEPS.length; i++) {
+        const batch = TRELLIS_BASIC_DEPS[i];
+        log.info({ batch: i + 1, total: TRELLIS_BASIC_DEPS.length, packages: batch }, "Installing dependency batch");
+        await runCommand(pipPath, ["install", ...batch], log, TRELLIS_TIMEOUT, repoPath);
+      }
+      // Install the repo itself if it has a pyproject.toml alongside setup.sh
+      if (await fileExists(resolve(repoPath, "pyproject.toml"))) {
+        log.info("Also installing repo as editable package (pyproject.toml found)");
+        await runCommand(pipPath, ["install", "-e", "."], log, TRELLIS_TIMEOUT, repoPath);
+      }
+      break;
+    }
+
+    case "requirements-txt": {
+      log.info("Using requirements.txt strategy");
+      await runCommand(pipPath, ["install", "-r", resolve(repoPath, "requirements.txt")], log, TRELLIS_TIMEOUT, repoPath);
+      break;
+    }
+
+    case "pyproject": {
+      log.info("Using pyproject.toml / setup.py strategy — pip install -e .");
+      await runCommand(pipPath, ["install", "-e", "."], log, TRELLIS_TIMEOUT, repoPath);
+      break;
+    }
+
+    case "unknown":
+      throw new Error(
+        `TRELLIS repo at ${repoPath} has no recognized install method. ` +
+        `Expected one of: setup.sh, requirements.txt, pyproject.toml, setup.py. ` +
+        `The repository may have changed its structure.`
+      );
+  }
+}
+
+/**
+ * Attempt to install GPU-accelerated extensions.
+ * These require CUDA toolkit and will gracefully skip on failure.
+ */
+async function installGpuExtensions(pipPath: string, log: FastifyBaseLogger): Promise<void> {
+  const gpuPackages = ["flash-attn"];
+
+  for (const pkg of gpuPackages) {
+    try {
+      log.info({ package: pkg }, "Attempting GPU extension install");
+      await runCommand(pipPath, ["install", pkg], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
+      log.info({ package: pkg }, "GPU extension installed successfully");
+    } catch (err) {
+      log.warn(
+        { package: pkg, error: err instanceof Error ? err.message : String(err) },
+        "GPU extension install failed (expected on CPU-only systems) — skipping"
+      );
+    }
+  }
+}
+
 /**
  * Run a shell command with timeout safety.
  * Never throws unhandled — always returns a controlled error.
