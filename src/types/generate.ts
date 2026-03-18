@@ -1,4 +1,4 @@
-// Bjorq Asset Wizard — Photo → 3D Generation Types (v2.3.0)
+// Bjorq Asset Wizard — Photo → 3D Generation Types (v2.3.9)
 
 export type GenerateJobState =
   | "queued"
@@ -14,6 +14,14 @@ export type GenerateJobState =
 export type GenerateTargetProfile = "dashboard-safe" | "ultra-light" | "standard";
 
 export type StyleVariantId = "cozy" | "soft-minimal" | "warm-wood";
+
+export interface TrellisEnvironment {
+  platform: "cuda" | "hip" | "cpu-only";
+  gpu: string | null;
+  cudaVersion: string | null;
+  meetsRequirements: boolean;
+  missingRequirements: string[];
+}
 
 export interface GenerateJobResponse {
   jobId: string;
@@ -38,6 +46,9 @@ export interface TrellisStatusResponse {
   version?: string;
   installing?: boolean;
   installProgress?: number;
+  environment?: TrellisEnvironment;
+  weightsDownloaded?: boolean;
+  extensions?: Record<string, boolean>;
 }
 
 export interface QueueStatusResponse {

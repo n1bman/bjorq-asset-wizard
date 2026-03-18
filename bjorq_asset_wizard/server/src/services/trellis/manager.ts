@@ -1,26 +1,31 @@
 /**
- * TRELLIS Engine Manager (v2.3.6)
+ * TRELLIS Engine Manager (v2.3.9)
  *
  * Manages the lifecycle of the TRELLIS.2 3D generation engine:
- * - Installation (clone, venv, deps, weights)
+ * - Environment capability detection (GPU, CUDA, disk)
+ * - Installation (clone --recursive, venv, deps matching official setup.sh, weights)
  * - Subprocess execution with retry and timeout safety
- * - Status tracking with GPU detection
+ * - Honest status reporting of what the environment can/cannot support
  *
  * Directory layout under TRELLIS_ROOT (/data/trellis):
  *   status.json   — persisted state (always safe to write)
- *   repo/         — git clone of TRELLIS.2 source
+ *   repo/         — git clone --recursive of TRELLIS.2 source
  *   venv/         — Python virtual environment
  *   workspace/    — scratch space for generation runs
+ *   weights/      — pretrained model weights
  *
- * TRELLIS is NOT assumed to have an HTTP API — we run it as a subprocess
- * with structured CLI inputs and outputs.
+ * IMPORTANT: Full TRELLIS.2 runtime requires:
+ *   - Linux + NVIDIA GPU with 24GB+ VRAM
+ *   - CUDA Toolkit 12.4 for compiling native extensions
+ *   - ~15GB+ disk for model weights
+ * The addon container may NOT satisfy these requirements.
  */
 
 import { access, readFile, writeFile, mkdir, stat, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
 import type { FastifyBaseLogger } from "fastify";
-import type { TrellisStatusResponse } from "../../types/generate.js";
+import type { TrellisStatusResponse, TrellisEnvironment } from "../../types/generate.js";
 
 /** Root directory for all TRELLIS data (state, repo, venv, workspace). */
 const TRELLIS_ROOT = resolve(process.env.TRELLIS_PATH || "/data/trellis");
@@ -29,15 +34,41 @@ const TRELLIS_ROOT = resolve(process.env.TRELLIS_PATH || "/data/trellis");
 const REPO_PATH = resolve(TRELLIS_ROOT, "repo");
 const VENV_PATH = resolve(TRELLIS_ROOT, "venv");
 const WORKSPACE_PATH = resolve(TRELLIS_ROOT, "workspace");
+const WEIGHTS_PATH = resolve(TRELLIS_ROOT, "weights");
 const STATUS_FILE = resolve(TRELLIS_ROOT, "status.json");
 const SHELL_PATH = "/bin/sh";
 
-const TRELLIS_TIMEOUT = Number(process.env.TRELLIS_TIMEOUT || 120) * 1000;
+const TRELLIS_TIMEOUT = Number(process.env.TRELLIS_TIMEOUT || 300) * 1000;
 const TRELLIS_MAX_RETRIES = Number(process.env.TRELLIS_MAX_RETRIES || 2);
 const RUNTIME_BINARY_NAMES = ["git", "python3", "pip3"] as const;
 
 type RuntimeBinaryName = (typeof RUNTIME_BINARY_NAMES)[number];
 type RuntimeDependencyState = Record<RuntimeBinaryName, string | undefined>;
+
+/**
+ * CUDA extension definitions — mirrors the official TRELLIS.2 setup.sh.
+ * Each extension has a name, pip install method, and whether it strictly requires CUDA.
+ */
+interface CudaExtensionDef {
+  name: string;
+  /** pip install argument (package name, URL, or path) */
+  install: string;
+  /** If true, requires CUDA toolkit (nvcc) to compile */
+  requiresCuda: boolean;
+  /** If true, clone a separate git repo first */
+  gitRepo?: string;
+  /** Subdirectory within cloned repo to install from */
+  subdir?: string;
+}
+
+const CUDA_EXTENSIONS: CudaExtensionDef[] = [
+  { name: "flash-attn", install: "flash-attn==2.7.3", requiresCuda: true },
+  { name: "nvdiffrast", install: "nvdiffrast", requiresCuda: true, gitRepo: "https://github.com/NVlabs/nvdiffrast.git" },
+  { name: "nvdiffrec", install: "nvdiffrec", requiresCuda: true, gitRepo: "https://github.com/JeffreyXiang/nvdiffrec.git" },
+  { name: "CuMesh", install: "cumesh", requiresCuda: true, gitRepo: "https://github.com/JeffreyXiang/CuMesh.git" },
+  { name: "FlexGEMM", install: "flexgemm", requiresCuda: true, gitRepo: "https://github.com/JeffreyXiang/FlexGEMM.git" },
+  { name: "o-voxel", install: "o-voxel", requiresCuda: true, subdir: "extensions/o-voxel" },
+];
 
 interface TrellisState {
   installed: boolean;
@@ -48,7 +79,18 @@ interface TrellisState {
   installProgress: number;
   error?: string;
   runtimeDependencies: RuntimeDependencyState;
+  environment: TrellisEnvironment;
+  extensions: Record<string, boolean>;
+  weightsDownloaded: boolean;
 }
+
+const DEFAULT_ENVIRONMENT: TrellisEnvironment = {
+  platform: "cpu-only",
+  gpu: null,
+  cudaVersion: null,
+  meetsRequirements: false,
+  missingRequirements: [],
+};
 
 let state: TrellisState = {
   installed: false,
@@ -61,6 +103,9 @@ let state: TrellisState = {
     python3: undefined,
     pip3: undefined,
   },
+  environment: { ...DEFAULT_ENVIRONMENT },
+  extensions: {},
+  weightsDownloaded: false,
 };
 
 const startupInitialization = initializeTrellisState();
@@ -77,12 +122,19 @@ async function initializeTrellisState(): Promise<void> {
         ...state.runtimeDependencies,
         ...(data.runtimeDependencies ?? {}),
       },
+      environment: {
+        ...DEFAULT_ENVIRONMENT,
+        ...(data.environment ?? {}),
+      },
+      extensions: data.extensions ?? {},
+      weightsDownloaded: data.weightsDownloaded ?? false,
     };
   } catch {
     // First run — no status file yet
   }
 
   await refreshRuntimeDependencies().catch(() => undefined);
+  await detectEnvironmentCapabilities().catch(() => undefined);
 }
 
 async function persistStatus(): Promise<void> {
@@ -102,6 +154,9 @@ export function getTrellisStatus(): TrellisStatusResponse {
     version: state.version,
     installing: state.installing,
     installProgress: state.installProgress,
+    environment: state.environment,
+    extensions: state.extensions,
+    weightsDownloaded: state.weightsDownloaded,
   };
 }
 
@@ -120,9 +175,79 @@ export function startTrellisInstall(log: FastifyBaseLogger): void {
   });
 }
 
-/**
- * Check whether a directory looks like a valid TRELLIS git repo.
- */
+/* ------------------------------------------------------------------ */
+/*  Environment capability detection                                   */
+/* ------------------------------------------------------------------ */
+
+async function detectEnvironmentCapabilities(log?: FastifyBaseLogger): Promise<void> {
+  const env: TrellisEnvironment = {
+    platform: "cpu-only",
+    gpu: null,
+    cudaVersion: null,
+    meetsRequirements: false,
+    missingRequirements: [],
+  };
+
+  // Check nvidia-smi for GPU info
+  try {
+    const gpuInfo = await runCommandCapture(
+      "nvidia-smi",
+      ["--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+      log,
+    );
+    const line = gpuInfo.trim().split("\n")[0];
+    if (line) {
+      const [name, vramMB] = line.split(",").map((s) => s.trim());
+      const vramGB = Math.round(Number(vramMB) / 1024);
+      env.gpu = `${name} (${vramGB}GB)`;
+      env.platform = "cuda";
+      if (vramGB < 24) {
+        env.missingRequirements.push(`GPU VRAM too low: ${vramGB}GB detected, 24GB+ required`);
+      }
+      log?.info({ gpu: env.gpu, vramGB }, "GPU detected");
+    }
+  } catch {
+    env.gpu = null;
+    env.missingRequirements.push("NVIDIA GPU with 24GB+ VRAM");
+    log?.info("No NVIDIA GPU detected (nvidia-smi not available)");
+  }
+
+  // Check CUDA toolkit (nvcc)
+  try {
+    const nvccOutput = await runCommandCapture("nvcc", ["--version"], log);
+    const match = nvccOutput.match(/release (\d+\.\d+)/);
+    if (match) {
+      env.cudaVersion = match[1];
+      log?.info({ cudaVersion: env.cudaVersion }, "CUDA Toolkit detected");
+    }
+  } catch {
+    env.cudaVersion = null;
+    env.missingRequirements.push("CUDA Toolkit (recommended 12.4)");
+    log?.info("No CUDA Toolkit detected (nvcc not available)");
+  }
+
+  // Check disk space on TRELLIS_ROOT parent
+  try {
+    const dfOutput = await runCommandCapture(SHELL_PATH, ["-c", `df -BG "${TRELLIS_ROOT}" 2>/dev/null | tail -1 | awk '{print $4}'`], log);
+    const availGB = parseInt(dfOutput.replace("G", ""), 10);
+    if (!isNaN(availGB) && availGB < 20) {
+      env.missingRequirements.push(`Low disk space: ${availGB}GB available, 20GB+ recommended`);
+    }
+  } catch {
+    // non-critical
+  }
+
+  env.meetsRequirements = env.missingRequirements.length === 0;
+  state.environment = env;
+  state.gpu = env.platform === "cuda";
+
+  await persistStatus();
+}
+
+/* ------------------------------------------------------------------ */
+/*  Installation pipeline                                              */
+/* ------------------------------------------------------------------ */
+
 async function isValidRepo(path: string): Promise<boolean> {
   try {
     const gitDir = await stat(resolve(path, ".git"));
@@ -135,74 +260,307 @@ async function isValidRepo(path: string): Promise<boolean> {
 async function doInstall(log: FastifyBaseLogger): Promise<void> {
   await startupInitialization;
   await refreshRuntimeDependencies(log);
+  await detectEnvironmentCapabilities(log);
 
   const gitPath = await requireRuntimeBinary("git", log);
   const python3Path = await requireRuntimeBinary("python3", log);
   await requireRuntimeBinary("pip3", log);
 
-  log.info({ root: TRELLIS_ROOT, runtimeDependencies: state.runtimeDependencies }, "Starting TRELLIS installation");
+  log.info(
+    {
+      root: TRELLIS_ROOT,
+      runtimeDependencies: state.runtimeDependencies,
+      environment: state.environment,
+    },
+    "Starting TRELLIS installation",
+  );
+
+  if (!state.environment.meetsRequirements) {
+    log.warn(
+      { missingRequirements: state.environment.missingRequirements },
+      "⚠ Environment does NOT meet full TRELLIS.2 requirements — " +
+      "installation will proceed with best-effort but generation may not work. " +
+      "Full runtime requires: Linux + NVIDIA GPU (24GB+ VRAM) + CUDA Toolkit 12.4",
+    );
+  }
 
   await mkdir(TRELLIS_ROOT, { recursive: true });
   await mkdir(WORKSPACE_PATH, { recursive: true });
+  await mkdir(WEIGHTS_PATH, { recursive: true });
 
-  state.installProgress = 10;
+  // Step 1/6: Clone with --recursive (required for submodules like o-voxel)
+  state.installProgress = 5;
+  await persistStatus();
   if (await isValidRepo(REPO_PATH)) {
-    log.info("Step 1/4: Repository already exists — skipping clone");
+    log.info("Step 1/6: Repository already exists — skipping clone");
   } else {
     try {
       const repoStat = await stat(REPO_PATH).catch(() => null);
       if (repoStat) {
-        log.warn("Step 1/4: Invalid repo directory found — removing and re-cloning");
+        log.warn("Step 1/6: Invalid repo directory found — removing and re-cloning");
         await rm(REPO_PATH, { recursive: true, force: true });
       }
     } catch {
       // ignore cleanup errors
     }
 
-    log.info({ gitPath }, "Step 1/4: Cloning TRELLIS.2 repository");
+    log.info({ gitPath }, "Step 1/6: Cloning TRELLIS.2 repository (--recursive for submodules)");
     await runCommand(
       gitPath,
-      ["clone", "--depth", "1", "https://github.com/microsoft/TRELLIS.2.git", REPO_PATH],
+      ["clone", "--recursive", "--depth", "1", "https://github.com/microsoft/TRELLIS.2.git", REPO_PATH],
       log,
       TRELLIS_TIMEOUT,
       TRELLIS_ROOT,
     );
   }
 
-  state.installProgress = 30;
+  // Step 2/6: Create virtual environment
+  state.installProgress = 15;
+  await persistStatus();
   const venvPython = resolve(VENV_PATH, "bin/python");
   const venvExists = await stat(venvPython).catch(() => null);
   if (venvExists) {
-    log.info("Step 2/4: Virtual environment already exists — skipping");
+    log.info("Step 2/6: Virtual environment already exists — skipping");
   } else {
-    log.info({ python3Path }, "Step 2/4: Creating Python virtual environment");
+    log.info({ python3Path }, "Step 2/6: Creating Python virtual environment");
     await runCommand(python3Path, ["-m", "venv", VENV_PATH], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
   }
 
-  state.installProgress = 50;
-  log.info("Step 3/5: Installing basic dependencies");
   const venvPip = await requireExecutable(resolve(VENV_PATH, "bin/pip"), "TRELLIS virtual environment pip");
-  await installRepoDependencies(venvPip, REPO_PATH, log);
 
-  state.installProgress = 70;
-  log.info("Step 4/5: Attempting GPU extensions");
-  await installGpuExtensions(venvPip, log);
+  // Step 3/6: Install PyTorch with correct index URL
+  state.installProgress = 25;
+  await persistStatus();
+  log.info("Step 3/6: Installing PyTorch");
+  await installPyTorch(venvPip, log);
 
-  state.installProgress = 90;
-  log.info("Step 5/5: Downloading model weights");
-  // TODO: Implement actual weight download when TRELLIS.2 docs clarify the method
+  // Step 4/6: Install basic dependencies (mirrors setup.sh --basic)
+  state.installProgress = 45;
+  await persistStatus();
+  log.info("Step 4/6: Installing basic dependencies (setup.sh --basic)");
+  await installBasicDependencies(venvPip, REPO_PATH, log);
 
-  const runtimePython = await requireExecutable(resolve(VENV_PATH, "bin/python"), "TRELLIS virtual environment python");
+  // Step 5/6: Install CUDA extensions (each may fail gracefully)
+  state.installProgress = 65;
+  await persistStatus();
+  log.info("Step 5/6: Installing CUDA extensions");
+  await installCudaExtensions(venvPip, gitPath, REPO_PATH, log);
+
+  // Step 6/6: Download pretrained weights
+  state.installProgress = 85;
+  await persistStatus();
+  log.info("Step 6/6: Downloading pretrained model weights");
+  await downloadWeights(venvPip, log);
+
+  // Finalize
+  const runtimePython = await requireExecutable(venvPython, "TRELLIS virtual environment python");
   state.installed = true;
   state.installing = false;
   state.installProgress = 100;
   state.version = "2.0";
   state.error = undefined;
-  state.gpu = await detectGpu(log, runtimePython);
+
+  // Re-check GPU via PyTorch
+  state.gpu = await detectGpuViaPyTorch(log, runtimePython);
 
   await persistStatus();
-  log.info({ gpu: state.gpu, runtimeDependencies: state.runtimeDependencies }, "TRELLIS installation complete");
+  log.info(
+    {
+      gpu: state.gpu,
+      environment: state.environment,
+      extensions: state.extensions,
+      weightsDownloaded: state.weightsDownloaded,
+    },
+    "TRELLIS installation complete",
+  );
 }
+
+/* ------------------------------------------------------------------ */
+/*  PyTorch installation                                               */
+/* ------------------------------------------------------------------ */
+
+async function installPyTorch(pipPath: string, log: FastifyBaseLogger): Promise<void> {
+  const platform = state.environment.platform;
+  const args = ["install", "torch==2.6.0", "torchvision==0.21.0"];
+
+  if (platform === "cuda") {
+    // Use CUDA 12.4 index
+    args.push("--index-url", "https://download.pytorch.org/whl/cu124");
+    log.info("Installing PyTorch with CUDA 12.4 support");
+  } else {
+    // CPU-only build (much smaller download)
+    args.push("--index-url", "https://download.pytorch.org/whl/cpu");
+    log.info("Installing PyTorch CPU-only build (no CUDA detected)");
+  }
+
+  await runCommand(pipPath, args, log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Basic dependency installation (mirrors setup.sh --basic)           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Basic dependencies from the official TRELLIS.2 setup.sh --basic target.
+ * Split into batches to isolate failures and provide clear logging.
+ */
+const TRELLIS_BASIC_DEPS: string[][] = [
+  // Batch 1: core utilities
+  ["imageio", "imageio-ffmpeg", "tqdm", "easydict", "ninja", "trimesh", "zstandard"],
+  // Batch 2: ML/vision
+  ["opencv-python-headless", "transformers", "pandas", "lpips"],
+  // Batch 3: web UI (pinned version from setup.sh)
+  ["gradio==6.0.1", "tensorboard"],
+  // Batch 4: deep learning utilities
+  ["kornia", "timm"],
+  // Batch 5: utils3d from git (pinned commit from setup.sh)
+  ["git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f"],
+];
+
+async function installBasicDependencies(pipPath: string, repoPath: string, log: FastifyBaseLogger): Promise<void> {
+  // First upgrade pip itself
+  try {
+    await runCommand(pipPath, ["install", "--upgrade", "pip"], log, TRELLIS_TIMEOUT, repoPath);
+  } catch {
+    log.warn("pip upgrade failed — continuing with existing version");
+  }
+
+  for (let i = 0; i < TRELLIS_BASIC_DEPS.length; i++) {
+    const batch = TRELLIS_BASIC_DEPS[i];
+    log.info({ batch: i + 1, total: TRELLIS_BASIC_DEPS.length, packages: batch }, "Installing basic dependency batch");
+    await runCommand(pipPath, ["install", ...batch], log, TRELLIS_TIMEOUT, repoPath);
+  }
+
+  // Try to install pillow-simd for performance (falls back to pillow)
+  try {
+    log.info("Attempting pillow-simd install (performance optimization)");
+    await runCommand(pipPath, ["install", "pillow-simd"], log, TRELLIS_TIMEOUT, repoPath);
+  } catch {
+    log.info("pillow-simd not available — standard Pillow will be used");
+  }
+
+  // Install the TRELLIS repo itself if it has a pyproject.toml
+  if (await fileExists(resolve(repoPath, "pyproject.toml"))) {
+    log.info("Installing TRELLIS repo as editable package (pyproject.toml found)");
+    await runCommand(pipPath, ["install", "-e", "."], log, TRELLIS_TIMEOUT, repoPath);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  CUDA extensions (each may fail gracefully)                         */
+/* ------------------------------------------------------------------ */
+
+async function installCudaExtensions(
+  pipPath: string,
+  gitPath: string,
+  repoPath: string,
+  log: FastifyBaseLogger,
+): Promise<void> {
+  const hasCuda = state.environment.platform === "cuda" && state.environment.cudaVersion !== null;
+
+  if (!hasCuda) {
+    log.warn(
+      "Skipping ALL CUDA extensions — no CUDA toolkit detected. " +
+      "TRELLIS.2 requires nvdiffrast, nvdiffrec, CuMesh, FlexGEMM, o-voxel, and flash-attn " +
+      "which all need CUDA to compile. Generation will NOT work without these.",
+    );
+    for (const ext of CUDA_EXTENSIONS) {
+      state.extensions[ext.name] = false;
+    }
+    await persistStatus();
+    return;
+  }
+
+  const extBuildDir = resolve(TRELLIS_ROOT, "_ext_build");
+  await mkdir(extBuildDir, { recursive: true });
+
+  for (const ext of CUDA_EXTENSIONS) {
+    try {
+      log.info({ extension: ext.name, requiresCuda: ext.requiresCuda }, "Installing CUDA extension");
+
+      if (ext.subdir) {
+        // Build from repo submodule (e.g. o-voxel)
+        const subPath = resolve(repoPath, ext.subdir);
+        if (await fileExists(resolve(subPath, "setup.py")) || await fileExists(resolve(subPath, "pyproject.toml"))) {
+          await runCommand(pipPath, ["install", "."], log, TRELLIS_TIMEOUT, subPath);
+        } else {
+          throw new Error(`No setup.py or pyproject.toml found in ${ext.subdir}`);
+        }
+      } else if (ext.gitRepo) {
+        // Clone and build from external git repo
+        const extDir = resolve(extBuildDir, ext.name);
+        if (!(await isValidRepo(extDir))) {
+          await rm(extDir, { recursive: true, force: true }).catch(() => undefined);
+          await runCommand(gitPath, ["clone", "--depth", "1", ext.gitRepo, extDir], log, TRELLIS_TIMEOUT, extBuildDir);
+        }
+        await runCommand(pipPath, ["install", "."], log, TRELLIS_TIMEOUT, extDir);
+      } else {
+        // Direct pip install (e.g. flash-attn)
+        await runCommand(pipPath, ["install", ext.install], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
+      }
+
+      state.extensions[ext.name] = true;
+      log.info({ extension: ext.name }, "CUDA extension installed successfully");
+    } catch (err) {
+      state.extensions[ext.name] = false;
+      log.warn(
+        { extension: ext.name, error: err instanceof Error ? err.message : String(err) },
+        "CUDA extension install failed — skipping (generation may not work)",
+      );
+    }
+
+    await persistStatus();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Pretrained model weights                                           */
+/* ------------------------------------------------------------------ */
+
+async function downloadWeights(pipPath: string, log: FastifyBaseLogger): Promise<void> {
+  try {
+    // Ensure huggingface-hub is installed
+    await runCommand(pipPath, ["install", "huggingface-hub"], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
+
+    const venvPython = resolve(VENV_PATH, "bin/python");
+    const downloadScript = `
+import os
+from huggingface_hub import snapshot_download
+target = os.environ.get("TRELLIS_WEIGHTS_PATH", "${WEIGHTS_PATH}")
+print(f"Downloading TRELLIS.2-4B weights to {target}")
+snapshot_download(
+    repo_id="microsoft/TRELLIS.2-4B",
+    local_dir=target,
+    ignore_patterns=["*.md", "*.txt", ".gitattributes"],
+)
+print("Weight download complete")
+`;
+
+    await runCommand(
+      venvPython,
+      ["-c", downloadScript],
+      log,
+      TRELLIS_TIMEOUT * 5, // weights can be very large — allow 25 min
+      TRELLIS_ROOT,
+    );
+
+    state.weightsDownloaded = true;
+    log.info({ path: WEIGHTS_PATH }, "Pretrained weights downloaded successfully");
+  } catch (err) {
+    state.weightsDownloaded = false;
+    log.warn(
+      { error: err instanceof Error ? err.message : String(err) },
+      "Failed to download pretrained weights — model will not be able to generate. " +
+      "You may need to download weights manually or ensure network access to huggingface.co",
+    );
+  }
+
+  await persistStatus();
+}
+
+/* ------------------------------------------------------------------ */
+/*  Runtime binary resolution                                          */
+/* ------------------------------------------------------------------ */
 
 async function refreshRuntimeDependencies(log?: FastifyBaseLogger): Promise<void> {
   for (const binary of RUNTIME_BINARY_NAMES) {
@@ -310,120 +668,67 @@ async function requireExecutable(path: string, label: string): Promise<string> {
 /**
  * Detect GPU availability via PyTorch CUDA check.
  */
-async function detectGpu(log: FastifyBaseLogger, pythonPath: string): Promise<boolean> {
+async function detectGpuViaPyTorch(log: FastifyBaseLogger, pythonPath: string): Promise<boolean> {
   try {
     await runCommand(pythonPath, ["-c", "import torch; assert torch.cuda.is_available()"], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
-    log.info("GPU detected — TRELLIS will use CUDA acceleration");
+    log.info("GPU detected via PyTorch — TRELLIS will use CUDA acceleration");
     return true;
   } catch {
-    log.warn("No GPU detected — TRELLIS will run in CPU mode (slower)");
+    log.warn("No GPU detected via PyTorch — TRELLIS will run in CPU mode (slower)");
     return false;
   }
 }
 
 /* ------------------------------------------------------------------ */
-/*  Multi-strategy dependency installer                               */
+/*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-type InstallStrategy = "setup-sh" | "requirements-txt" | "pyproject" | "unknown";
 
 async function fileExists(path: string): Promise<boolean> {
   try { await access(path); return true; } catch { return false; }
 }
 
-async function detectInstallStrategy(repoPath: string, log: FastifyBaseLogger): Promise<InstallStrategy> {
-  const checks: [string, InstallStrategy][] = [
-    [resolve(repoPath, "setup.sh"), "setup-sh"],
-    [resolve(repoPath, "requirements.txt"), "requirements-txt"],
-    [resolve(repoPath, "pyproject.toml"), "pyproject"],
-    [resolve(repoPath, "setup.py"), "pyproject"],
-  ];
-
-  for (const [path, strategy] of checks) {
-    if (await fileExists(path)) {
-      log.info({ strategy, path }, "Detected TRELLIS install strategy");
-      return strategy;
-    }
-  }
-
-  log.error({ repoPath }, "No recognized install method found in TRELLIS repo");
-  return "unknown";
-}
-
 /**
- * TRELLIS.2 basic dependencies — mirrors `setup.sh --basic`.
- * Split into batches to isolate failures and provide clear progress.
+ * Run a shell command and capture stdout (for detection/probing).
  */
-const TRELLIS_BASIC_DEPS = [
-  // Batch 1: core utilities
-  ["imageio", "imageio-ffmpeg", "tqdm", "easydict", "ninja", "trimesh", "zstandard"],
-  // Batch 2: ML/vision
-  ["opencv-python-headless", "transformers", "pandas", "lpips"],
-  // Batch 3: deep learning utilities
-  ["kornia", "timm"],
-  // Batch 4: utils3d from git (pinned commit)
-  ["git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f"],
-];
+function runCommandCapture(
+  commandPath: string,
+  args: string[],
+  log?: FastifyBaseLogger,
+  timeout = 15_000,
+): Promise<string> {
+  return new Promise((resolveP, reject) => {
+    let proc: ChildProcess;
+    let stdout = "";
+    let killed = false;
 
-async function installRepoDependencies(pipPath: string, repoPath: string, log: FastifyBaseLogger): Promise<void> {
-  const strategy = await detectInstallStrategy(repoPath, log);
-
-  switch (strategy) {
-    case "setup-sh": {
-      log.info("Using TRELLIS.2 setup.sh strategy — installing basic deps via pip batches");
-      for (let i = 0; i < TRELLIS_BASIC_DEPS.length; i++) {
-        const batch = TRELLIS_BASIC_DEPS[i];
-        log.info({ batch: i + 1, total: TRELLIS_BASIC_DEPS.length, packages: batch }, "Installing dependency batch");
-        await runCommand(pipPath, ["install", ...batch], log, TRELLIS_TIMEOUT, repoPath);
-      }
-      // Install the repo itself if it has a pyproject.toml alongside setup.sh
-      if (await fileExists(resolve(repoPath, "pyproject.toml"))) {
-        log.info("Also installing repo as editable package (pyproject.toml found)");
-        await runCommand(pipPath, ["install", "-e", "."], log, TRELLIS_TIMEOUT, repoPath);
-      }
-      break;
-    }
-
-    case "requirements-txt": {
-      log.info("Using requirements.txt strategy");
-      await runCommand(pipPath, ["install", "-r", resolve(repoPath, "requirements.txt")], log, TRELLIS_TIMEOUT, repoPath);
-      break;
-    }
-
-    case "pyproject": {
-      log.info("Using pyproject.toml / setup.py strategy — pip install -e .");
-      await runCommand(pipPath, ["install", "-e", "."], log, TRELLIS_TIMEOUT, repoPath);
-      break;
-    }
-
-    case "unknown":
-      throw new Error(
-        `TRELLIS repo at ${repoPath} has no recognized install method. ` +
-        `Expected one of: setup.sh, requirements.txt, pyproject.toml, setup.py. ` +
-        `The repository may have changed its structure.`
-      );
-  }
-}
-
-/**
- * Attempt to install GPU-accelerated extensions.
- * These require CUDA toolkit and will gracefully skip on failure.
- */
-async function installGpuExtensions(pipPath: string, log: FastifyBaseLogger): Promise<void> {
-  const gpuPackages = ["flash-attn"];
-
-  for (const pkg of gpuPackages) {
     try {
-      log.info({ package: pkg }, "Attempting GPU extension install");
-      await runCommand(pipPath, ["install", pkg], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
-      log.info({ package: pkg }, "GPU extension installed successfully");
+      proc = spawn(commandPath, args, { stdio: ["ignore", "pipe", "pipe"] });
     } catch (err) {
-      log.warn(
-        { package: pkg, error: err instanceof Error ? err.message : String(err) },
-        "GPU extension install failed (expected on CPU-only systems) — skipping"
-      );
+      reject(new Error(`Failed to spawn: ${commandPath} — ${err instanceof Error ? err.message : String(err)}`));
+      return;
     }
-  }
+
+    proc.stdout?.on("data", (chunk: Buffer) => { stdout += chunk.toString(); });
+    proc.stderr?.on("data", () => { /* discard */ });
+
+    const timer = setTimeout(() => {
+      killed = true;
+      proc.kill("SIGTERM");
+      reject(new Error(`Command timed out: ${commandPath}`));
+    }, timeout);
+
+    proc.on("close", (code) => {
+      clearTimeout(timer);
+      if (killed) return;
+      if (code === 0) resolveP(stdout);
+      else reject(new Error(`Command failed (exit ${code}): ${commandPath}`));
+    });
+
+    proc.on("error", (err) => {
+      clearTimeout(timer);
+      reject(new Error(`Command error: ${commandPath} — ${err.message}`));
+    });
+  });
 }
 
 /**
@@ -505,6 +810,13 @@ export async function generateWithTrellis(
 
   if (!state.installed) {
     throw new Error("TRELLIS engine is not installed. Please install it first via the UI.");
+  }
+
+  if (!state.environment.meetsRequirements) {
+    log.warn(
+      { missingRequirements: state.environment.missingRequirements },
+      "Environment does not meet full TRELLIS.2 requirements — generation may fail",
+    );
   }
 
   const outputPath = resolve(outputDir, "trellis_output.glb");
