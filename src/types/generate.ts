@@ -25,6 +25,7 @@ export interface GenerateJobResponse {
   };
   error?: string;
   canRetry?: boolean;
+  inputWarnings?: string[];
 }
 
 export interface TrellisStatusResponse {

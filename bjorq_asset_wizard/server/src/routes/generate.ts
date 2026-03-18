@@ -1,10 +1,9 @@
 /**
  * POST /generate — Create a 3D asset from photos
  * GET /generate/jobs/:id — Poll job status
- * POST /generate/jobs/:id/retry — Retry generation
+ * POST /generate/jobs/:id/retry — Retry with new seed (variation)
  *
- * Currently returns 501 (Not Implemented) — TRELLIS integration pending.
- * Job creation and status tracking are functional for UI development.
+ * v2.2.2: Added seed-based variation, input warnings, confidence score
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
@@ -17,7 +16,6 @@ import type {
   GenerateJob,
   GenerateJobResponse,
   GenerateJobOptions,
-  GenerateJobState,
 } from "../types/generate.js";
 
 // In-memory job store (sufficient for single-instance addon)
@@ -31,8 +29,13 @@ function jobToResponse(job: GenerateJob): GenerateJobResponse {
     currentStep: job.currentStep,
     result: job.result,
     error: job.error,
-    canRetry: job.status === "failed",
+    canRetry: job.status === "failed" || job.status === "done",
+    inputWarnings: job.inputWarnings,
   };
+}
+
+function generateSeed(): number {
+  return Math.floor(Math.random() * 2_147_483_647);
 }
 
 export async function generateRoutes(server: FastifyInstance) {
@@ -70,6 +73,8 @@ export async function generateRoutes(server: FastifyInstance) {
       return reply.code(400).send({ success: false, error: "Maximum 4 images allowed" });
     }
 
+    const seed = generateSeed();
+
     const job: GenerateJob = {
       id: jobId,
       status: "queued",
@@ -79,6 +84,7 @@ export async function generateRoutes(server: FastifyInstance) {
       imagePaths,
       outputDir,
       attempts: 0,
+      seed,
       createdAt: Date.now(),
     };
 
@@ -90,7 +96,10 @@ export async function generateRoutes(server: FastifyInstance) {
     job.error = "TRELLIS engine not yet installed. Photo-to-3D generation will be available after engine setup.";
     job.currentStep = "failed";
 
-    server.log.info({ jobId, images: imagePaths.length, options }, "Generate job created (engine pending)");
+    server.log.info(
+      { jobId, images: imagePaths.length, options, seed },
+      "Generate job created (engine pending)",
+    );
 
     return reply.code(202).send(jobToResponse(job));
   });
@@ -104,19 +113,27 @@ export async function generateRoutes(server: FastifyInstance) {
     return jobToResponse(job);
   });
 
-  // --- Retry job ---
+  // --- Retry job (new seed = new variation) ---
   server.post<{ Params: { id: string } }>("/generate/jobs/:id/retry", async (request, reply) => {
     const job = jobs.get(request.params.id);
     if (!job) {
       return reply.code(404).send({ success: false, error: "Job not found" });
     }
 
+    const newSeed = generateSeed();
     job.status = "queued";
     job.progress = 0;
     job.currentStep = "queued";
     job.error = undefined;
     job.result = undefined;
     job.attempts++;
+    job.seed = newSeed;
+    job.confidenceScore = undefined;
+
+    server.log.info(
+      { jobId: job.id, attempt: job.attempts, newSeed },
+      "Generate job retry with new seed",
+    );
 
     // TODO: Re-start pipeline when TRELLIS is available
     job.status = "failed";

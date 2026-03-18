@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { GENERATE_STEP_LABELS, type GenerateJobState, type GenerateJobResponse } from "@/types/generate";
@@ -102,6 +102,21 @@ export function GenerateProgress({ jobId, onComplete, onFailed }: GenerateProgre
           );
         })}
       </div>
+
+      {/* Input quality warnings */}
+      {job?.inputWarnings && job.inputWarnings.length > 0 && (
+        <div className="max-w-sm mx-auto rounded-md border border-border bg-muted/20 p-3 space-y-1">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <p className="text-xs font-medium text-muted-foreground">Image quality notes</p>
+          </div>
+          <ul className="text-xs text-muted-foreground ml-5 list-disc space-y-0.5">
+            {job.inputWarnings.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
