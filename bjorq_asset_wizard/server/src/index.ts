@@ -37,9 +37,11 @@ import { optimizeRoutes } from "./routes/optimize.js";
 import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
+import { generateRoutes } from "./routes/generate.js";
+import { trellisRoutes } from "./routes/trellis.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "2.0.9";
+const VERSION = "2.2.0";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
@@ -165,6 +167,8 @@ async function start() {
   await server.register(catalogRoutes);
   await server.register(syncRoutes);
   await server.register(importRoutes);
+  await server.register(generateRoutes);
+  await server.register(trellisRoutes);
 
   // --- SPA frontend serving ---
   // Check if public/index.html exists (frontend was built into the image)
@@ -198,7 +202,9 @@ async function start() {
         request.url.startsWith("/import") ||
         request.url.startsWith("/jobs/") ||
         request.url.startsWith("/libraries") ||
-        request.url.startsWith("/assets/")
+        request.url.startsWith("/assets/") ||
+        request.url.startsWith("/generate") ||
+        request.url.startsWith("/trellis")
       ) {
         return reply.code(404).send({ success: false, error: "Not found" });
       }
