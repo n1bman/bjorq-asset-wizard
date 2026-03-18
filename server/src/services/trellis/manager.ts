@@ -1,23 +1,36 @@
 /**
- * TRELLIS Engine Manager (v2.2.1)
+ * TRELLIS Engine Manager (v2.3.5)
  *
  * Manages the lifecycle of the TRELLIS.2 3D generation engine:
  * - Installation (clone, venv, deps, weights)
  * - Subprocess execution with retry and timeout safety
  * - Status tracking with GPU detection
  *
+ * Directory layout under TRELLIS_ROOT (/data/trellis):
+ *   status.json   — persisted state (always safe to write)
+ *   repo/         — git clone of TRELLIS.2 source
+ *   venv/         — Python virtual environment
+ *   workspace/    — scratch space for generation runs
+ *
  * TRELLIS is NOT assumed to have an HTTP API — we run it as a subprocess
  * with structured CLI inputs and outputs.
  */
 
-import { access, readFile, writeFile, mkdir, stat } from "node:fs/promises";
+import { access, readFile, writeFile, mkdir, stat, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
 import type { FastifyBaseLogger } from "fastify";
 import type { TrellisStatusResponse } from "../../types/generate.js";
 
-const TRELLIS_PATH = resolve(process.env.TRELLIS_PATH || "/data/trellis");
-const STATUS_FILE = resolve(TRELLIS_PATH, "status.json");
+/** Root directory for all TRELLIS data (state, repo, venv, workspace). */
+const TRELLIS_ROOT = resolve(process.env.TRELLIS_PATH || "/data/trellis");
+
+/** Sub-paths under TRELLIS_ROOT */
+const REPO_PATH = resolve(TRELLIS_ROOT, "repo");
+const VENV_PATH = resolve(TRELLIS_ROOT, "venv");
+const WORKSPACE_PATH = resolve(TRELLIS_ROOT, "workspace");
+const STATUS_FILE = resolve(TRELLIS_ROOT, "status.json");
+
 const TRELLIS_TIMEOUT = Number(process.env.TRELLIS_TIMEOUT || 120) * 1000;
 const TRELLIS_MAX_RETRIES = Number(process.env.TRELLIS_MAX_RETRIES || 2);
 
@@ -52,7 +65,7 @@ let state: TrellisState = {
 
 async function persistStatus(): Promise<void> {
   try {
-    await mkdir(TRELLIS_PATH, { recursive: true });
+    await mkdir(TRELLIS_ROOT, { recursive: true });
     await writeFile(STATUS_FILE, JSON.stringify(state, null, 2));
   } catch {
     // non-critical
@@ -86,26 +99,60 @@ export function startTrellisInstall(log: FastifyBaseLogger): void {
   });
 }
 
+/**
+ * Check whether a directory looks like a valid TRELLIS git repo.
+ */
+async function isValidRepo(path: string): Promise<boolean> {
+  try {
+    const gitDir = await stat(resolve(path, ".git"));
+    return gitDir.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 async function doInstall(log: FastifyBaseLogger): Promise<void> {
-  log.info({ path: TRELLIS_PATH }, "Starting TRELLIS installation");
+  log.info({ root: TRELLIS_ROOT }, "Starting TRELLIS installation");
 
-  await mkdir(TRELLIS_PATH, { recursive: true });
+  // Ensure all subdirectories exist
+  await mkdir(TRELLIS_ROOT, { recursive: true });
+  await mkdir(WORKSPACE_PATH, { recursive: true });
 
-  // Step 1: Clone repository
+  // Step 1: Clone repository (idempotent)
   state.installProgress = 10;
-  log.info("Step 1/4: Cloning TRELLIS.2 repository");
-  await runCommand("git", ["clone", "--depth", "1", "https://github.com/microsoft/TRELLIS.2.git", TRELLIS_PATH], log);
+  if (await isValidRepo(REPO_PATH)) {
+    log.info("Step 1/4: Repository already exists — skipping clone");
+  } else {
+    // If path exists but is not a valid repo, clean it up first
+    try {
+      const repoStat = await stat(REPO_PATH).catch(() => null);
+      if (repoStat) {
+        log.warn("Step 1/4: Invalid repo directory found — removing and re-cloning");
+        await rm(REPO_PATH, { recursive: true, force: true });
+      }
+    } catch {
+      // ignore cleanup errors
+    }
+    log.info("Step 1/4: Cloning TRELLIS.2 repository");
+    await runCommand("git", ["clone", "--depth", "1", "https://github.com/microsoft/TRELLIS.2.git", REPO_PATH], log);
+  }
 
-  // Step 2: Create Python virtual environment
+  // Step 2: Create Python virtual environment (idempotent)
   state.installProgress = 30;
-  log.info("Step 2/4: Creating Python virtual environment");
-  await runCommand("python3", ["-m", "venv", resolve(TRELLIS_PATH, "venv")], log);
+  const venvPython = resolve(VENV_PATH, "bin/python");
+  const venvExists = await stat(venvPython).catch(() => null);
+  if (venvExists) {
+    log.info("Step 2/4: Virtual environment already exists — skipping");
+  } else {
+    log.info("Step 2/4: Creating Python virtual environment");
+    await runCommand("python3", ["-m", "venv", VENV_PATH], log);
+  }
 
   // Step 3: Install dependencies
   state.installProgress = 50;
   log.info("Step 3/4: Installing dependencies");
-  const pip = resolve(TRELLIS_PATH, "venv/bin/pip");
-  await runCommand(pip, ["install", "-r", resolve(TRELLIS_PATH, "requirements.txt")], log);
+  const pip = resolve(VENV_PATH, "bin/pip");
+  await runCommand(pip, ["install", "-r", resolve(REPO_PATH, "requirements.txt")], log);
 
   // Step 4: Download model weights
   state.installProgress = 80;
@@ -149,7 +196,7 @@ function runCommand(cmd: string, args: string[], log: FastifyBaseLogger, timeout
 
     try {
       proc = spawn(cmd, args, {
-        cwd: TRELLIS_PATH,
+        cwd: REPO_PATH,
         stdio: ["ignore", "pipe", "pipe"],
       });
     } catch (err) {
@@ -161,7 +208,6 @@ function runCommand(cmd: string, args: string[], log: FastifyBaseLogger, timeout
 
     proc.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString();
-      // Cap stderr to prevent memory issues
       if (stderr.length > 10_000) stderr = stderr.slice(-5_000);
     });
 
@@ -178,7 +224,7 @@ function runCommand(cmd: string, args: string[], log: FastifyBaseLogger, timeout
 
     proc.on("close", (code) => {
       clearTimeout(timer);
-      if (killed) return; // already rejected
+      if (killed) return;
       if (code === 0) resolveP();
       else reject(new Error(`Command failed (exit ${code}): ${cmd} ${args.join(" ")}\n${stderr.slice(-500)}`));
     });
@@ -193,10 +239,6 @@ function runCommand(cmd: string, args: string[], log: FastifyBaseLogger, timeout
 /**
  * Generate a 3D mesh from images using TRELLIS subprocess.
  * Includes automatic retry on failure and output validation.
- *
- * @param imagePaths - Array of preprocessed image paths
- * @param outputDir - Directory for TRELLIS output
- * @returns Raw GLB buffer from TRELLIS
  */
 export async function generateWithTrellis(
   imagePaths: string[],
@@ -208,7 +250,7 @@ export async function generateWithTrellis(
   }
 
   const outputPath = resolve(outputDir, "trellis_output.glb");
-  const python = resolve(TRELLIS_PATH, "venv/bin/python");
+  const python = resolve(VENV_PATH, "bin/python");
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= TRELLIS_MAX_RETRIES; attempt++) {
@@ -256,7 +298,6 @@ export async function generateWithTrellis(
       );
 
       if (attempt < TRELLIS_MAX_RETRIES) {
-        // Brief delay before retry
         await new Promise((r) => setTimeout(r, 3000));
       }
     }
