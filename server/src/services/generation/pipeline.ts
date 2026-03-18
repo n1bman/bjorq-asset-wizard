@@ -1,5 +1,5 @@
 /**
- * Photo → 3D Generation Pipeline (v2.3.0)
+ * Photo → 3D Generation Pipeline (v2.3.1)
  *
  * Orchestrates the full flow:
  *   1. Preprocess images (with input quality heuristics)
@@ -8,11 +8,16 @@
  *   4. Style + visual consistency validation + drift detection
  *   5. Optimization (existing V2 pipeline)
  *   6. Quality gate validation (with auto-fix escalation)
- *   7. Scene compatibility check + auto-fix
+ *   7. Scene compatibility check + auto-fix (BEFORE LOD generation)
  *   8. Category detection
- *   9. LOD generation
+ *   9. LOD generation (from scene-compatible buffer — preserves pivot/scale/floor)
  *  10. Confidence scoring + analytics
- *  11. Export GLB + thumbnail + metadata (with versioning)
+ *  11. Export GLB + thumbnail + metadata (with versioning + structured LOD info)
+ *
+ * LOD ARCHITECTURE NOTE:
+ * The Wizard addon only prepares, stores, and exposes LOD-ready variants and metadata.
+ * Runtime LOD selection belongs to the Bjorq Dashboard.
+ * Assets are always fully usable even if Dashboard ignores LOD metadata.
  */
 
 import type { FastifyBaseLogger } from "fastify";
@@ -185,9 +190,11 @@ export async function runGenerationPipeline(
     const categoryResult = await detectCategory(finalBuffer, log);
     pipelineLog.category = categoryResult.category;
 
-    // Step 8: LOD generation
+    // Step 8: LOD generation (from scene-compatible buffer)
+    // LODs are derived from finalBuffer which already has correct pivot/scale/floor.
+    // The Wizard only stores LOD variants — runtime LOD switching is Dashboard's job.
     job.progress = 86;
-    log.info({ jobId: job.id }, "Step 8: Generating LODs");
+    log.info({ jobId: job.id }, "Step 8: Generating LODs (from scene-compatible buffer)");
     const lodResult = await generateLODs(finalBuffer, job.outputDir, "output", log);
     pipelineLog.lodGenerated = !lodResult.skipped;
 
@@ -213,7 +220,7 @@ export async function runGenerationPipeline(
       log.warn({ err }, "Thumbnail generation failed — continuing without");
     }
 
-    // Metadata (with versioning support)
+    // Metadata (with versioning + structured LOD info for Dashboard consumption)
     const metadata = {
       style: job.options.style,
       variant,
@@ -229,13 +236,9 @@ export async function runGenerationPipeline(
       confidenceScore: confidence,
       category: categoryResult.category,
       categoryConfidence: categoryResult.confidence,
-      lods: lodResult.skipped
-        ? ["output.glb"]
-        : [
-            "output.glb",
-            ...(lodResult.lod1 ? ["output_lod1.glb"] : []),
-            ...(lodResult.lod2 ? ["output_lod2.glb"] : []),
-          ],
+      // Structured LOD metadata — Dashboard can use this to select appropriate detail level
+      // All LOD variants share identical pivot, scale, floor alignment, and orientation
+      lods: lodResult.variants,
       sceneCompatible: sceneResult.compatible,
       sceneFixes: sceneResult.fixes,
       driftScore: driftReport.score,

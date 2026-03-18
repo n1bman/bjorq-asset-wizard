@@ -1,15 +1,34 @@
 /**
- * LOD Generator (v2.3.0)
+ * LOD Generator (v2.3.1)
  *
  * Generates Level-of-Detail variants for generated assets.
  * LOD0 = primary optimized model (passthrough)
  * LOD1 = ~50% triangle reduction
  * LOD2 = ~20% triangle reduction
  *
+ * ARCHITECTURAL NOTE:
+ * The Wizard addon ONLY prepares, stores, and exposes LOD-ready asset variants
+ * and metadata. Runtime LOD selection and switching is the responsibility of
+ * the Bjorq Dashboard, which is the system that actually loads and renders 3D assets.
+ *
+ * LOD CONTRACT:
+ * - All LOD variants share the same pivot, scale, floor alignment, and orientation
+ *   as the primary model (LOD0). Scene compatibility is applied to the primary buffer
+ *   BEFORE LOD generation, and LODs are derived from that corrected geometry.
+ * - LOD metadata is stored alongside the asset for Dashboard consumption.
+ * - Assets remain fully usable even if Dashboard ignores LOD metadata entirely.
+ *
  * Skips LOD generation for already very light models (<2000 tris).
  */
 
 import type { FastifyBaseLogger } from "fastify";
+
+export interface LODVariant {
+  level: number;
+  file: string;
+  triangles: number;
+  fileSizeKB: number;
+}
 
 export interface LODSet {
   lod0: string; // path to primary model
@@ -17,6 +36,8 @@ export interface LODSet {
   lod2?: string;
   skipped: boolean;
   reason?: string;
+  /** Structured LOD metadata for asset storage and Dashboard consumption */
+  variants: LODVariant[];
 }
 
 const LOD_CONFIGS = [
@@ -28,7 +49,11 @@ const MIN_TRIANGLES_FOR_LOD = 2000;
 
 /**
  * Generate LOD variants from a primary GLB buffer.
- * Writes LOD files alongside the primary model.
+ *
+ * IMPORTANT: The primaryBuffer must already be scene-compatible (pivot centered,
+ * floor-aligned, scale-sane). LODs are derived via geometry-only simplification
+ * which preserves all node transforms, ensuring identical pivot, scale, floor
+ * alignment, and orientation across all variants.
  */
 export async function generateLODs(
   primaryBuffer: Uint8Array,
@@ -40,17 +65,27 @@ export async function generateLODs(
   const { writeFile } = await import("node:fs/promises");
 
   const primaryPath = resolve(outputDir, `${baseName}.glb`);
-  const result: LODSet = { lod0: primaryPath, skipped: false };
+  const primaryTriCount = await countTrianglesInBuffer(primaryBuffer);
 
-  // Count triangles to decide if LODs are worthwhile
-  const triCount = await countTrianglesInBuffer(primaryBuffer);
-  if (triCount < MIN_TRIANGLES_FOR_LOD) {
+  const result: LODSet = {
+    lod0: primaryPath,
+    skipped: false,
+    variants: [{
+      level: 0,
+      file: `${baseName}.glb`,
+      triangles: primaryTriCount,
+      fileSizeKB: Math.round(primaryBuffer.byteLength / 1024),
+    }],
+  };
+
+  // Skip LOD generation for already very light models
+  if (primaryTriCount < MIN_TRIANGLES_FOR_LOD) {
     log.info(
-      { triCount, threshold: MIN_TRIANGLES_FOR_LOD },
-      "Model too light for LOD generation — skipping",
+      { triCount: primaryTriCount, threshold: MIN_TRIANGLES_FOR_LOD },
+      "Model too light for LOD generation — skipping (asset remains fully usable without LODs)",
     );
     result.skipped = true;
-    result.reason = `Triangle count (${triCount}) below LOD threshold`;
+    result.reason = `Triangle count (${primaryTriCount}) below LOD threshold`;
     return result;
   }
 
@@ -63,9 +98,12 @@ export async function generateLODs(
 
   for (const config of LOD_CONFIGS) {
     try {
+      // Each LOD starts from the primary buffer to preserve transforms exactly
       const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
       const doc = await io.readBinary(primaryBuffer);
 
+      // Only simplify geometry — do NOT modify transforms, pivot, scale, or orientation.
+      // weld + simplify operate on vertex data only, preserving all node transforms.
       await doc.transform(
         weld({ tolerance: 0.001 }),
         simplify({ simplifier: MeshoptSimplifier, ratio: config.ratio, error: 0.05 }),
@@ -73,23 +111,35 @@ export async function generateLODs(
       );
 
       const lodBuffer = await io.writeBinary(doc);
-      const lodPath = resolve(outputDir, `${baseName}${config.suffix}.glb`);
+      const lodFileName = `${baseName}${config.suffix}.glb`;
+      const lodPath = resolve(outputDir, lodFileName);
       await writeFile(lodPath, lodBuffer);
+
+      const lodTriCount = await countTrianglesInBuffer(lodBuffer);
 
       if (config.level === 1) result.lod1 = lodPath;
       if (config.level === 2) result.lod2 = lodPath;
+
+      result.variants.push({
+        level: config.level,
+        file: lodFileName,
+        triangles: lodTriCount,
+        fileSizeKB: Math.round(lodBuffer.byteLength / 1024),
+      });
 
       log.info(
         {
           level: config.level,
           ratio: config.ratio,
+          inputTriangles: primaryTriCount,
+          outputTriangles: lodTriCount,
           inputSize: primaryBuffer.byteLength,
           outputSize: lodBuffer.byteLength,
         },
-        `LOD${config.level} generated`,
+        `LOD${config.level} generated (same pivot/scale/orientation as LOD0)`,
       );
     } catch (err) {
-      log.warn({ err, level: config.level }, `LOD${config.level} generation failed — skipping`);
+      log.warn({ err, level: config.level }, `LOD${config.level} generation failed — skipping (asset still usable without this LOD)`);
     }
   }
 

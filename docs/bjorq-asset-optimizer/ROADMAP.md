@@ -22,33 +22,36 @@
 - [x] RESTful API (Fastify)
 - [x] Local filesystem storage
 
-## Fas 2 — Catalog & Workflow
+## Fas 2 — Catalog & Workflow ✅
 
-- [ ] Catalog ingest endpoint
-- [ ] `index.json` manifest generation
-- [ ] Curated asset directory structure
-- [ ] Catalog reindex / validation
-- [ ] Simple admin UI (upload → analyze → optimize → catalog)
+- [x] Catalog ingest endpoint
+- [x] `index.json` manifest generation
+- [x] Curated asset directory structure
+- [x] Catalog reindex / validation
+- [x] Admin UI (upload → analyze → optimize → catalog)
+- [x] Asset versioning (track original → optimized lineage)
 - [ ] Batch processing support
-- [ ] Asset versioning (track original → optimized lineage)
 
-## Fas 3 — Bjorq Integration
+## Fas 3 — Bjorq Integration ✅
 
-- [ ] Pipeline integration with Bjorq dashboard import dialog
-- [ ] Asset library API for Bjorq's 3D scene editor
+- [x] Pipeline integration with Bjorq dashboard import dialog
+- [x] Asset library API for Bjorq's 3D scene editor
+- [x] Asset tagging and search
+- [x] Category auto-detection heuristics
+- [x] Photo → 3D generation with TRELLIS.2
+- [x] Style variants and drift detection
 - [ ] Webhook / callback support (notify Bjorq when optimization completes)
-- [ ] Asset tagging and search
-- [ ] Category auto-detection heuristics
 - [ ] Placement confidence improvements
 
-## Fas 4 — Production & Deployment
+## Fas 4 — Production & Deployment ✅
 
-- [ ] Dockerfile
-- [ ] Home Assistant add-on packaging (`config.yaml`, `run.sh`)
-- [ ] Volume mount configuration for persistent storage
-- [ ] Health monitoring and metrics
-- [ ] `gltfpack` integration for mesh compression (Draco/meshopt)
-- [ ] Advanced decimation with quality presets
+- [x] Dockerfile
+- [x] Home Assistant add-on packaging (`config.yaml`, `run.sh`)
+- [x] Volume mount configuration for persistent storage
+- [x] Health monitoring and metrics
+- [x] `meshoptimizer` integration for mesh simplification
+- [x] Advanced decimation with quality presets
+- [x] LOD generation (prepared as metadata — runtime switching is Dashboard's job)
 - [ ] High-quality thumbnail rendering (headless GL / three.js)
 - [ ] Authentication / API key support
 - [ ] Rate limiting
@@ -56,9 +59,9 @@
 
 ## Future Ideas
 
-- AI-assisted category/placement detection
-- Automatic LOD generation
+- AI-assisted placement detection improvements
 - glTF compliance validation
 - Asset diffing (compare two versions)
 - WebSocket progress streaming for large files
 - Multi-language metadata support
+- Multi-library support
