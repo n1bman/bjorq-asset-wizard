@@ -113,6 +113,17 @@ async function start() {
   // --- Storage initialization (must run BEFORE fastifyStatic) ---
   await initStorage();
 
+  // --- Runtime dependency check ---
+  const runtimeDeps = ["git", "python3", "pip3"];
+  for (const dep of runtimeDeps) {
+    try {
+      const ver = execSync(`${dep} --version`, { timeout: 5000 }).toString().trim();
+      server.log.info({ dep, version: ver }, `Runtime dependency OK: ${dep}`);
+    } catch {
+      server.log.warn({ dep }, `Runtime dependency MISSING: ${dep} — engine install will fail`);
+    }
+  }
+
   // --- Static file serving for job outputs ---
   await server.register(fastifyStatic, {
     root: resolve(STORAGE_PATH, "jobs"),

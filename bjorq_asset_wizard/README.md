@@ -77,7 +77,7 @@ docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19 -t bj
 2. **Remove** the repository URL
 3. Click **Reload** (top-right ⋮ menu)
 4. **Re-add** the repository URL
-5. Verify the correct version (**2.3.1**) appears before clicking Install
+5. Verify the correct version (**2.3.6**) appears before clicking Install
 
 ## Upload Limits
 
