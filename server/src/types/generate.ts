@@ -1,5 +1,5 @@
 /**
- * Bjorq Asset Wizard — Photo → 3D Generation Types (Backend)
+ * Bjorq Asset Wizard — Photo → 3D Generation Types (Backend) v2.2.2
  */
 
 export type GenerateJobState =
@@ -33,7 +33,12 @@ export interface GenerateJob {
   result?: GenerateJobResult;
   error?: string;
   attempts: number;
+  seed: number;
   createdAt: number;
+  /** Internal confidence score (0–1) — not exposed to user */
+  confidenceScore?: number;
+  /** Input quality warnings detected during preprocessing */
+  inputWarnings?: string[];
 }
 
 export interface GenerateJobResult {
@@ -50,6 +55,7 @@ export interface GenerateJobResponse {
   result?: GenerateJobResult;
   error?: string;
   canRetry?: boolean;
+  inputWarnings?: string[];
 }
 
 export interface TrellisStatusResponse {
