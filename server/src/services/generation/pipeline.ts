@@ -1,5 +1,5 @@
 /**
- * Photo → 3D Generation Pipeline (v2.3.0)
+ * Photo → 3D Generation Pipeline (v2.3.1)
  *
  * Orchestrates the full flow:
  *   1. Preprocess images (with input quality heuristics)
@@ -8,11 +8,16 @@
  *   4. Style + visual consistency validation + drift detection
  *   5. Optimization (existing V2 pipeline)
  *   6. Quality gate validation (with auto-fix escalation)
- *   7. Scene compatibility check + auto-fix
+ *   7. Scene compatibility check + auto-fix (BEFORE LOD generation)
  *   8. Category detection
- *   9. LOD generation
+ *   9. LOD generation (from scene-compatible buffer — preserves pivot/scale/floor)
  *  10. Confidence scoring + analytics
- *  11. Export GLB + thumbnail + metadata (with versioning)
+ *  11. Export GLB + thumbnail + metadata (with versioning + structured LOD info)
+ *
+ * LOD ARCHITECTURE NOTE:
+ * The Wizard addon only prepares, stores, and exposes LOD-ready variants and metadata.
+ * Runtime LOD selection belongs to the Bjorq Dashboard.
+ * Assets are always fully usable even if Dashboard ignores LOD metadata.
  */
 
 import type { FastifyBaseLogger } from "fastify";
