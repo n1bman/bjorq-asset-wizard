@@ -188,8 +188,8 @@ async function doInstall(log: FastifyBaseLogger): Promise<void> {
   log.info("Step 4/5: Attempting GPU extensions");
   await installGpuExtensions(venvPip, log);
 
-  state.installProgress = 80;
-  log.info("Step 4/4: Downloading model weights");
+  state.installProgress = 90;
+  log.info("Step 5/5: Downloading model weights");
   // TODO: Implement actual weight download when TRELLIS.2 docs clarify the method
 
   const runtimePython = await requireExecutable(resolve(VENV_PATH, "bin/python"), "TRELLIS virtual environment python");
