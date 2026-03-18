@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.9] — 2026-03-18
+
+### Changed
+- **TRELLIS installer matches official repo** — Clone now uses `--recursive` for submodules (o-voxel). Dependency installation mirrors official `setup.sh` structure: PyTorch with platform-appropriate index URL, basic deps in batches, 6 CUDA extensions (flash-attn, nvdiffrast, nvdiffrec, CuMesh, FlexGEMM, o-voxel) each built separately with graceful skip on failure. Pretrained weights downloaded via `huggingface-hub` from `microsoft/TRELLIS.2-4B`.
+- **Environment capability detection** — New `detectEnvironmentCapabilities()` probes for `nvidia-smi` (GPU name + VRAM), `nvcc` (CUDA Toolkit version), and disk space. Results exposed in `/trellis/status` response as `environment` object.
+- **Honest status reporting** — `TrellisStatusResponse` now includes `environment` (platform, GPU, CUDA, missing requirements), `extensions` (per-extension install status), and `weightsDownloaded`. UI shows clear warnings when requirements are not met and allows best-effort install with disclaimer.
+- **EngineStatus UI** — Shows detected platform, GPU, CUDA info. Lists missing requirements with recommendation to use external GPU worker. After install, shows per-extension and weights status with expandable details.
+
 ## [2.3.8] — 2026-03-18
 
 ### Fixed

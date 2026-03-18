@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, AlertTriangle, XCircle, Download, Loader2, Cpu, Zap, ShieldAlert, HardDrive, Box } from "lucide-react";
+import { CheckCircle2, XCircle, Download, Loader2, Cpu, Zap, ShieldAlert, HardDrive, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
