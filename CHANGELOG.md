@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.7] — 2026-03-18
+
+### Fixed
+- **TRELLIS spawn ENOENT fix** — Resolved `spawn git ENOENT` during engine install by resolving absolute binary paths (`/usr/bin/git`, `/usr/bin/python3`, `/usr/bin/pip3`) at startup and using them in all `child_process.spawn()` calls. Bare command names failed despite binaries being present due to PATH resolution issues in the HA container environment.
+
 ## [2.3.6] — 2026-03-18
 
 ### Fixed
