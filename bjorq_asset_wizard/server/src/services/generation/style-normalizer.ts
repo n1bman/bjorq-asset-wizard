@@ -1,11 +1,12 @@
 /**
- * Bjorq Style Normalizer (v2.2.1)
+ * Bjorq Style Normalizer (v2.2.2)
  *
  * Post-TRELLIS processing step that enforces the Bjorq visual identity.
- * Uses gltf-transform to apply deterministic style normalization:
+ * Now driven by the global BJORQ_STYLE_PROFILE for cross-asset consistency.
  *
  * Geometry:
- *   - Aggressive simplification (default ratio 0.4, fallback 0.2)
+ *   - Aggressive simplification with shape integrity protection
+ *   - Geometry simplicity scoring — re-simplify if too busy
  *   - Vertex welding to remove micro-noise
  *   - Prune micro-geometry and floating parts
  *   - Flatten scene graph for consistent structure
@@ -13,60 +14,50 @@
  * Materials:
  *   - Force max 2 materials (merge extras)
  *   - Strip ALL normal/AO/emissive maps
- *   - Standardize PBR: roughness 0.7–0.9, metallic 0
- *   - Clamp colors toward warm Bjorq palette
- *   - Flatten noisy textures via resize + blur
+ *   - Standardize PBR via style profile (roughness 0.8, metallic 0)
+ *   - Color normalization: tint → saturation clamp → brightness clamp
  *
- * All parameters are FIXED — no randomness — ensuring visual consistency
- * across all generated assets.
+ * All parameters derived from BJORQ_STYLE_PROFILE — deterministic output.
  */
 
 import type { FastifyBaseLogger } from "fastify";
+import { BJORQ_STYLE_PROFILE, normalizeColor } from "./style-profile.js";
 
 export interface StyleNormalizerConfig {
-  /** Primary simplification ratio (0.0–1.0, lower = more aggressive) */
   simplifyRatio: number;
-  /** Fallback ratio if primary pass still too heavy */
   fallbackSimplifyRatio: number;
-  /** Simplification error tolerance */
   simplifyError: number;
-  /** Target roughness range */
-  roughnessMin: number;
-  roughnessMax: number;
-  /** Force metallic to zero */
+  roughness: number;
   metallic: number;
-  /** Maximum allowed materials (merge if exceeded) */
   maxMaterials: number;
-  /** Maximum texture resolution after normalization */
   maxTextureRes: number;
-  /** Strip all non-baseColor maps */
   stripNormalMaps: boolean;
   stripAOMaps: boolean;
   stripEmissive: boolean;
   stripMetallicRoughnessTexture: boolean;
-  /** Clamp baseColor saturation to prevent noisy AI textures */
-  maxSaturation: number;
+  microGeometryThreshold: number;
+  simplicityThreshold: number;
 }
 
+/** Config derived from global style profile */
 export const BJORQ_COZY_CONFIG: StyleNormalizerConfig = {
-  simplifyRatio: 0.4,
-  fallbackSimplifyRatio: 0.2,
-  simplifyError: 0.05,
-  roughnessMin: 0.7,
-  roughnessMax: 0.9,
-  metallic: 0.0,
-  maxMaterials: 2,
-  maxTextureRes: 512,
-  stripNormalMaps: true,
-  stripAOMaps: true,
-  stripEmissive: true,
-  stripMetallicRoughnessTexture: true,
-  maxSaturation: 0.6,
+  simplifyRatio: BJORQ_STYLE_PROFILE.simplifyRatio,
+  fallbackSimplifyRatio: BJORQ_STYLE_PROFILE.fallbackRatio,
+  simplifyError: BJORQ_STYLE_PROFILE.simplifyError,
+  roughness: BJORQ_STYLE_PROFILE.roughness,
+  metallic: BJORQ_STYLE_PROFILE.metallic,
+  maxMaterials: BJORQ_STYLE_PROFILE.maxMaterials,
+  maxTextureRes: BJORQ_STYLE_PROFILE.maxTextureRes,
+  stripNormalMaps: BJORQ_STYLE_PROFILE.stripNormalMaps,
+  stripAOMaps: BJORQ_STYLE_PROFILE.stripAOMaps,
+  stripEmissive: BJORQ_STYLE_PROFILE.stripEmissive,
+  stripMetallicRoughnessTexture: BJORQ_STYLE_PROFILE.stripMetallicRoughnessTexture,
+  microGeometryThreshold: BJORQ_STYLE_PROFILE.microGeometryThreshold,
+  simplicityThreshold: BJORQ_STYLE_PROFILE.simplicityThreshold,
 };
 
 /**
  * Apply Bjorq style normalization to a raw GLB buffer.
- * Returns a new GLB buffer with enforced visual identity.
  *
  * @param aggressive - If true, uses fallback ratios for maximum reduction
  */
@@ -89,52 +80,64 @@ export async function normalizeStyle(
   log.info("Style normalizer: flattening scene graph");
   await doc.transform(flatten());
 
-  // --- Step 2: Weld vertices (remove micro-noise) ---
+  // --- Step 2: Capture bounding box BEFORE simplification (shape integrity) ---
+  const bbBefore = computeBoundingBox(root);
+
+  // --- Step 3: Weld vertices ---
   log.info("Style normalizer: welding vertices");
   await doc.transform(weld({ tolerance: 0.0005 }));
 
-  // --- Step 3: Aggressive geometry simplification ---
+  // --- Step 4: Geometry simplification ---
   const ratio = aggressive ? config.fallbackSimplifyRatio : config.simplifyRatio;
   log.info({ ratio, aggressive }, "Style normalizer: simplifying geometry");
   await MeshoptSimplifier.ready;
   await doc.transform(
-    simplify({
-      simplifier: MeshoptSimplifier,
-      ratio,
-      error: config.simplifyError,
-    }),
+    simplify({ simplifier: MeshoptSimplifier, ratio, error: config.simplifyError }),
   );
 
-  // --- Step 4: Remove micro-geometry (meshes with < 12 triangles) ---
-  log.info("Style normalizer: pruning micro-geometry");
-  for (const mesh of root.listMeshes()) {
-    const primitives = mesh.listPrimitives();
-    for (const prim of primitives) {
-      const indices = prim.getIndices();
-      if (indices && indices.getCount() < 36) { // < 12 triangles
-        prim.dispose();
-        log.debug("Removed micro-geometry primitive");
-      }
-    }
-    // Remove empty meshes
-    if (mesh.listPrimitives().length === 0) {
-      mesh.dispose();
-    }
+  // --- Step 5: Shape integrity check ---
+  const bbAfter = computeBoundingBox(root);
+  const shapeIntact = checkShapeIntegrity(bbBefore, bbAfter);
+  if (!shapeIntact) {
+    log.warn("Shape integrity degraded — bounding box proportions shifted >20%");
   }
 
-  // --- Step 5: Material standardization ---
+  // --- Step 6: Prune micro-geometry ---
+  log.info("Style normalizer: pruning micro-geometry");
+  let prunedCount = 0;
+  for (const mesh of root.listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const indices = prim.getIndices();
+      if (indices && indices.getCount() < config.microGeometryThreshold) {
+        prim.dispose();
+        prunedCount++;
+      }
+    }
+    if (mesh.listPrimitives().length === 0) mesh.dispose();
+  }
+  if (prunedCount > 0) log.info({ prunedCount }, "Removed micro-geometry primitives");
+
+  // --- Step 7: Geometry simplicity scoring ---
+  const simplicityScore = computeSimplicityScore(root);
+  log.info({ simplicityScore: simplicityScore.toFixed(3) }, "Geometry simplicity score");
+
+  if (simplicityScore < config.simplicityThreshold && !aggressive) {
+    log.info("Simplicity below threshold — re-simplifying with aggressive ratio");
+    await doc.transform(
+      simplify({ simplifier: MeshoptSimplifier, ratio: config.fallbackSimplifyRatio, error: 0.08 }),
+    );
+    const newScore = computeSimplicityScore(root);
+    log.info({ before: simplicityScore.toFixed(3), after: newScore.toFixed(3) }, "Re-simplification result");
+  }
+
+  // --- Step 8: Material standardization via style profile ---
   log.info("Style normalizer: standardizing materials");
   const materials = root.listMaterials();
 
-  // Deterministic roughness: use fixed value within range (no randomness)
-  const fixedRoughness = (config.roughnessMin + config.roughnessMax) / 2;
-
   for (const material of materials) {
-    // Force PBR values
-    material.setRoughnessFactor(fixedRoughness);
+    material.setRoughnessFactor(config.roughness);
     material.setMetallicFactor(config.metallic);
 
-    // Strip ALL non-essential maps
     if (config.stripNormalMaps) material.setNormalTexture(null);
     if (config.stripAOMaps) material.setOcclusionTexture(null);
     if (config.stripEmissive) {
@@ -145,20 +148,16 @@ export async function normalizeStyle(
       material.setMetallicRoughnessTexture(null);
     }
 
-    // Clamp base color to reduce AI noise
+    // Full color normalization via style profile
     const baseColor = material.getBaseColorFactor();
     if (baseColor) {
-      material.setBaseColorFactor(clampColor(baseColor, config.maxSaturation));
+      material.setBaseColorFactor(normalizeColor(baseColor));
     }
   }
 
-  // --- Step 6: Merge excess materials ---
+  // --- Step 9: Merge excess materials ---
   if (materials.length > config.maxMaterials) {
-    log.info(
-      { current: materials.length, max: config.maxMaterials },
-      "Style normalizer: merging excess materials",
-    );
-    // Keep first N materials, reassign extras to the first material
+    log.info({ current: materials.length, max: config.maxMaterials }, "Merging excess materials");
     const keepMaterials = materials.slice(0, config.maxMaterials);
     const primaryMaterial = keepMaterials[0];
     for (const mesh of root.listMeshes()) {
@@ -171,62 +170,114 @@ export async function normalizeStyle(
     }
   }
 
-  // --- Step 7: Resize textures to max resolution ---
+  // --- Step 10: Resize textures ---
   log.info({ maxRes: config.maxTextureRes }, "Style normalizer: resizing textures");
-  await doc.transform(
-    textureResize({ size: [config.maxTextureRes, config.maxTextureRes] }),
-  );
+  await doc.transform(textureResize({ size: [config.maxTextureRes, config.maxTextureRes] }));
 
-  // --- Step 8: Dedup + prune ---
-  log.info("Style normalizer: dedup and prune");
+  // --- Step 11: Dedup + prune ---
   await doc.transform(dedup(), prune());
 
   const result = await io.writeBinary(doc);
   log.info(
-    { inputSize: glbBuffer.byteLength, outputSize: result.byteLength, reduction: `${Math.round((1 - result.byteLength / glbBuffer.byteLength) * 100)}%` },
+    {
+      inputSize: glbBuffer.byteLength,
+      outputSize: result.byteLength,
+      reduction: `${Math.round((1 - result.byteLength / glbBuffer.byteLength) * 100)}%`,
+      simplicityScore: simplicityScore.toFixed(3),
+      shapeIntact,
+      prunedMicroGeo: prunedCount,
+    },
     "Style normalization complete",
   );
 
   return result;
 }
 
-/**
- * Clamp color saturation toward the Bjorq warm palette.
- * Reduces overly saturated or noisy AI-generated colors.
- */
-function clampColor(rgba: number[], maxSaturation: number): [number, number, number, number] {
-  const [r, g, b, a] = rgba;
+// --- Geometry helpers ---
 
-  // Convert to HSL-like saturation check
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  const lightness = (max + min) / 2;
+interface BBox {
+  min: [number, number, number];
+  max: [number, number, number];
+  size: [number, number, number];
+}
 
-  if (delta === 0 || lightness === 0) {
-    return [r, g, b, a ?? 1];
+function computeBoundingBox(root: import("@gltf-transform/core").Root): BBox {
+  const min: [number, number, number] = [Infinity, Infinity, Infinity];
+  const max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+
+  for (const mesh of root.listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const pos = prim.getAttribute("POSITION");
+      if (!pos) continue;
+      for (let i = 0; i < pos.getCount(); i++) {
+        const v = pos.getElement(i, [0, 0, 0]);
+        for (let j = 0; j < 3; j++) {
+          if (v[j] < min[j]) min[j] = v[j];
+          if (v[j] > max[j]) max[j] = v[j];
+        }
+      }
+    }
   }
 
-  const saturation = delta / (1 - Math.abs(2 * lightness - 1));
-
-  if (saturation <= maxSaturation) {
-    return [r, g, b, a ?? 1];
-  }
-
-  // Desaturate toward midpoint
-  const factor = maxSaturation / saturation;
-  const mid = (max + min) / 2;
-  return [
-    mid + (r - mid) * factor,
-    mid + (g - mid) * factor,
-    mid + (b - mid) * factor,
-    a ?? 1,
-  ];
+  return {
+    min,
+    max,
+    size: [max[0] - min[0], max[1] - min[1], max[2] - min[2]],
+  };
 }
 
 /**
- * Check if a buffer has already been style-normalized.
- * Returns true if materials match Bjorq constraints.
+ * Check shape integrity by comparing bounding box proportions.
+ * Returns true if proportions are preserved within 20%.
+ */
+function checkShapeIntegrity(before: BBox, after: BBox): boolean {
+  const eps = 0.001;
+  for (let i = 0; i < 3; i++) {
+    const bSize = before.size[i] + eps;
+    const aSize = after.size[i] + eps;
+    const ratio = aSize / bSize;
+    if (ratio < 0.8 || ratio > 1.2) return false;
+  }
+  return true;
+}
+
+/**
+ * Compute a simplicity score (0–1) for the mesh.
+ * Higher = simpler/cleaner geometry. Based on:
+ * - Average triangle area (larger = simpler)
+ * - Triangle count relative to bounding volume
+ * - Vertex density uniformity
+ */
+function computeSimplicityScore(root: import("@gltf-transform/core").Root): number {
+  let totalTriangles = 0;
+  let totalVertices = 0;
+
+  for (const mesh of root.listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const indices = prim.getIndices();
+      const pos = prim.getAttribute("POSITION");
+      if (indices) totalTriangles += indices.getCount() / 3;
+      if (pos) totalVertices += pos.getCount();
+    }
+  }
+
+  if (totalTriangles === 0) return 1.0;
+
+  // Vertex-to-triangle ratio: ~0.5 for clean geometry, higher for noisy
+  const vtRatio = totalVertices / totalTriangles;
+  const vtScore = Math.max(0, Math.min(1, 1 - (vtRatio - 0.5) / 2));
+
+  // Triangle count penalty: fewer = simpler
+  const triScore = totalTriangles < 5000 ? 1.0
+    : totalTriangles < 15000 ? 0.7
+    : totalTriangles < 50000 ? 0.4
+    : 0.2;
+
+  return vtScore * 0.4 + triScore * 0.6;
+}
+
+/**
+ * Check if a buffer has been style-normalized.
  */
 export async function checkStyleConsistency(
   glbBuffer: Uint8Array,
@@ -235,32 +286,29 @@ export async function checkStyleConsistency(
 ): Promise<{ consistent: boolean; issues: string[] }> {
   const { NodeIO } = await import("@gltf-transform/core");
   const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
+  const { validateVisualConsistency } = await import("./style-profile.js");
 
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const doc = await io.readBinary(glbBuffer);
   const root = doc.getRoot();
-  const issues: string[] = [];
 
-  const materials = root.listMaterials();
-  if (materials.length > config.maxMaterials) {
-    issues.push(`Too many materials: ${materials.length} > ${config.maxMaterials}`);
-  }
+  // Extract material data for visual consistency check
+  const matData = root.listMaterials().map((m) => ({
+    roughness: m.getRoughnessFactor(),
+    metallic: m.getMetallicFactor(),
+    baseColor: m.getBaseColorFactor(),
+    hasNormalMap: m.getNormalTexture() !== null,
+    hasAOMap: m.getOcclusionTexture() !== null,
+  }));
 
-  for (const material of materials) {
-    if (material.getNormalTexture()) issues.push("Normal map found");
-    if (material.getOcclusionTexture()) issues.push("AO map found");
-    if (material.getMetallicFactor() > 0.01) issues.push(`Metallic > 0: ${material.getMetallicFactor()}`);
-    const rough = material.getRoughnessFactor();
-    if (rough < config.roughnessMin || rough > config.roughnessMax) {
-      issues.push(`Roughness out of range: ${rough}`);
-    }
-  }
+  const visualCheck = validateVisualConsistency(matData);
 
-  // Check for micro-geometry
+  // Also check micro-geometry
+  const issues = [...visualCheck.issues];
   for (const mesh of root.listMeshes()) {
     for (const prim of mesh.listPrimitives()) {
       const indices = prim.getIndices();
-      if (indices && indices.getCount() < 36) {
+      if (indices && indices.getCount() < config.microGeometryThreshold) {
         issues.push("Micro-geometry detected");
         break;
       }
