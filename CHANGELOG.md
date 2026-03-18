@@ -36,6 +36,23 @@
 - Ingest endpoint now accepts optional `thumbnail` file in multipart upload
 - Updated add-on documentation (README.md, DOCS.md) to reflect v2.0.7 features and API endpoints
 
+## [2.2.0] — 2026-03-18
+
+### Added
+- **Photo → 3D generation** — New "Photo → 3D" page (`/generate`) with 4-step wizard: Upload photos → Select style → Generate → Review result
+- **TRELLIS engine management** — Inline engine status widget with one-click installation flow (`GET /trellis/status`, `POST /trellis/install`)
+- **Generation API** — `POST /generate`, `GET /generate/jobs/:id`, `POST /generate/jobs/:id/retry` for async photo-to-3D job management
+- **Style normalizer service** — Deterministic post-processing enforcing Bjorq Cozy visual identity (geometry simplification, material standardization, texture cleanup)
+- **Quality gate** — Automatic validation against Dashboard Safe / Ultra Light / Standard performance limits with auto-reprocessing on failure
+- **PhotoUploader component** — Multi-image drag & drop (1–4 photos) with preview grid, reorder, and helper tips
+- **StyleSelector component** — Style preset and target profile selection UI
+- **GenerateProgress component** — Real-time job progress polling with step-based visualization
+- **GenerateReview component** — Result preview with regenerate and save-to-library actions
+
+### Infrastructure
+- TRELLIS subprocess wrapper for CLI-based execution (no HTTP API assumed)
+- Generation pipeline orchestrator: preprocess → generate → style normalize → optimize → validate → export
+- All backend changes mirrored to `bjorq_asset_wizard/` addon
 
 
 ## [2.0.7] — 2026-03-10
