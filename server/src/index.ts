@@ -29,6 +29,7 @@ import fastifyStatic from "@fastify/static";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { access, readdir } from "node:fs/promises";
+import { execSync } from "node:child_process";
 import { createLoggerConfig } from "./lib/logger.js";
 import { initStorage } from "./lib/storage.js";
 import { healthRoutes } from "./routes/health.js";
@@ -41,7 +42,7 @@ import { generateRoutes } from "./routes/generate.js";
 import { trellisRoutes } from "./routes/trellis.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "2.3.5";
+const VERSION = "2.3.6";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
