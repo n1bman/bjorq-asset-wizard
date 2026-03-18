@@ -190,9 +190,11 @@ export async function runGenerationPipeline(
     const categoryResult = await detectCategory(finalBuffer, log);
     pipelineLog.category = categoryResult.category;
 
-    // Step 8: LOD generation
+    // Step 8: LOD generation (from scene-compatible buffer)
+    // LODs are derived from finalBuffer which already has correct pivot/scale/floor.
+    // The Wizard only stores LOD variants — runtime LOD switching is Dashboard's job.
     job.progress = 86;
-    log.info({ jobId: job.id }, "Step 8: Generating LODs");
+    log.info({ jobId: job.id }, "Step 8: Generating LODs (from scene-compatible buffer)");
     const lodResult = await generateLODs(finalBuffer, job.outputDir, "output", log);
     pipelineLog.lodGenerated = !lodResult.skipped;
 
@@ -218,7 +220,7 @@ export async function runGenerationPipeline(
       log.warn({ err }, "Thumbnail generation failed — continuing without");
     }
 
-    // Metadata (with versioning support)
+    // Metadata (with versioning + structured LOD info for Dashboard consumption)
     const metadata = {
       style: job.options.style,
       variant,
@@ -234,13 +236,9 @@ export async function runGenerationPipeline(
       confidenceScore: confidence,
       category: categoryResult.category,
       categoryConfidence: categoryResult.confidence,
-      lods: lodResult.skipped
-        ? ["output.glb"]
-        : [
-            "output.glb",
-            ...(lodResult.lod1 ? ["output_lod1.glb"] : []),
-            ...(lodResult.lod2 ? ["output_lod2.glb"] : []),
-          ],
+      // Structured LOD metadata — Dashboard can use this to select appropriate detail level
+      // All LOD variants share identical pivot, scale, floor alignment, and orientation
+      lods: lodResult.variants,
       sceneCompatible: sceneResult.compatible,
       sceneFixes: sceneResult.fixes,
       driftScore: driftReport.score,

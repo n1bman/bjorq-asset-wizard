@@ -1,8 +1,8 @@
 # Bjorq Asset Wizard
 
-**3D asset processing pipeline and asset library server for the Bjorq ecosystem.**
+**3D asset processing pipeline, Photo → 3D generation, and asset library server for the Bjorq ecosystem.**
 
-Upload, analyze, optimize, and publish 3D assets (GLB/glTF). The Wizard serves as the asset pipeline backend for the Bjorq Dashboard — assets move through a defined lifecycle and are consumed by the Dashboard only when published.
+Upload, analyze, optimize, generate, and publish 3D assets (GLB/glTF). The Wizard serves as the asset pipeline backend for the Bjorq Dashboard — assets move through a defined lifecycle and are consumed by the Dashboard only when published.
 
 ---
 
@@ -19,8 +19,12 @@ Dashboard ──── reads ────→ Wizard Library API
 
 Wizard Pipeline:
   Upload → Analyze → Optimize → Ingest → Published
-                                            │
-                                            └── Available to Dashboard
+  Photo → Generate → Style → Validate → Scene Check → LOD → Published
+
+LOD Architecture:
+  Wizard: prepares + stores LOD variants and metadata
+  Dashboard: selects + switches LODs at runtime
+  Assets work without LODs — LOD metadata is optional for Dashboard
 ```
 
 The Dashboard should only consume **published** assets via the library API. It never accesses internal storage paths directly.
@@ -38,6 +42,37 @@ Every asset progresses through explicit states:
 
 Assets in the catalog are `published` by definition. The `lifecycleStatus` field in `meta.json` tracks this.
 
+### Photo → 3D Generation
+
+The Wizard can generate stylized 3D assets from 1–4 photos:
+
+1. Upload photos → automatic preprocessing and quality analysis
+2. Select style variant (Cozy / Soft Minimal / Warm Wood) and target profile
+3. TRELLIS engine generates raw 3D mesh
+4. Bjorq style normalization enforces consistent visual identity
+5. Quality gate validation with auto-fix escalation
+6. Scene compatibility (pivot, floor, scale) auto-correction
+7. LOD generation (geometry-only simplification preserving transforms)
+8. Automatic category detection
+9. Export with full metadata, thumbnails, and LOD variants
+
+All generated assets are dashboard-safe and scene-ready without manual fixing.
+
+### LOD System
+
+LOD (Level of Detail) variants are generated and stored as asset-level metadata:
+
+- **LOD0** — Primary optimized model (full quality)
+- **LOD1** — ~50% triangle reduction
+- **LOD2** — ~20% triangle reduction
+
+**Key principles:**
+- All LOD variants share identical pivot, scale, floor alignment, and orientation
+- The Wizard only prepares and stores LODs — it does NOT implement runtime LOD switching
+- Runtime LOD selection is the responsibility of the Bjorq Dashboard
+- Assets remain fully usable even if Dashboard ignores LOD metadata
+- LOD generation is skipped for already very light models (<2000 triangles)
+
 ### Dashboard Consumption
 
 The Dashboard connects to the Wizard's library API:
@@ -45,7 +80,7 @@ The Dashboard connects to the Wizard's library API:
 ```
 GET /libraries                    → List available libraries (currently: "default")
 GET /libraries/:library/index     → Full catalog index for a library
-GET /assets/:id/meta              → Asset metadata JSON
+GET /assets/:id/meta              → Asset metadata JSON (includes LOD info)
 GET /assets/:id/model             → GLB binary stream
 GET /assets/:id/thumbnail         → WebP thumbnail stream
 ```
@@ -61,8 +96,10 @@ CATALOG_PATH/                       # /data/catalog in HA, ./public/catalog in d
   <category>/
     <subcategory>/
       <assetId>/
-        model.glb                   # Optimized 3D model
-        meta.json                   # Asset metadata (frozen schema v1.0)
+        model.glb                   # Optimized 3D model (LOD0)
+        model_lod1.glb              # LOD1 variant (if generated)
+        model_lod2.glb              # LOD2 variant (if generated)
+        meta.json                   # Asset metadata (includes LOD info)
         thumb.webp                  # Preview thumbnail (optional)
   index.json                        # Auto-generated catalog manifest
 
@@ -71,11 +108,13 @@ STORAGE_PATH/                       # /data/storage in HA, ./storage in dev
     <jobId>/
       original.glb                  # Uploaded file
       optimized.glb                 # Pipeline output
+      output.glb                    # Generated model (LOD0)
+      output_lod1.glb               # Generated LOD1
+      output_lod2.glb               # Generated LOD2
       result.json                   # Optimization results
-      thumb.webp                    # Generated thumbnail (if available)
+      metadata.json                 # Generation metadata
+      thumb.webp                    # Generated thumbnail
 ```
-
-**v1.2.0 migration note:** Multi-library support will restructure storage to `/data/libraries/<name>/assets/...`. The current flat catalog layout is documented as the v1 canonical model.
 
 ---
 
@@ -92,11 +131,16 @@ STORAGE_PATH/                       # /data/storage in HA, ./storage in dev
 | Sync (publish confirmation) | ✅ Implemented |
 | Asset export (GLB download) | ✅ Implemented |
 | Asset lifecycle status | ✅ Implemented |
+| Photo → 3D generation | ✅ Implemented (v2.2.0+) |
+| Style variants (Cozy/Minimal/Wood) | ✅ Implemented (v2.3.0+) |
+| Auto category detection | ✅ Implemented (v2.3.0+) |
+| LOD generation | ✅ Implemented (v2.3.0+) |
+| Asset versioning | ✅ Implemented (v2.3.0+) |
+| Style drift detection | ✅ Implemented (v2.3.0+) |
+| Scene compatibility | ✅ Implemented (v2.3.0+) |
+| Background job queue | ✅ Implemented (v2.3.0+) |
+| Pipeline analytics | ✅ Implemented (v2.3.0+) |
 | Multi-library support | ⬜ Deferred v1.2.0 |
-| Library ZIP export/import | ⬜ Deferred v1.2.0 |
-| Server-side thumbnail generation | ⬜ Deferred v1.2.0 |
-| 3D model viewer (React Three Fiber) | ⬜ Deferred v1.2.0 |
-| Backup system | ⬜ Deferred v1.2.0 |
 
 ---
 
@@ -122,6 +166,13 @@ STORAGE_PATH/                       # /data/storage in HA, ./storage in dev
 | `GET` | `/assets/:id/meta` | ✅ |
 | `GET` | `/assets/:id/model` | ✅ |
 | `GET` | `/assets/:id/thumbnail` | ✅ |
+| `POST` | `/generate` | ✅ |
+| `GET` | `/generate/jobs/:id` | ✅ |
+| `POST` | `/generate/jobs/:id/retry` | ✅ |
+| `GET` | `/generate/queue` | ✅ |
+| `GET` | `/generate/metrics` | ✅ |
+| `GET` | `/trellis/status` | ✅ |
+| `POST` | `/trellis/install` | ✅ |
 | `POST` | `/import/direct` | 🔧 Stub |
 | `POST` | `/import/convert` | 🔧 Stub |
 
@@ -162,13 +213,12 @@ Storage persists under `/data/`. The add-on runs with ingress support.
 
 ---
 
-## Known Limitations (v1.1.5)
+## Known Limitations (v2.3.1)
 
 - **Single library only** — all assets go to "default" library. Multi-library requires storage migration (v1.2.0).
-- **No server-side thumbnail generation** — thumbnails are `null` unless manually provided or generated externally.
-- **Export is model-only** — no ZIP package with metadata/thumbnail yet (v1.2.0).
-- **No backup system** — snapshots/restore deferred to v1.2.0.
-- **No 3D model viewer** — preview is thumbnail-only; React Three Fiber viewer deferred to v1.2.0.
+- **TRELLIS engine required** — Photo → 3D requires TRELLIS.2 installation via the UI (GPU recommended).
+- **LOD runtime switching** — Wizard generates LOD variants but does not implement runtime switching. That is Dashboard's responsibility.
+- **No 3D preview in review** — Review shows thumbnails only; interactive 3D preview deferred.
 
 ---
 
