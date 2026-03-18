@@ -37,6 +37,8 @@ import { optimizeRoutes } from "./routes/optimize.js";
 import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
+import { generateRoutes } from "./routes/generate.js";
+import { trellisRoutes } from "./routes/trellis.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
 const VERSION = "2.0.9";
