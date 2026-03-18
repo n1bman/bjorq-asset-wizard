@@ -2,8 +2,10 @@
  * POST /generate — Create a 3D asset from photos
  * GET /generate/jobs/:id — Poll job status
  * POST /generate/jobs/:id/retry — Retry with new seed (variation)
+ * GET /generate/queue — Queue status
+ * GET /generate/metrics — Pipeline metrics (internal)
  *
- * v2.2.2: Added seed-based variation, input warnings, confidence score
+ * v2.3.0: Added queue, variants, metrics, versioning
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
@@ -17,6 +19,8 @@ import type {
   GenerateJobResponse,
   GenerateJobOptions,
 } from "../types/generate.js";
+import { generationQueue } from "../services/queue/job-queue.js";
+import { pipelineMetrics } from "../services/analytics/metrics.js";
 
 // In-memory job store (sufficient for single-instance addon)
 const jobs = new Map<string, GenerateJob>();
@@ -31,6 +35,7 @@ function jobToResponse(job: GenerateJob): GenerateJobResponse {
     error: job.error,
     canRetry: job.status === "failed" || job.status === "done",
     inputWarnings: job.inputWarnings,
+    queuePosition: generationQueue.getPosition(job.id),
   };
 }
 
@@ -39,6 +44,9 @@ function generateSeed(): number {
 }
 
 export async function generateRoutes(server: FastifyInstance) {
+  // Initialize queue logger
+  generationQueue.setLogger(server.log);
+
   // --- Create generation job ---
   server.post("/generate", async (request, reply) => {
     const jobId = generateJobId("gen");
@@ -48,7 +56,7 @@ export async function generateRoutes(server: FastifyInstance) {
     // Parse multipart
     const parts = request.parts();
     const imagePaths: string[] = [];
-    let options: GenerateJobOptions = { style: "bjorq-cozy", target: "dashboard-safe" };
+    let options: GenerateJobOptions = { style: "bjorq-cozy", target: "dashboard-safe", variant: "cozy" };
 
     for await (const part of parts) {
       if (part.type === "file" && part.fieldname === "images") {
@@ -90,15 +98,15 @@ export async function generateRoutes(server: FastifyInstance) {
 
     jobs.set(jobId, job);
 
-    // TODO: Start pipeline async when TRELLIS is available
-    // For now, mark as failed with informational message
-    job.status = "failed";
-    job.error = "TRELLIS engine not yet installed. Photo-to-3D generation will be available after engine setup.";
-    job.currentStep = "failed";
+    // Enqueue for processing
+    generationQueue.enqueue(jobId, async () => {
+      const { runGenerationPipeline } = await import("../services/generation/pipeline.js");
+      await runGenerationPipeline(job, server.log);
+    });
 
     server.log.info(
       { jobId, images: imagePaths.length, options, seed },
-      "Generate job created (engine pending)",
+      "Generate job created and queued",
     );
 
     return reply.code(202).send(jobToResponse(job));
@@ -132,14 +140,25 @@ export async function generateRoutes(server: FastifyInstance) {
 
     server.log.info(
       { jobId: job.id, attempt: job.attempts, newSeed },
-      "Generate job retry with new seed",
+      "Generate job retry with new seed (new variation)",
     );
 
-    // TODO: Re-start pipeline when TRELLIS is available
-    job.status = "failed";
-    job.error = "TRELLIS engine not yet installed.";
-    job.currentStep = "failed";
+    // Re-enqueue
+    generationQueue.enqueue(job.id, async () => {
+      const { runGenerationPipeline } = await import("../services/generation/pipeline.js");
+      await runGenerationPipeline(job, server.log);
+    });
 
     return jobToResponse(job);
+  });
+
+  // --- Queue status ---
+  server.get("/generate/queue", async () => {
+    return generationQueue.getStatus();
+  });
+
+  // --- Pipeline metrics (internal/diagnostic) ---
+  server.get("/generate/metrics", async () => {
+    return pipelineMetrics.getMetrics();
   });
 }
