@@ -9,7 +9,7 @@ import { GenerateReview } from "@/components/generate/GenerateReview";
 import { EngineStatus } from "@/components/generate/EngineStatus";
 import { createGenerateJob, retryGenerateJob } from "@/services/generate-api";
 import { useToast } from "@/hooks/use-toast";
-import type { GenerateJobResponse, GenerateTargetProfile, StylePresetId } from "@/types/generate";
+import type { GenerateJobResponse, GenerateTargetProfile, StylePresetId, StyleVariantId } from "@/types/generate";
 import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 
 type Step = "upload" | "style" | "generate" | "review";
@@ -27,6 +27,7 @@ export default function PhotoGenerate() {
   const [images, setImages] = useState<File[]>([]);
   const [style, setStyle] = useState<StylePresetId>("bjorq-cozy");
   const [target, setTarget] = useState<GenerateTargetProfile>("dashboard-safe");
+  const [variant, setVariant] = useState<StyleVariantId>("cozy");
   const [jobId, setJobId] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateJobResponse | null>(null);
   const [engineReady, setEngineReady] = useState(false);
@@ -37,7 +38,7 @@ export default function PhotoGenerate() {
   const handleGenerate = useCallback(async () => {
     try {
       setStep("generate");
-      const res = await createGenerateJob(images, style, target);
+      const res = await createGenerateJob(images, style, target, variant);
       setJobId(res.jobId);
     } catch (err) {
       toast({
@@ -47,7 +48,7 @@ export default function PhotoGenerate() {
       });
       setStep("style");
     }
-  }, [images, style, target, toast]);
+  }, [images, style, target, variant, toast]);
 
   const handleComplete = useCallback((res: GenerateJobResponse) => {
     setResult(res);
@@ -118,7 +119,7 @@ export default function PhotoGenerate() {
           </CardTitle>
           <CardDescription>
             {step === "upload" && "Add 1–4 photos of the furniture piece"}
-            {step === "style" && "Select style and target quality"}
+            {step === "style" && "Select style, variant and target quality"}
             {step === "generate" && "Your asset is being created"}
             {step === "review" && "Check the result and save to your library"}
           </CardDescription>
@@ -144,8 +145,10 @@ export default function PhotoGenerate() {
               <StyleSelector
                 style={style}
                 target={target}
+                variant={variant}
                 onStyleChange={setStyle}
                 onTargetChange={setTarget}
+                onVariantChange={setVariant}
               />
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => setStep("upload")}>

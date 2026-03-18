@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, AlertTriangle, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { GENERATE_STEP_LABELS, type GenerateJobState, type GenerateJobResponse } from "@/types/generate";
@@ -57,15 +57,26 @@ export function GenerateProgress({ jobId, onComplete, onFailed }: GenerateProgre
 
   const currentStepIndex = job ? PIPELINE_STEPS.indexOf(job.status as GenerateJobState) : -1;
   const progressValue = job?.progress ?? 0;
+  const isQueued = job?.status === "queued" && job.queuePosition != null && job.queuePosition >= 0;
 
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <Loader2 className="mx-auto h-10 w-10 text-primary animate-spin" />
+        {isQueued ? (
+          <Clock className="mx-auto h-10 w-10 text-muted-foreground" />
+        ) : (
+          <Loader2 className="mx-auto h-10 w-10 text-primary animate-spin" />
+        )}
         <p className="text-sm font-medium text-foreground">
-          {job ? GENERATE_STEP_LABELS[job.status] : "Starting…"}
+          {isQueued
+            ? `Queued — position ${(job?.queuePosition ?? 0) + 1}`
+            : job
+              ? GENERATE_STEP_LABELS[job.status]
+              : "Starting…"}
         </p>
-        <p className="text-xs text-muted-foreground">This may take a minute</p>
+        <p className="text-xs text-muted-foreground">
+          {isQueued ? "Waiting for available processing slot" : "This may take a minute"}
+        </p>
       </div>
 
       <Progress value={progressValue} className="max-w-md mx-auto" />
