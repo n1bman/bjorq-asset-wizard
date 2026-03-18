@@ -40,6 +40,7 @@ const App = () => (
               <Route path="/ingest" element={<CatalogIngest />} />
               <Route path="/system" element={<SystemStatus />} />
               <Route path="/wizard" element={<WizardIntegration />} />
+              <Route path="/generate" element={<PhotoGenerate />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

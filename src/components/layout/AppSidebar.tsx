@@ -18,6 +18,7 @@ import {
 const pipelineItems = [
   { title: "Upload & Analyze", url: "/", icon: Upload },
   { title: "Optimize", url: "/optimize", icon: Wand2 },
+  { title: "Photo → 3D", url: "/generate", icon: Camera },
 ];
 
 const catalogItems = [
