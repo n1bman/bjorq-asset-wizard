@@ -165,16 +165,15 @@ async function measureAsset(
   log: FastifyBaseLogger,
 ): Promise<AssetMeasurement> {
   const { analyzeModel } = await import("../analysis/analyzer.js");
-  const analysis = await analyzeModel(glbBuffer, "validation.glb", log);
+  const analysis = await analyzeModel(glbBuffer, "validation.glb");
+
+  const textureSizes = analysis.textures.details.map((t: { width: number; height: number }) => Math.max(t.width, t.height));
 
   return {
     triangles: analysis.geometry.triangleCount,
     fileSizeKB: Math.round(glbBuffer.byteLength / 1024),
     materials: analysis.materials.count,
-    maxTextureRes: Math.max(
-      ...analysis.textures.details.map((t) => Math.max(t.width, t.height)),
-      0,
-    ),
+    maxTextureRes: textureSizes.length > 0 ? Math.max(...textureSizes) : 0,
   };
 }
 
