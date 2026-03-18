@@ -1,5 +1,5 @@
 /**
- * TRELLIS Engine Manager (v2.3.5)
+ * TRELLIS Engine Manager (v2.3.6)
  *
  * Manages the lifecycle of the TRELLIS.2 3D generation engine:
  * - Installation (clone, venv, deps, weights)
@@ -30,9 +30,14 @@ const REPO_PATH = resolve(TRELLIS_ROOT, "repo");
 const VENV_PATH = resolve(TRELLIS_ROOT, "venv");
 const WORKSPACE_PATH = resolve(TRELLIS_ROOT, "workspace");
 const STATUS_FILE = resolve(TRELLIS_ROOT, "status.json");
+const SHELL_PATH = "/bin/sh";
 
 const TRELLIS_TIMEOUT = Number(process.env.TRELLIS_TIMEOUT || 120) * 1000;
 const TRELLIS_MAX_RETRIES = Number(process.env.TRELLIS_MAX_RETRIES || 2);
+const RUNTIME_BINARY_NAMES = ["git", "python3", "pip3"] as const;
+
+type RuntimeBinaryName = (typeof RUNTIME_BINARY_NAMES)[number];
+type RuntimeDependencyState = Record<RuntimeBinaryName, string | undefined>;
 
 interface TrellisState {
   installed: boolean;
@@ -42,6 +47,7 @@ interface TrellisState {
   installing: boolean;
   installProgress: number;
   error?: string;
+  runtimeDependencies: RuntimeDependencyState;
 }
 
 let state: TrellisState = {
@@ -50,18 +56,34 @@ let state: TrellisState = {
   gpu: false,
   installing: false,
   installProgress: 0,
+  runtimeDependencies: {
+    git: undefined,
+    python3: undefined,
+    pip3: undefined,
+  },
 };
 
-// Load persisted status on import
-(async () => {
+const startupInitialization = initializeTrellisState();
+
+async function initializeTrellisState(): Promise<void> {
   try {
     await access(STATUS_FILE);
     const data = JSON.parse(await readFile(STATUS_FILE, "utf-8"));
-    state = { ...state, ...data, installing: false }; // never resume mid-install
+    state = {
+      ...state,
+      ...data,
+      installing: false,
+      runtimeDependencies: {
+        ...state.runtimeDependencies,
+        ...(data.runtimeDependencies ?? {}),
+      },
+    };
   } catch {
     // First run — no status file yet
   }
-})();
+
+  await refreshRuntimeDependencies().catch(() => undefined);
+}
 
 async function persistStatus(): Promise<void> {
   try {
@@ -90,7 +112,6 @@ export function startTrellisInstall(log: FastifyBaseLogger): void {
   state.installProgress = 0;
   state.error = undefined;
 
-  // Run installation async — don't block the request
   doInstall(log).catch((err) => {
     log.error({ err }, "TRELLIS installation failed");
     state.installing = false;
@@ -112,18 +133,22 @@ async function isValidRepo(path: string): Promise<boolean> {
 }
 
 async function doInstall(log: FastifyBaseLogger): Promise<void> {
-  log.info({ root: TRELLIS_ROOT }, "Starting TRELLIS installation");
+  await startupInitialization;
+  await refreshRuntimeDependencies(log);
 
-  // Ensure all subdirectories exist
+  const gitPath = await requireRuntimeBinary("git", log);
+  const python3Path = await requireRuntimeBinary("python3", log);
+  await requireRuntimeBinary("pip3", log);
+
+  log.info({ root: TRELLIS_ROOT, runtimeDependencies: state.runtimeDependencies }, "Starting TRELLIS installation");
+
   await mkdir(TRELLIS_ROOT, { recursive: true });
   await mkdir(WORKSPACE_PATH, { recursive: true });
 
-  // Step 1: Clone repository (idempotent)
   state.installProgress = 10;
   if (await isValidRepo(REPO_PATH)) {
     log.info("Step 1/4: Repository already exists — skipping clone");
   } else {
-    // If path exists but is not a valid repo, clean it up first
     try {
       const repoStat = await stat(REPO_PATH).catch(() => null);
       if (repoStat) {
@@ -133,50 +158,163 @@ async function doInstall(log: FastifyBaseLogger): Promise<void> {
     } catch {
       // ignore cleanup errors
     }
-    log.info("Step 1/4: Cloning TRELLIS.2 repository");
-    await runCommand("git", ["clone", "--depth", "1", "https://github.com/microsoft/TRELLIS.2.git", REPO_PATH], log);
+
+    log.info({ gitPath }, "Step 1/4: Cloning TRELLIS.2 repository");
+    await runCommand(
+      gitPath,
+      ["clone", "--depth", "1", "https://github.com/microsoft/TRELLIS.2.git", REPO_PATH],
+      log,
+      TRELLIS_TIMEOUT,
+      TRELLIS_ROOT,
+    );
   }
 
-  // Step 2: Create Python virtual environment (idempotent)
   state.installProgress = 30;
   const venvPython = resolve(VENV_PATH, "bin/python");
   const venvExists = await stat(venvPython).catch(() => null);
   if (venvExists) {
     log.info("Step 2/4: Virtual environment already exists — skipping");
   } else {
-    log.info("Step 2/4: Creating Python virtual environment");
-    await runCommand("python3", ["-m", "venv", VENV_PATH], log);
+    log.info({ python3Path }, "Step 2/4: Creating Python virtual environment");
+    await runCommand(python3Path, ["-m", "venv", VENV_PATH], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
   }
 
-  // Step 3: Install dependencies
   state.installProgress = 50;
   log.info("Step 3/4: Installing dependencies");
-  const pip = resolve(VENV_PATH, "bin/pip");
-  await runCommand(pip, ["install", "-r", resolve(REPO_PATH, "requirements.txt")], log);
+  const venvPip = await requireExecutable(resolve(VENV_PATH, "bin/pip"), "TRELLIS virtual environment pip");
+  await runCommand(
+    venvPip,
+    ["install", "-r", resolve(REPO_PATH, "requirements.txt")],
+    log,
+    TRELLIS_TIMEOUT,
+    REPO_PATH,
+  );
 
-  // Step 4: Download model weights
   state.installProgress = 80;
   log.info("Step 4/4: Downloading model weights");
   // TODO: Implement actual weight download when TRELLIS.2 docs clarify the method
 
+  const runtimePython = await requireExecutable(resolve(VENV_PATH, "bin/python"), "TRELLIS virtual environment python");
   state.installed = true;
   state.installing = false;
   state.installProgress = 100;
   state.version = "2.0";
-
-  // Detect GPU
-  state.gpu = await detectGpu(log);
+  state.error = undefined;
+  state.gpu = await detectGpu(log, runtimePython);
 
   await persistStatus();
-  log.info({ gpu: state.gpu }, "TRELLIS installation complete");
+  log.info({ gpu: state.gpu, runtimeDependencies: state.runtimeDependencies }, "TRELLIS installation complete");
+}
+
+async function refreshRuntimeDependencies(log?: FastifyBaseLogger): Promise<void> {
+  for (const binary of RUNTIME_BINARY_NAMES) {
+    try {
+      const path = await resolveRuntimeBinary(binary);
+      state.runtimeDependencies[binary] = path;
+      log?.info({ binary, path }, "Resolved TRELLIS runtime binary");
+    } catch (err) {
+      state.runtimeDependencies[binary] = undefined;
+      log?.warn(
+        {
+          binary,
+          error: err instanceof Error ? err.message : String(err),
+        },
+        "Failed to resolve TRELLIS runtime binary",
+      );
+    }
+  }
+
+  await persistStatus();
+}
+
+async function resolveRuntimeBinary(binary: RuntimeBinaryName): Promise<string> {
+  return new Promise((resolvePath, reject) => {
+    let proc: ChildProcess;
+    let stdout = "";
+    let stderr = "";
+    let killed = false;
+
+    try {
+      proc = spawn(SHELL_PATH, ["-lc", `command -v ${binary} || which ${binary}`], {
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+    } catch (err) {
+      reject(new Error(`Failed to resolve binary path for ${binary}: ${err instanceof Error ? err.message : String(err)}`));
+      return;
+    }
+
+    proc.stdout?.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+
+    proc.stderr?.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString();
+    });
+
+    const timer = setTimeout(() => {
+      killed = true;
+      proc.kill("SIGTERM");
+      setTimeout(() => proc.kill("SIGKILL"), 5000);
+      reject(new Error(`Timed out while resolving binary path for ${binary}`));
+    }, 10_000);
+
+    proc.on("close", (code) => {
+      clearTimeout(timer);
+      if (killed) return;
+
+      const resolvedPath = stdout.trim().split("\n").find(Boolean);
+      if (code === 0 && resolvedPath?.startsWith("/")) {
+        resolvePath(resolvedPath);
+        return;
+      }
+
+      reject(
+        new Error(
+          `Unable to resolve binary path for ${binary}${stderr.trim() ? `: ${stderr.trim()}` : ""}`,
+        ),
+      );
+    });
+
+    proc.on("error", (err) => {
+      clearTimeout(timer);
+      reject(new Error(`Binary path resolution failed for ${binary}: ${err.message}`));
+    });
+  });
+}
+
+async function requireRuntimeBinary(binary: RuntimeBinaryName, log: FastifyBaseLogger): Promise<string> {
+  const resolvedPath = state.runtimeDependencies[binary];
+  if (resolvedPath) {
+    return resolvedPath;
+  }
+
+  await refreshRuntimeDependencies(log);
+  const refreshedPath = state.runtimeDependencies[binary];
+  if (refreshedPath) {
+    return refreshedPath;
+  }
+
+  throw new Error(
+    `TRELLIS runtime dependency could not be resolved to an absolute path: ${binary}. ` +
+      `Startup checks may pass, but child_process.spawn() requires a concrete executable path for TRELLIS commands.`,
+  );
+}
+
+async function requireExecutable(path: string, label: string): Promise<string> {
+  const executable = await stat(path).catch(() => null);
+  if (!executable) {
+    throw new Error(`${label} not found at expected path: ${path}`);
+  }
+
+  return path;
 }
 
 /**
  * Detect GPU availability via PyTorch CUDA check.
  */
-async function detectGpu(log: FastifyBaseLogger): Promise<boolean> {
+async function detectGpu(log: FastifyBaseLogger, pythonPath: string): Promise<boolean> {
   try {
-    await runCommand("python3", ["-c", "import torch; assert torch.cuda.is_available()"], log);
+    await runCommand(pythonPath, ["-c", "import torch; assert torch.cuda.is_available()"], log, TRELLIS_TIMEOUT, TRELLIS_ROOT);
     log.info("GPU detected — TRELLIS will use CUDA acceleration");
     return true;
   } catch {
@@ -189,18 +327,30 @@ async function detectGpu(log: FastifyBaseLogger): Promise<boolean> {
  * Run a shell command with timeout safety.
  * Never throws unhandled — always returns a controlled error.
  */
-function runCommand(cmd: string, args: string[], log: FastifyBaseLogger, timeout = 600_000): Promise<void> {
+function runCommand(
+  commandPath: string,
+  args: string[],
+  log: FastifyBaseLogger,
+  timeout = 600_000,
+  cwd = REPO_PATH,
+): Promise<void> {
   return new Promise((resolveP, reject) => {
     let proc: ChildProcess;
     let killed = false;
 
+    log.info({ commandPath, args, cwd }, "Running TRELLIS command");
+
     try {
-      proc = spawn(cmd, args, {
-        cwd: REPO_PATH,
+      proc = spawn(commandPath, args, {
+        cwd,
         stdio: ["ignore", "pipe", "pipe"],
       });
     } catch (err) {
-      reject(new Error(`Failed to spawn: ${cmd} — ${err instanceof Error ? err.message : String(err)}`));
+      reject(
+        new Error(
+          `Failed to spawn command: ${commandPath} (cwd: ${cwd}) — ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
       return;
     }
 
@@ -212,26 +362,29 @@ function runCommand(cmd: string, args: string[], log: FastifyBaseLogger, timeout
     });
 
     proc.stdout?.on("data", (chunk: Buffer) => {
-      log.debug(chunk.toString().trim());
+      const output = chunk.toString().trim();
+      if (output) {
+        log.debug({ commandPath, output }, "TRELLIS command stdout");
+      }
     });
 
     const timer = setTimeout(() => {
       killed = true;
       proc.kill("SIGTERM");
       setTimeout(() => proc.kill("SIGKILL"), 5000);
-      reject(new Error(`Command timed out after ${timeout / 1000}s: ${cmd}`));
+      reject(new Error(`Command timed out after ${timeout / 1000}s: ${commandPath}`));
     }, timeout);
 
     proc.on("close", (code) => {
       clearTimeout(timer);
       if (killed) return;
       if (code === 0) resolveP();
-      else reject(new Error(`Command failed (exit ${code}): ${cmd} ${args.join(" ")}\n${stderr.slice(-500)}`));
+      else reject(new Error(`Command failed (exit ${code}): ${commandPath} ${args.join(" ")}\n${stderr.slice(-500)}`));
     });
 
     proc.on("error", (err) => {
       clearTimeout(timer);
-      reject(new Error(`Command error: ${cmd} — ${err.message}`));
+      reject(new Error(`Command error: ${commandPath} (cwd: ${cwd}) — ${err.message}`));
     });
   });
 }
@@ -245,16 +398,18 @@ export async function generateWithTrellis(
   outputDir: string,
   log: FastifyBaseLogger,
 ): Promise<Uint8Array> {
+  await startupInitialization;
+
   if (!state.installed) {
     throw new Error("TRELLIS engine is not installed. Please install it first via the UI.");
   }
 
   const outputPath = resolve(outputDir, "trellis_output.glb");
-  const python = resolve(VENV_PATH, "bin/python");
+  const python = await requireExecutable(resolve(VENV_PATH, "bin/python"), "TRELLIS virtual environment python");
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= TRELLIS_MAX_RETRIES; attempt++) {
-    log.info({ images: imagePaths.length, outputDir, attempt }, "Starting TRELLIS generation");
+    log.info({ images: imagePaths.length, outputDir, attempt, pythonPath: python }, "Starting TRELLIS generation");
 
     try {
       await runCommand(
@@ -267,9 +422,9 @@ export async function generateWithTrellis(
         ],
         log,
         TRELLIS_TIMEOUT,
+        REPO_PATH,
       );
 
-      // Validate output exists and is non-trivial
       const outputStat = await stat(outputPath).catch(() => null);
       if (!outputStat || outputStat.size < 100) {
         throw new Error(`TRELLIS produced empty or invalid output (${outputStat?.size ?? 0} bytes)`);
@@ -277,7 +432,6 @@ export async function generateWithTrellis(
 
       const buffer = new Uint8Array(await readFile(outputPath));
 
-      // Basic GLB header validation (magic number: glTF = 0x46546C67)
       if (buffer.length >= 4) {
         const magic = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
         if (magic !== 0x46546C67) {
