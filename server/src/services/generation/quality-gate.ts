@@ -43,8 +43,7 @@ const ESCALATION_CONFIGS: Partial<StyleNormalizerConfig>[] = [
     fallbackSimplifyRatio: 0.1,
     maxMaterials: 1,
     maxTextureRes: 128,
-    roughnessMin: 0.8,
-    roughnessMax: 0.9,
+    roughness: 0.85,
   },
 ];
 
@@ -132,8 +131,7 @@ export async function validateAndFix(
       fallbackSimplifyRatio: 0.05,
       maxMaterials: 1,
       maxTextureRes: 64,
-      roughnessMin: 0.85,
-      roughnessMax: 0.9,
+      roughness: 0.85,
     };
     current = await normalizeStyle(current, minimalConfig, log, true);
     measurement = await measureAsset(current, log);
@@ -167,16 +165,15 @@ async function measureAsset(
   log: FastifyBaseLogger,
 ): Promise<AssetMeasurement> {
   const { analyzeModel } = await import("../analysis/analyzer.js");
-  const analysis = await analyzeModel(glbBuffer, "validation.glb", log);
+  const analysis = await analyzeModel(glbBuffer, "validation.glb");
+
+  const textureSizes = analysis.textures.details.map((t) => Math.max(t.width ?? 0, t.height ?? 0));
 
   return {
     triangles: analysis.geometry.triangleCount,
     fileSizeKB: Math.round(glbBuffer.byteLength / 1024),
     materials: analysis.materials.count,
-    maxTextureRes: Math.max(
-      ...analysis.textures.details.map((t) => Math.max(t.width, t.height)),
-      0,
-    ),
+    maxTextureRes: textureSizes.length > 0 ? Math.max(...textureSizes) : 0,
   };
 }
 
