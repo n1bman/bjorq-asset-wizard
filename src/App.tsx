@@ -13,6 +13,7 @@ import CatalogIngest from "@/pages/CatalogIngest";
 import SystemStatus from "@/pages/SystemStatus";
 import NotFound from "@/pages/NotFound";
 import WizardIntegration from "@/pages/WizardIntegration";
+import PhotoGenerate from "@/pages/PhotoGenerate";
 
 const queryClient = new QueryClient();
 
