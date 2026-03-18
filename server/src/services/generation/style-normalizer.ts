@@ -82,7 +82,8 @@ export async function normalizeStyle(
 ): Promise<Uint8Array> {
   const { NodeIO } = await import("@gltf-transform/core");
   const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
-  const { prune, weld, simplify, dedup, flatten, textureResize } = await import("@gltf-transform/functions");
+  const { prune, weld, simplify, dedup, flatten, textureCompress } = await import("@gltf-transform/functions");
+  const sharpModule = (await import("sharp")).default;
   const { MeshoptSimplifier } = await import("meshoptimizer");
 
   // Get the variant profile for color normalization
@@ -188,7 +189,7 @@ export async function normalizeStyle(
 
   // --- Step 10: Resize textures ---
   log.info({ maxRes: config.maxTextureRes }, "Style normalizer: resizing textures");
-  await doc.transform(textureResize({ size: [config.maxTextureRes, config.maxTextureRes] }));
+  await doc.transform(textureCompress({ encoder: sharpModule, resize: [config.maxTextureRes, config.maxTextureRes] }));
 
   // --- Step 11: Dedup + prune ---
   await doc.transform(dedup(), prune());
