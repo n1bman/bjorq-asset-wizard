@@ -189,7 +189,7 @@ export async function normalizeStyle(
 
   // --- Step 10: Resize textures ---
   log.info({ maxRes: config.maxTextureRes }, "Style normalizer: resizing textures");
-  await doc.transform(textureResize({ size: [config.maxTextureRes, config.maxTextureRes] }));
+  await doc.transform(textureCompress({ encoder: sharpModule, resize: [config.maxTextureRes, config.maxTextureRes] }));
 
   // --- Step 11: Dedup + prune ---
   await doc.transform(dedup(), prune());
