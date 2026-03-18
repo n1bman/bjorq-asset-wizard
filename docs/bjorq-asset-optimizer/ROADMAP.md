@@ -22,15 +22,15 @@
 - [x] RESTful API (Fastify)
 - [x] Local filesystem storage
 
-## Fas 2 — Catalog & Workflow
+## Fas 2 — Catalog & Workflow ✅
 
-- [ ] Catalog ingest endpoint
-- [ ] `index.json` manifest generation
-- [ ] Curated asset directory structure
-- [ ] Catalog reindex / validation
-- [ ] Simple admin UI (upload → analyze → optimize → catalog)
+- [x] Catalog ingest endpoint
+- [x] `index.json` manifest generation
+- [x] Curated asset directory structure
+- [x] Catalog reindex / validation
+- [x] Admin UI (upload → analyze → optimize → catalog)
+- [x] Asset versioning (track original → optimized lineage)
 - [ ] Batch processing support
-- [ ] Asset versioning (track original → optimized lineage)
 
 ## Fas 3 — Bjorq Integration
 
