@@ -57,9 +57,9 @@
 
 ## Future Ideas
 
-- AI-assisted category/placement detection
-- Automatic LOD generation
+- AI-assisted placement detection improvements
 - glTF compliance validation
 - Asset diffing (compare two versions)
 - WebSocket progress streaming for large files
 - Multi-language metadata support
+- Multi-library support
