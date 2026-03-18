@@ -1,4 +1,4 @@
-// Bjorq Asset Wizard — Photo → 3D Generation Types
+// Bjorq Asset Wizard — Photo → 3D Generation Types (v2.3.0)
 
 export type GenerateJobState =
   | "queued"
@@ -13,6 +13,8 @@ export type GenerateJobState =
 
 export type GenerateTargetProfile = "dashboard-safe" | "ultra-light" | "standard";
 
+export type StyleVariantId = "cozy" | "soft-minimal" | "warm-wood";
+
 export interface GenerateJobResponse {
   jobId: string;
   status: GenerateJobState;
@@ -26,6 +28,7 @@ export interface GenerateJobResponse {
   error?: string;
   canRetry?: boolean;
   inputWarnings?: string[];
+  queuePosition?: number;
 }
 
 export interface TrellisStatusResponse {
@@ -35,6 +38,13 @@ export interface TrellisStatusResponse {
   version?: string;
   installing?: boolean;
   installProgress?: number;
+}
+
+export interface QueueStatusResponse {
+  maxConcurrent: number;
+  running: number;
+  queued: number;
+  queuedJobIds: string[];
 }
 
 export interface QualityGateLimits {
@@ -72,3 +82,21 @@ export const STYLE_PRESETS = [
 ] as const;
 
 export type StylePresetId = typeof STYLE_PRESETS[number]["id"];
+
+export const STYLE_VARIANTS: { id: StyleVariantId; name: string; description: string }[] = [
+  {
+    id: "cozy",
+    name: "Cozy",
+    description: "Default warm, soft palette with gentle surfaces",
+  },
+  {
+    id: "soft-minimal",
+    name: "Soft Minimal",
+    description: "Muted tones with flatter textures for a cleaner look",
+  },
+  {
+    id: "warm-wood",
+    name: "Warm Wood",
+    description: "Deeper warm tones emphasizing natural wood feel",
+  },
+];

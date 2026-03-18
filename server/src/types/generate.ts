@@ -1,5 +1,5 @@
 /**
- * Bjorq Asset Wizard — Photo → 3D Generation Types (Backend) v2.2.2
+ * Bjorq Asset Wizard — Photo → 3D Generation Types (Backend) v2.3.0
  */
 
 export type GenerateJobState =
@@ -17,9 +17,12 @@ export type GenerateTargetProfile = "dashboard-safe" | "ultra-light" | "standard
 
 export type StylePresetId = "bjorq-cozy";
 
+export type StyleVariantId = "cozy" | "soft-minimal" | "warm-wood";
+
 export interface GenerateJobOptions {
   style: StylePresetId;
   target: GenerateTargetProfile;
+  variant?: StyleVariantId;
 }
 
 export interface GenerateJob {
@@ -56,6 +59,7 @@ export interface GenerateJobResponse {
   error?: string;
   canRetry?: boolean;
   inputWarnings?: string[];
+  queuePosition?: number;
 }
 
 export interface TrellisStatusResponse {
@@ -65,6 +69,13 @@ export interface TrellisStatusResponse {
   version?: string;
   installing?: boolean;
   installProgress?: number;
+}
+
+export interface QueueStatusResponse {
+  maxConcurrent: number;
+  running: number;
+  queued: number;
+  queuedJobIds: string[];
 }
 
 export interface QualityGateLimits {

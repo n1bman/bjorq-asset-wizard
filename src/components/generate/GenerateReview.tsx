@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Save, ExternalLink, Shield, Sparkles } from "lucide-react";
+import { RotateCcw, Save, ExternalLink, Shield, Sparkles, Layers, Tag } from "lucide-react";
 import type { GenerateJobResponse } from "@/types/generate";
+import { STYLE_VARIANTS } from "@/types/generate";
 
 interface GenerateReviewProps {
   job: GenerateJobResponse;
@@ -11,6 +12,16 @@ interface GenerateReviewProps {
   onSaveToLibrary: () => void;
   saving?: boolean;
 }
+
+const CATEGORY_LABELS: Record<string, string> = {
+  chair: "Chair",
+  table: "Table",
+  sofa: "Sofa",
+  lamp: "Lamp",
+  storage: "Storage",
+  decor: "Decor",
+  other: "Object",
+};
 
 export function GenerateReview({
   job,
@@ -21,6 +32,12 @@ export function GenerateReview({
 }: GenerateReviewProps) {
   const result = job.result;
   const meta = result?.metadata;
+  const variantId = meta?.variant as string | undefined;
+  const variantLabel = STYLE_VARIANTS.find((v) => v.id === variantId)?.name ?? "Cozy";
+  const category = meta?.category as string | undefined;
+  const categoryLabel = category ? CATEGORY_LABELS[category] ?? category : undefined;
+  const lods = meta?.lods as string[] | undefined;
+  const version = meta?.version as number | undefined;
 
   return (
     <div className="space-y-6">
@@ -39,16 +56,28 @@ export function GenerateReview({
             )}
           </div>
           <div className="p-4 space-y-3">
-            {/* Quality badges — user-friendly, no raw numbers */}
+            {/* Quality badges */}
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="default" className="gap-1">
                 <Sparkles className="h-3 w-3" />
-                Bjorq Stylized
+                Bjorq {variantLabel}
               </Badge>
               <Badge variant="secondary" className="gap-1">
                 <Shield className="h-3 w-3" />
                 Dashboard Safe
               </Badge>
+              {categoryLabel && (
+                <Badge variant="outline" className="gap-1">
+                  <Tag className="h-3 w-3" />
+                  {categoryLabel}
+                </Badge>
+              )}
+              {lods && lods.length > 1 && (
+                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                  <Layers className="h-3 w-3" />
+                  {lods.length} LODs
+                </Badge>
+              )}
               {meta?.forcedMinimal && (
                 <Badge variant="outline" className="text-muted-foreground">
                   Simplified
@@ -56,7 +85,7 @@ export function GenerateReview({
               )}
             </div>
 
-            {/* Subtle technical info */}
+            {/* Technical info */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 {meta?.triangles != null && (
@@ -70,6 +99,9 @@ export function GenerateReview({
                 )}
                 {meta?.materials != null && (
                   <span>{String(meta.materials)} mat{Number(meta.materials) !== 1 ? "s" : ""}</span>
+                )}
+                {version != null && version > 1 && (
+                  <span className="text-primary">v{version}</span>
                 )}
               </div>
               {result?.model && (

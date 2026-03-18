@@ -1,5 +1,5 @@
 /**
- * Bjorq Asset Wizard — Photo → 3D Generation API
+ * Bjorq Asset Wizard — Photo → 3D Generation API (v2.3.0)
  *
  * All functions try the real backend first via apiClient.
  * Falls back to mock data when backend is unreachable.
@@ -10,6 +10,8 @@ import type {
   GenerateTargetProfile,
   TrellisStatusResponse,
   StylePresetId,
+  StyleVariantId,
+  QueueStatusResponse,
 } from "@/types/generate";
 import { apiClient, ApiError } from "./api-client";
 import { UPLOAD_TIMEOUT } from "@/lib/upload-limits";
@@ -48,18 +50,24 @@ function advanceMockJob(jobId: string): GenerateJobResponse {
             thumbnail: `/jobs/gen_${jobId}/thumb.webp`,
             metadata: {
               style: "bjorq-cozy",
-              triangles: 6000 + Math.floor(Math.random() * 4000), // variation per generation
+              variant: "cozy",
+              triangles: 6000 + Math.floor(Math.random() * 4000),
               fileSizeKB: 800 + Math.floor(Math.random() * 600),
               materials: 1 + Math.floor(Math.random() * 2),
+              category: ["chair", "table", "sofa", "lamp"][Math.floor(Math.random() * 4)],
+              lods: ["output.glb", "output_lod1.glb", "output_lod2.glb"],
               gatePassed: true,
               gateAttempt: 1,
               forcedMinimal: false,
+              sceneCompatible: true,
+              version: 1,
               source: "generated",
             },
           },
         }
       : {}),
     canRetry: status === "failed",
+    queuePosition: status === "queued" ? 0 : -1,
   };
 }
 
@@ -69,11 +77,12 @@ export async function createGenerateJob(
   images: File[],
   style: StylePresetId,
   target: GenerateTargetProfile,
+  variant: StyleVariantId = "cozy",
 ): Promise<GenerateJobResponse> {
   try {
     const fd = new FormData();
     images.forEach((img) => fd.append("images", img));
-    fd.append("options", JSON.stringify({ style, target }));
+    fd.append("options", JSON.stringify({ style, target, variant }));
     return await apiClient.request<GenerateJobResponse>("/generate", {
       method: "POST",
       body: fd,
@@ -81,12 +90,11 @@ export async function createGenerateJob(
     });
   } catch (err) {
     if (err instanceof ApiError && err.status > 0) throw err;
-    // Mock fallback
     console.warn("[generate-api] Backend unreachable, using mock");
     await fakeDel();
     const jobId = `mock_${++mockJobCounter}`;
     mockJobs.set(jobId, { status: 0, created: Date.now() });
-    return { jobId, status: "queued", progress: 0, currentStep: "queued" };
+    return { jobId, status: "queued", progress: 0, currentStep: "queued", queuePosition: 0 };
   }
 }
 
@@ -109,7 +117,7 @@ export async function retryGenerateJob(jobId: string): Promise<GenerateJobRespon
     if (err instanceof ApiError && err.status > 0) throw err;
     await fakeDel();
     mockJobs.set(jobId, { status: 0, created: Date.now() });
-    return { jobId, status: "queued", progress: 0, currentStep: "queued" };
+    return { jobId, status: "queued", progress: 0, currentStep: "queued", queuePosition: 0 };
   }
 }
 
@@ -131,5 +139,14 @@ export async function installTrellis(): Promise<{ success: boolean; message: str
     if (err instanceof ApiError && err.status > 0) throw err;
     await fakeDel(1500);
     return { success: true, message: "Mock install complete" };
+  }
+}
+
+export async function getQueueStatus(): Promise<QueueStatusResponse> {
+  try {
+    return await apiClient.request<QueueStatusResponse>("/generate/queue");
+  } catch (err) {
+    if (err instanceof ApiError && err.status > 0) throw err;
+    return { maxConcurrent: 1, running: 0, queued: 0, queuedJobIds: [] };
   }
 }

@@ -1,37 +1,31 @@
 /**
- * Bjorq Style Profile — Global Visual Identity Lock (v2.2.2)
+ * Bjorq Style Profile — Global Visual Identity Lock (v2.3.0)
  *
  * Defines the canonical Bjorq visual identity as a fixed, deterministic profile.
- * Every generated asset passes through this profile to ensure cross-asset consistency.
+ * Now supports controlled style VARIANTS that all remain within the Bjorq identity.
  *
  * This is the SINGLE SOURCE OF TRUTH for the Bjorq look.
- * Style normalizer, quality gate, and pipeline all reference this profile.
+ * Style normalizer, quality gate, drift detector, and pipeline all reference this.
  */
 
-/** Global Bjorq style profile — all values are FIXED, never randomized */
+/** Named style variants — all derived from the base profile */
+export type BjorqStyleVariant = "cozy" | "soft-minimal" | "warm-wood";
+
+/** Global Bjorq base profile — all values are FIXED, never randomized */
 export const BJORQ_STYLE_PROFILE = {
   // --- PBR Material ---
   roughness: 0.8,
   metallic: 0.0,
-  /** Warm neutral tint applied to all baseColor factors */
   baseColorTint: [1.0, 0.96, 0.9] as [number, number, number],
-  /** Max saturation — prevents noisy AI textures */
   saturationClamp: 0.5,
-  /** Brightness must fall within this range */
   brightnessRange: [0.3, 0.85] as [number, number],
-  /** How strongly to flatten texture detail (0 = no flatten, 1 = solid color) */
   textureFlattenStrength: 0.6,
 
   // --- Geometry ---
-  /** Target simplification ratio (standard pass) */
   simplifyRatio: 0.4,
-  /** Fallback ratio for aggressive re-processing */
   fallbackRatio: 0.2,
-  /** Simplification error tolerance */
   simplifyError: 0.05,
-  /** Primitives with fewer than this many indices are pruned */
-  microGeometryThreshold: 36, // < 12 triangles
-  /** Minimum simplicity score to pass (0–1) */
+  microGeometryThreshold: 36,
   simplicityThreshold: 0.6,
 
   // --- Materials ---
@@ -50,14 +44,41 @@ export const BJORQ_STYLE_PROFILE = {
 export type BjorqStyleProfile = typeof BJORQ_STYLE_PROFILE;
 
 /**
+ * Controlled style variants — all stay within Bjorq identity bounds.
+ * Each variant only overrides specific properties from the base profile.
+ */
+export const BJORQ_STYLE_VARIANTS: Record<BjorqStyleVariant, BjorqStyleProfile> = {
+  cozy: { ...BJORQ_STYLE_PROFILE },
+  "soft-minimal": {
+    ...BJORQ_STYLE_PROFILE,
+    saturationClamp: 0.35,
+    brightnessRange: [0.4, 0.9] as [number, number],
+    textureFlattenStrength: 0.8,
+    roughness: 0.85,
+  },
+  "warm-wood": {
+    ...BJORQ_STYLE_PROFILE,
+    baseColorTint: [1.0, 0.93, 0.82] as [number, number, number],
+    saturationClamp: 0.55,
+    brightnessRange: [0.25, 0.75] as [number, number],
+    roughness: 0.75,
+  },
+};
+
+/** Get profile for a variant (defaults to cozy) */
+export function getVariantProfile(variant?: BjorqStyleVariant): BjorqStyleProfile {
+  return BJORQ_STYLE_VARIANTS[variant ?? "cozy"] ?? BJORQ_STYLE_VARIANTS.cozy;
+}
+
+/**
  * Apply the Bjorq base color tint to an RGBA color.
- * Shifts colors toward the warm Bjorq palette.
  */
 export function applyBaseColorTint(
   rgba: [number, number, number, number],
+  tint?: [number, number, number],
 ): [number, number, number, number] {
   const [r, g, b, a] = rgba;
-  const [tr, tg, tb] = BJORQ_STYLE_PROFILE.baseColorTint;
+  const [tr, tg, tb] = tint ?? BJORQ_STYLE_PROFILE.baseColorTint;
   return [
     Math.min(1, r * tr),
     Math.min(1, g * tg),
@@ -71,12 +92,13 @@ export function applyBaseColorTint(
  */
 export function clampBrightness(
   rgba: [number, number, number, number],
+  range?: [number, number],
 ): [number, number, number, number] {
   const [r, g, b, a] = rgba;
-  const [minB, maxB] = BJORQ_STYLE_PROFILE.brightnessRange;
+  const [minB, maxB] = range ?? BJORQ_STYLE_PROFILE.brightnessRange;
   const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
 
-  if (brightness < 0.001) return [minB, minB, minB, a]; // avoid division by zero
+  if (brightness < 0.001) return [minB, minB, minB, a];
   if (brightness >= minB && brightness <= maxB) return [r, g, b, a];
 
   const target = brightness < minB ? minB : maxB;
@@ -90,10 +112,11 @@ export function clampBrightness(
 }
 
 /**
- * Clamp saturation of an RGB color to the profile limit.
+ * Clamp saturation of an RGB color.
  */
 export function clampSaturation(
   rgba: [number, number, number, number],
+  maxSat?: number,
 ): [number, number, number, number] {
   const [r, g, b, a] = rgba;
   const max = Math.max(r, g, b);
@@ -104,11 +127,11 @@ export function clampSaturation(
   if (delta === 0 || lightness === 0) return [r, g, b, a];
 
   const saturation = delta / (1 - Math.abs(2 * lightness - 1));
-  const maxSat = BJORQ_STYLE_PROFILE.saturationClamp;
+  const clampVal = maxSat ?? BJORQ_STYLE_PROFILE.saturationClamp;
 
-  if (saturation <= maxSat) return [r, g, b, a];
+  if (saturation <= clampVal) return [r, g, b, a];
 
-  const factor = maxSat / saturation;
+  const factor = clampVal / saturation;
   const mid = (max + min) / 2;
   return [
     mid + (r - mid) * factor,
@@ -120,23 +143,25 @@ export function clampSaturation(
 
 /**
  * Full color normalization: tint → saturation clamp → brightness clamp.
- * Ensures every color matches the Bjorq warm neutral palette.
+ * Optionally accepts a variant profile for variant-specific color handling.
  */
 export function normalizeColor(
   rgba: number[],
+  profile?: BjorqStyleProfile,
 ): [number, number, number, number] {
+  const p = profile ?? BJORQ_STYLE_PROFILE;
   let color: [number, number, number, number] = [
     rgba[0] ?? 1, rgba[1] ?? 1, rgba[2] ?? 1, rgba[3] ?? 1,
   ];
-  color = applyBaseColorTint(color);
-  color = clampSaturation(color);
-  color = clampBrightness(color);
+  color = applyBaseColorTint(color, [...p.baseColorTint] as [number, number, number]);
+  color = clampSaturation(color, p.saturationClamp);
+  color = clampBrightness(color, [...p.brightnessRange] as [number, number]);
   return color;
 }
 
 /**
  * Visual consistency validation — checks if an asset's materials
- * match the Bjorq style profile within acceptable tolerance.
+ * match a style profile within acceptable tolerance.
  */
 export interface VisualConsistencyResult {
   consistent: boolean;
@@ -155,9 +180,10 @@ export function validateVisualConsistency(
     hasNormalMap: boolean;
     hasAOMap: boolean;
   }>,
+  profile?: BjorqStyleProfile,
 ): VisualConsistencyResult {
   const issues: string[] = [];
-  const p = BJORQ_STYLE_PROFILE;
+  const p = profile ?? BJORQ_STYLE_PROFILE;
 
   const materialCountOk = materials.length <= p.maxMaterials;
   if (!materialCountOk) issues.push(`Materials: ${materials.length} > ${p.maxMaterials}`);
@@ -167,18 +193,15 @@ export function validateVisualConsistency(
   let roughnessOk = true;
 
   for (const mat of materials) {
-    // Roughness check
     if (Math.abs(mat.roughness - p.roughness) > 0.15) {
       roughnessOk = false;
       issues.push(`Roughness drift: ${mat.roughness.toFixed(2)} (expected ~${p.roughness})`);
     }
 
-    // Metallic check
     if (mat.metallic > 0.01) {
       issues.push(`Metallic > 0: ${mat.metallic}`);
     }
 
-    // Brightness check
     const [r, g, b] = mat.baseColor;
     const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     const [minB, maxB] = p.brightnessRange;
@@ -187,11 +210,10 @@ export function validateVisualConsistency(
       issues.push(`Brightness out of range: ${brightness.toFixed(2)}`);
     }
 
-    // Saturation check
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const delta = max - min;
-    const lightness = (max + min) / 2;
+    const cmax = Math.max(r, g, b);
+    const cmin = Math.min(r, g, b);
+    const delta = cmax - cmin;
+    const lightness = (cmax + cmin) / 2;
     if (delta > 0 && lightness > 0) {
       const sat = delta / (1 - Math.abs(2 * lightness - 1));
       if (sat > p.saturationClamp + 0.1) {
@@ -200,7 +222,6 @@ export function validateVisualConsistency(
       }
     }
 
-    // Map checks
     if (mat.hasNormalMap) issues.push("Normal map present");
     if (mat.hasAOMap) issues.push("AO map present");
   }

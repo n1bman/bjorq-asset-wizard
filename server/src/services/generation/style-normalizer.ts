@@ -1,8 +1,8 @@
 /**
- * Bjorq Style Normalizer (v2.2.2)
+ * Bjorq Style Normalizer (v2.3.0)
  *
  * Post-TRELLIS processing step that enforces the Bjorq visual identity.
- * Now driven by the global BJORQ_STYLE_PROFILE for cross-asset consistency.
+ * Now supports style VARIANTS via the global style profile system.
  *
  * Geometry:
  *   - Aggressive simplification with shape integrity protection
@@ -17,11 +17,16 @@
  *   - Standardize PBR via style profile (roughness 0.8, metallic 0)
  *   - Color normalization: tint → saturation clamp → brightness clamp
  *
- * All parameters derived from BJORQ_STYLE_PROFILE — deterministic output.
+ * All parameters derived from active style variant — deterministic output.
  */
 
 import type { FastifyBaseLogger } from "fastify";
-import { BJORQ_STYLE_PROFILE, normalizeColor } from "./style-profile.js";
+import {
+  type BjorqStyleVariant,
+  type BjorqStyleProfile,
+  getVariantProfile,
+  normalizeColor,
+} from "./style-profile.js";
 
 export interface StyleNormalizerConfig {
   simplifyRatio: number;
@@ -39,38 +44,49 @@ export interface StyleNormalizerConfig {
   simplicityThreshold: number;
 }
 
-/** Config derived from global style profile */
-export const BJORQ_COZY_CONFIG: StyleNormalizerConfig = {
-  simplifyRatio: BJORQ_STYLE_PROFILE.simplifyRatio,
-  fallbackSimplifyRatio: BJORQ_STYLE_PROFILE.fallbackRatio,
-  simplifyError: BJORQ_STYLE_PROFILE.simplifyError,
-  roughness: BJORQ_STYLE_PROFILE.roughness,
-  metallic: BJORQ_STYLE_PROFILE.metallic,
-  maxMaterials: BJORQ_STYLE_PROFILE.maxMaterials,
-  maxTextureRes: BJORQ_STYLE_PROFILE.maxTextureRes,
-  stripNormalMaps: BJORQ_STYLE_PROFILE.stripNormalMaps,
-  stripAOMaps: BJORQ_STYLE_PROFILE.stripAOMaps,
-  stripEmissive: BJORQ_STYLE_PROFILE.stripEmissive,
-  stripMetallicRoughnessTexture: BJORQ_STYLE_PROFILE.stripMetallicRoughnessTexture,
-  microGeometryThreshold: BJORQ_STYLE_PROFILE.microGeometryThreshold,
-  simplicityThreshold: BJORQ_STYLE_PROFILE.simplicityThreshold,
-};
+/** Build normalizer config from a style variant profile */
+export function configFromVariant(variant?: BjorqStyleVariant): StyleNormalizerConfig {
+  const p = getVariantProfile(variant);
+  return {
+    simplifyRatio: p.simplifyRatio,
+    fallbackSimplifyRatio: p.fallbackRatio,
+    simplifyError: p.simplifyError,
+    roughness: p.roughness,
+    metallic: p.metallic,
+    maxMaterials: p.maxMaterials,
+    maxTextureRes: p.maxTextureRes,
+    stripNormalMaps: p.stripNormalMaps,
+    stripAOMaps: p.stripAOMaps,
+    stripEmissive: p.stripEmissive,
+    stripMetallicRoughnessTexture: p.stripMetallicRoughnessTexture,
+    microGeometryThreshold: p.microGeometryThreshold,
+    simplicityThreshold: p.simplicityThreshold,
+  };
+}
+
+/** Default config (cozy variant) */
+export const BJORQ_COZY_CONFIG: StyleNormalizerConfig = configFromVariant("cozy");
 
 /**
  * Apply Bjorq style normalization to a raw GLB buffer.
  *
  * @param aggressive - If true, uses fallback ratios for maximum reduction
+ * @param variant - Style variant to apply (defaults to cozy)
  */
 export async function normalizeStyle(
   glbBuffer: Uint8Array,
   config: StyleNormalizerConfig = BJORQ_COZY_CONFIG,
   log: FastifyBaseLogger,
   aggressive = false,
+  variant?: BjorqStyleVariant,
 ): Promise<Uint8Array> {
   const { NodeIO } = await import("@gltf-transform/core");
   const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
   const { prune, weld, simplify, dedup, flatten, textureResize } = await import("@gltf-transform/functions");
   const { MeshoptSimplifier } = await import("meshoptimizer");
+
+  // Get the variant profile for color normalization
+  const variantProfile = variant ? getVariantProfile(variant) : undefined;
 
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const doc = await io.readBinary(glbBuffer);
@@ -148,10 +164,10 @@ export async function normalizeStyle(
       material.setMetallicRoughnessTexture(null);
     }
 
-    // Full color normalization via style profile
+    // Full color normalization via style profile (variant-aware)
     const baseColor = material.getBaseColorFactor();
     if (baseColor) {
-      material.setBaseColorFactor(normalizeColor(baseColor));
+      material.setBaseColorFactor(normalizeColor(baseColor, variantProfile));
     }
   }
 
@@ -186,6 +202,7 @@ export async function normalizeStyle(
       simplicityScore: simplicityScore.toFixed(3),
       shapeIntact,
       prunedMicroGeo: prunedCount,
+      variant: variant ?? "cozy",
     },
     "Style normalization complete",
   );
@@ -226,10 +243,6 @@ function computeBoundingBox(root: import("@gltf-transform/core").Root): BBox {
   };
 }
 
-/**
- * Check shape integrity by comparing bounding box proportions.
- * Returns true if proportions are preserved within 20%.
- */
 function checkShapeIntegrity(before: BBox, after: BBox): boolean {
   const eps = 0.001;
   for (let i = 0; i < 3; i++) {
@@ -241,13 +254,6 @@ function checkShapeIntegrity(before: BBox, after: BBox): boolean {
   return true;
 }
 
-/**
- * Compute a simplicity score (0–1) for the mesh.
- * Higher = simpler/cleaner geometry. Based on:
- * - Average triangle area (larger = simpler)
- * - Triangle count relative to bounding volume
- * - Vertex density uniformity
- */
 function computeSimplicityScore(root: import("@gltf-transform/core").Root): number {
   let totalTriangles = 0;
   let totalVertices = 0;
@@ -263,11 +269,9 @@ function computeSimplicityScore(root: import("@gltf-transform/core").Root): numb
 
   if (totalTriangles === 0) return 1.0;
 
-  // Vertex-to-triangle ratio: ~0.5 for clean geometry, higher for noisy
   const vtRatio = totalVertices / totalTriangles;
   const vtScore = Math.max(0, Math.min(1, 1 - (vtRatio - 0.5) / 2));
 
-  // Triangle count penalty: fewer = simpler
   const triScore = totalTriangles < 5000 ? 1.0
     : totalTriangles < 15000 ? 0.7
     : totalTriangles < 50000 ? 0.4
@@ -283,16 +287,17 @@ export async function checkStyleConsistency(
   glbBuffer: Uint8Array,
   config: StyleNormalizerConfig = BJORQ_COZY_CONFIG,
   log: FastifyBaseLogger,
+  variant?: BjorqStyleVariant,
 ): Promise<{ consistent: boolean; issues: string[] }> {
   const { NodeIO } = await import("@gltf-transform/core");
   const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
-  const { validateVisualConsistency } = await import("./style-profile.js");
+  const { validateVisualConsistency, getVariantProfile } = await import("./style-profile.js");
 
+  const profile = variant ? getVariantProfile(variant) : undefined;
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const doc = await io.readBinary(glbBuffer);
   const root = doc.getRoot();
 
-  // Extract material data for visual consistency check
   const matData = root.listMaterials().map((m) => ({
     roughness: m.getRoughnessFactor(),
     metallic: m.getMetallicFactor(),
@@ -301,9 +306,8 @@ export async function checkStyleConsistency(
     hasAOMap: m.getOcclusionTexture() !== null,
   }));
 
-  const visualCheck = validateVisualConsistency(matData);
+  const visualCheck = validateVisualConsistency(matData, profile);
 
-  // Also check micro-geometry
   const issues = [...visualCheck.issues];
   for (const mesh of root.listMeshes()) {
     for (const prim of mesh.listPrimitives()) {
