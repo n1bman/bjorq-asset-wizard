@@ -41,14 +41,15 @@
 - [ ] Category auto-detection heuristics
 - [ ] Placement confidence improvements
 
-## Fas 4 — Production & Deployment
+## Fas 4 — Production & Deployment ✅
 
-- [ ] Dockerfile
-- [ ] Home Assistant add-on packaging (`config.yaml`, `run.sh`)
-- [ ] Volume mount configuration for persistent storage
-- [ ] Health monitoring and metrics
-- [ ] `gltfpack` integration for mesh compression (Draco/meshopt)
-- [ ] Advanced decimation with quality presets
+- [x] Dockerfile
+- [x] Home Assistant add-on packaging (`config.yaml`, `run.sh`)
+- [x] Volume mount configuration for persistent storage
+- [x] Health monitoring and metrics
+- [x] `meshoptimizer` integration for mesh simplification
+- [x] Advanced decimation with quality presets
+- [x] LOD generation (prepared as metadata — runtime switching is Dashboard's job)
 - [ ] High-quality thumbnail rendering (headless GL / three.js)
 - [ ] Authentication / API key support
 - [ ] Rate limiting
