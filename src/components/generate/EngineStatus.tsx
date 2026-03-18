@@ -31,15 +31,36 @@ export function EngineStatus({ onReady, className }: EngineStatusProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const pollUntilDone = async () => {
+    const MAX_POLLS = 120;
+    for (let i = 0; i < MAX_POLLS; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const s = await getTrellisStatus();
+      setStatus(s);
+
+      if (s.installed) {
+        setInstalling(false);
+        if (s.running) onReady?.();
+        return;
+      }
+      if (!s.installing) {
+        setInstalling(false);
+        setError("Installation stopped unexpectedly");
+        return;
+      }
+    }
+    setInstalling(false);
+    setError("Installation timed out");
+  };
+
   const handleInstall = async () => {
     setInstalling(true);
     setError(null);
     try {
       await installTrellis();
-      await checkStatus();
+      await pollUntilDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Installation failed");
-    } finally {
       setInstalling(false);
     }
   };
