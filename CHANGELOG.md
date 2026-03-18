@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.5] — 2026-03-18
+
+### Fixed
+- **TRELLIS install directory conflict**: Separated runtime state (`status.json`) from the git clone target. New layout: `/data/trellis/repo/`, `/data/trellis/venv/`, `/data/trellis/workspace/`, `/data/trellis/status.json`
+- **Idempotent installation**: Repeated install attempts now skip already-completed steps (valid repo, existing venv) instead of failing
+- **Invalid repo recovery**: If `repo/` exists but is not a valid git checkout, it is cleaned up and re-cloned automatically
+- **Docker deps** (v2.3.4): Added `git`, `python3`, `py3-pip` to Alpine image for engine installation
+
 ## [2.3.2] — 2026-03-18
 
 ### Fixed
