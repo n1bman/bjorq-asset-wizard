@@ -59,17 +59,17 @@ export function GenerateReview({
             {/* Subtle technical info */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                {meta?.triangles && (
+                {meta?.triangles != null && (
                   <span>{Number(meta.triangles).toLocaleString()} tris</span>
                 )}
-                {meta?.fileSizeKB && (
+                {meta?.fileSizeKB != null && (
                   <span>{Number(meta.fileSizeKB) < 1024
                     ? `${meta.fileSizeKB} KB`
                     : `${(Number(meta.fileSizeKB) / 1024).toFixed(1)} MB`
                   }</span>
                 )}
-                {meta?.materials && (
-                  <span>{meta.materials} mat{Number(meta.materials) !== 1 ? "s" : ""}</span>
+                {meta?.materials != null && (
+                  <span>{String(meta.materials)} mat{Number(meta.materials) !== 1 ? "s" : ""}</span>
                 )}
               </div>
               {result?.model && (
