@@ -43,8 +43,7 @@ const ESCALATION_CONFIGS: Partial<StyleNormalizerConfig>[] = [
     fallbackSimplifyRatio: 0.1,
     maxMaterials: 1,
     maxTextureRes: 128,
-    roughnessMin: 0.8,
-    roughnessMax: 0.9,
+    roughness: 0.85,
   },
 ];
 
