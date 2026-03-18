@@ -202,7 +202,9 @@ async function start() {
         request.url.startsWith("/import") ||
         request.url.startsWith("/jobs/") ||
         request.url.startsWith("/libraries") ||
-        request.url.startsWith("/assets/")
+        request.url.startsWith("/assets/") ||
+        request.url.startsWith("/generate") ||
+        request.url.startsWith("/trellis")
       ) {
         return reply.code(404).send({ success: false, error: "Not found" });
       }
