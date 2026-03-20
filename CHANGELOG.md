@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.4.1] — 2026-03-20
+
+### Fixed
+- **Windows installer build** — Removed invalid `SetupIconFile` reference to `.svg` (Inno Setup requires `.ico`). The installer now builds without icon errors.
+
 ## [2.4.0] — 2026-03-20
 
 ### Added
