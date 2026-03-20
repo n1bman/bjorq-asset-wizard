@@ -87,6 +87,12 @@ export interface TrellisStatusResponse {
   weightsDownloaded?: boolean;
   /** Map of CUDA extension name → installed (true/false) */
   extensions?: Record<string, boolean>;
+  /** Engine mode: "local" (in-container) or "external" (remote worker) */
+  mode?: "local" | "external";
+  /** Worker URL when mode=external */
+  workerUrl?: string;
+  /** Last error from worker or local engine */
+  lastError?: string;
 }
 
 export interface QueueStatusResponse {
