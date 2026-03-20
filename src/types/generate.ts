@@ -1,4 +1,4 @@
-// Bjorq Asset Wizard — Photo → 3D Generation Types (v2.3.9)
+// Bjorq Asset Wizard — Photo → 3D Generation Types (v2.4.0)
 
 export type GenerateJobState =
   | "queued"
@@ -49,6 +49,12 @@ export interface TrellisStatusResponse {
   environment?: TrellisEnvironment;
   weightsDownloaded?: boolean;
   extensions?: Record<string, boolean>;
+  /** Engine mode: "local" (in-container) or "external" (remote worker) */
+  mode?: "local" | "external";
+  /** Worker URL when mode=external */
+  workerUrl?: string;
+  /** Last error from worker or local engine */
+  lastError?: string;
 }
 
 export interface QueueStatusResponse {
