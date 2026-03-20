@@ -151,8 +151,14 @@ else {
     $mambaOk = $false
     try {
         New-Item -ItemType Directory -Path $mambaDir -Force | Out-Null
-        Write-Host "  Downloading micromamba..."
-        Invoke-WebRequest -Uri $MICROMAMBA_URL -OutFile $mambaExe -UseBasicParsing
+        Write-Host "  Downloading micromamba v$MICROMAMBA_VERSION..."
+        try {
+            Invoke-WebRequest -Uri $MICROMAMBA_URL -OutFile $mambaExe -UseBasicParsing
+        }
+        catch {
+            Write-Host "  Pinned version failed, trying latest..." -ForegroundColor Yellow
+            Invoke-WebRequest -Uri $MICROMAMBA_URL_LATEST -OutFile $mambaExe -UseBasicParsing
+        }
 
         if (Test-Path $mambaExe) {
             Write-Host "  Creating conda environment with Python $PYTHON_VERSION..."
