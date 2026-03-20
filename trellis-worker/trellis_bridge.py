@@ -3,6 +3,10 @@ Bjorq 3D Worker — TRELLIS.2 inference bridge.
 
 Wraps TRELLIS.2 pipeline calls. Loads the model once at init
 and runs generation per-request.
+
+IMPORTANT: The TRELLIS.2 repo exposes its package as `trellis2`
+(not `trellis`). The repo root must be on sys.path so that
+`import trellis2` resolves to `<repo>/trellis2/`.
 """
 
 import os
@@ -40,7 +44,23 @@ class TrellisBridge:
                 "Run the installer first."
             )
 
-        # Add repo to sys.path so we can import trellis modules
+        # Verify trellis2 package directory exists inside repo
+        trellis2_pkg = self.repo_path / "trellis2"
+        if not trellis2_pkg.exists():
+            # Some repo layouts use 'trellis' — check that too
+            trellis1_pkg = self.repo_path / "trellis"
+            if trellis1_pkg.exists():
+                logger.warning(
+                    "Found 'trellis/' instead of 'trellis2/' in repo — "
+                    "this may be an older TRELLIS version"
+                )
+            else:
+                logger.warning(
+                    "Neither 'trellis2/' nor 'trellis/' found in %s — "
+                    "imports may fail", self.repo_path
+                )
+
+        # Add repo to sys.path so `import trellis2` works
         repo_str = str(self.repo_path)
         if repo_str not in sys.path:
             sys.path.insert(0, repo_str)
@@ -57,19 +77,47 @@ class TrellisBridge:
 
         logger.info("Loading TRELLIS pipeline (first generation)...")
         try:
-            # Import TRELLIS modules — the exact import depends on TRELLIS.2 API
-            # This is a best-effort wrapper; adjust imports when TRELLIS.2 API stabilizes
-            from trellis.pipelines import TrellisImageTo3DPipeline
+            # Try trellis2 first (TRELLIS.2 repo), then trellis (older)
+            pipeline_cls = None
+            try:
+                from trellis2.pipelines import Trellis2ImageTo3DPipeline
+                pipeline_cls = Trellis2ImageTo3DPipeline
+                logger.info("Using trellis2.pipelines.Trellis2ImageTo3DPipeline")
+            except ImportError:
+                try:
+                    from trellis2.pipelines import TrellisImageTo3DPipeline
+                    pipeline_cls = TrellisImageTo3DPipeline
+                    logger.info("Using trellis2.pipelines.TrellisImageTo3DPipeline")
+                except ImportError:
+                    try:
+                        from trellis.pipelines import TrellisImageTo3DPipeline
+                        pipeline_cls = TrellisImageTo3DPipeline
+                        logger.info("Using trellis.pipelines.TrellisImageTo3DPipeline (legacy)")
+                    except ImportError:
+                        pass
 
-            self._pipeline = TrellisImageTo3DPipeline.from_pretrained(
+            if pipeline_cls is None:
+                # List what's actually available for debugging
+                available = []
+                for mod_name in ["trellis2", "trellis"]:
+                    try:
+                        mod = __import__(mod_name)
+                        available.append(f"{mod_name} (found at {getattr(mod, '__file__', '?')})")
+                    except ImportError:
+                        pass
+                raise BridgeError(
+                    "Could not import TRELLIS pipeline class. "
+                    f"Tried: trellis2.pipelines, trellis.pipelines. "
+                    f"Available modules: {available or 'none'}. "
+                    f"sys.path includes: {self.repo_path}"
+                )
+
+            self._pipeline = pipeline_cls.from_pretrained(
                 str(self.weights_path)
             )
             logger.info("TRELLIS pipeline loaded successfully")
-        except ImportError as e:
-            raise BridgeError(
-                f"Failed to import TRELLIS modules: {e}. "
-                "Ensure TRELLIS.2 is properly installed."
-            )
+        except BridgeError:
+            raise
         except Exception as e:
             raise BridgeError(f"Failed to load TRELLIS pipeline: {e}")
 
@@ -100,7 +148,7 @@ class TrellisBridge:
 
             # Run pipeline
             # NOTE: The exact API depends on TRELLIS.2 version.
-            # This follows the expected TrellisImageTo3DPipeline interface.
+            # This follows the expected pipeline interface.
             outputs = self._pipeline.run(
                 images[0] if len(images) == 1 else images,
                 seed=options.get("seed", 42),

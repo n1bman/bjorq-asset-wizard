@@ -73,11 +73,13 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.5.0",
+  "version": "2.5.1",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
-  "installing": false
+  "installing": false,
+  "lastError": null
+}
 }
 ```
 

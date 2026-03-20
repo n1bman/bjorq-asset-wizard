@@ -9,6 +9,7 @@
     3. PyTorch with CUDA support
     4. Python dependencies
     5. Model weights (~15 GB)
+    6. Windows Firewall rule for worker port
 .NOTES
     Run as Administrator for best results.
     Requires: NVIDIA GPU driver installed, git, ~25 GB free disk space.
@@ -21,7 +22,6 @@ param(
     [switch]$SkipWeights
 )
 
-$ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 $MICROMAMBA_VERSION = "2.0.5"
@@ -30,7 +30,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.5.0"
+$WORKER_VERSION = "2.5.1"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -63,10 +63,74 @@ function Write-Fatal {
     exit 1
 }
 
-function Test-NvidiaGpu {
+function Invoke-Tool {
+    <#
+    .SYNOPSIS
+        Run an external command, check exit code only (ignore stderr warnings).
+        Returns $true on success, $false on failure.
+    #>
+    param(
+        [string]$Exe,
+        [string[]]$Arguments,
+        [switch]$Fatal,
+        [string]$FatalMessage = ""
+    )
+    # Temporarily allow non-zero exit without PS terminating
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     try {
+        & $Exe @Arguments 2>&1 | ForEach-Object {
+            $line = $_.ToString()
+            Add-Content -Path $LogFile -Value $line
+            # Show stdout but suppress noisy pip stderr warnings
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                # stderr — log only, don't display unless it's important
+                if ($line -match "error|fatal|cannot|denied") {
+                    Write-Host "  STDERR: $line" -ForegroundColor Yellow
+                }
+            } else {
+                Write-Host "  $line"
+            }
+        }
+    } catch {
+        Add-Content -Path $LogFile -Value "Exception running ${Exe}: $_"
+    }
+    $ErrorActionPreference = $prevEAP
+
+    if ($LASTEXITCODE -ne 0) {
+        $errMsg = if ($FatalMessage) { $FatalMessage } else { "$Exe failed with exit code $LASTEXITCODE" }
+        Add-Content -Path $LogFile -Value $errMsg
+        if ($Fatal) { Write-Fatal $errMsg }
+        return $false
+    }
+    return $true
+}
+
+function Find-NvidiaSmi {
+    <# Resolve nvidia-smi across common locations #>
+    # 1. PATH
+    try {
+        $cmd = Get-Command nvidia-smi -ErrorAction Stop
+        return $cmd.Source
+    } catch {}
+    # 2. System32
+    $sys32 = Join-Path $env:SystemRoot "System32\nvidia-smi.exe"
+    if (Test-Path $sys32) { return $sys32 }
+    # 3. NVIDIA NVSMI
+    $nvsmi = "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe"
+    if (Test-Path $nvsmi) { return $nvsmi }
+    return $null
+}
+
+function Test-NvidiaGpu {
+    $nvSmi = Find-NvidiaSmi
+    if (-not $nvSmi) { return $null }
+    try {
+        $prevEAP = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
         $nvArgs = @("--query-gpu=name,memory.total,driver_version", "--format=csv,noheader,nounits")
-        $output = & nvidia-smi @nvArgs 2>$null
+        $output = & $nvSmi @nvArgs 2>$null
+        $ErrorActionPreference = $prevEAP
         if ($LASTEXITCODE -ne 0) { return $null }
         $parts = $output.Split(",") | ForEach-Object { $_.Trim() }
         return @{
@@ -101,8 +165,12 @@ if (-not $gpu) {
 
 $vramGB = [math]::Round($gpu.VramMB / 1024)
 Write-Host "  GPU: $($gpu.Name) ($($vramGB) GB VRAM, driver $($gpu.Driver))" -ForegroundColor Green
-if ($vramGB -lt 12) {
-    Write-Host "  WARNING: Low VRAM ($vramGB GB). Generation may fail or be very slow. 24 GB+ recommended." -ForegroundColor Yellow
+if ($vramGB -lt 8) {
+    Write-Host "  WARNING: Very low VRAM ($vramGB GB). Generation will likely fail with OOM." -ForegroundColor Red
+    Write-Host "  12 GB+ recommended, 24 GB+ ideal." -ForegroundColor Yellow
+} elseif ($vramGB -lt 12) {
+    Write-Host "  WARNING: Low VRAM ($vramGB GB). Generation may be slow or fail on complex models." -ForegroundColor Yellow
+    Write-Host "  24 GB+ recommended for best results." -ForegroundColor Yellow
 }
 
 # Check git
@@ -110,8 +178,10 @@ Write-Status -Step "Checking git" -Progress 5
 $gitExe = $null
 try {
     $gitExe = (Get-Command git -ErrorAction Stop).Source
-    $gitVerArgs = @("--version")
-    $gitVer = & $gitExe @gitVerArgs 2>$null
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $gitVer = & $gitExe @("--version") 2>$null
+    $ErrorActionPreference = $prevEAP
     Write-Host "  Git: $gitVer ($gitExe)"
 }
 catch {
@@ -161,16 +231,16 @@ else {
         }
 
         if (Test-Path $mambaExe) {
-            Write-Host "  Creating conda environment with Python $PYTHON_VERSION..."
+            Write-Host "  Creating conda environment with Python 3.11..."
             $env:MAMBA_ROOT_PREFIX = Join-Path $InstallDir "mamba-root"
-            $createArgs = @("create", "-p", $envDir, "python=3.11", "pip", "-y", "-c", "conda-forge")
-            & $mambaExe @createArgs 2>&1
-            if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $envDir "python.exe"))) {
+            $mambaOk = Invoke-Tool -Exe $mambaExe -Arguments @("create", "-p", $envDir, "python=3.11", "pip", "-y", "-c", "conda-forge")
+            if ($mambaOk -and (Test-Path (Join-Path $envDir "python.exe"))) {
                 $pythonExe = Join-Path $envDir "python.exe"
                 $pipExe = Join-Path $envDir "Scripts\pip.exe"
                 $runtimeStrategy = "micromamba"
-                $mambaOk = $true
                 Write-Host "  Micromamba environment created successfully" -ForegroundColor Green
+            } else {
+                $mambaOk = $false
             }
         }
     }
@@ -212,12 +282,10 @@ else {
 
         # Create venv
         Write-Host "  Creating virtual environment..."
-        $venvDir = Join-Path $InstallDir "venv"
-        $venvArgs = @("-m", "venv", $venvDir)
-        & $sysPython @venvArgs 2>&1
+        Invoke-Tool -Exe $sysPython -Arguments @("-m", "venv", (Join-Path $InstallDir "venv")) -Fatal -FatalMessage "Failed to create Python virtual environment"
 
-        $pythonExe = Join-Path $venvDir "Scripts\python.exe"
-        $pipExe = Join-Path $venvDir "Scripts\pip.exe"
+        $pythonExe = Join-Path $InstallDir "venv\Scripts\python.exe"
+        $pipExe = Join-Path $InstallDir "venv\Scripts\pip.exe"
 
         if (-not (Test-Path $pythonExe)) {
             Write-Fatal "Failed to create Python virtual environment"
@@ -244,17 +312,12 @@ $repoDir = Join-Path $InstallDir "trellis-repo"
 if (-not (Test-Path (Join-Path $repoDir ".git"))) {
     if (Test-Path $repoDir) { Remove-Item $repoDir -Recurse -Force }
     Write-Host "  Cloning TRELLIS.2 (--recursive)..."
-    $cloneArgs = @("clone", "--recursive", "--depth", "1", $TRELLIS_REPO_URL, $repoDir)
-    & $gitExe @cloneArgs 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Fatal "Failed to clone TRELLIS.2 repository"
-    }
+    Invoke-Tool -Exe $gitExe -Arguments @("clone", "--recursive", "--depth", "1", $TRELLIS_REPO_URL, $repoDir) -Fatal -FatalMessage "Failed to clone TRELLIS.2 repository"
 }
 else {
     Write-Host "  TRELLIS.2 repo exists - pulling latest..."
     Push-Location $repoDir
-    $pullArgs = @("pull", "--ff-only")
-    & $gitExe @pullArgs 2>&1 | Out-Null
+    Invoke-Tool -Exe $gitExe -Arguments @("pull", "--ff-only")
     Pop-Location
 }
 
@@ -264,12 +327,10 @@ else {
 
 Write-Status -Step "Installing PyTorch (CUDA)" -Progress 35
 
-$torchArgs = @("install", "torch==2.6.0", "torchvision==0.21.0", "--index-url", "https://download.pytorch.org/whl/cu124")
-& $pipExe @torchArgs 2>&1
-if ($LASTEXITCODE -ne 0) {
+$torchOk = Invoke-Tool -Exe $pipExe -Arguments @("install", "torch==2.6.0", "torchvision==0.21.0", "--index-url", "https://download.pytorch.org/whl/cu124")
+if (-not $torchOk) {
     Write-Host "  WARNING: CUDA PyTorch install failed, trying CPU fallback..." -ForegroundColor Yellow
-    $torchCpuArgs = @("install", "torch==2.6.0", "torchvision==0.21.0", "--index-url", "https://download.pytorch.org/whl/cpu")
-    & $pipExe @torchCpuArgs 2>&1
+    Invoke-Tool -Exe $pipExe -Arguments @("install", "torch==2.6.0", "torchvision==0.21.0", "--index-url", "https://download.pytorch.org/whl/cpu")
 }
 
 # ---------------------------------------------------------------------------
@@ -281,39 +342,34 @@ Write-Status -Step "Installing Python dependencies" -Progress 50
 # Worker deps
 $workerReqs = Join-Path $PSScriptRoot "..\requirements.txt"
 if (Test-Path $workerReqs) {
-    $reqArgs = @("install", "-r", $workerReqs)
-    & $pipExe @reqArgs 2>&1
+    Invoke-Tool -Exe $pipExe -Arguments @("install", "-r", $workerReqs)
 }
 else {
-    $fallbackArgs = @("install", "fastapi", "uvicorn", "python-multipart", "huggingface-hub", "Pillow")
-    & $pipExe @fallbackArgs 2>&1
+    Invoke-Tool -Exe $pipExe -Arguments @("install", "fastapi", "uvicorn[standard]", "python-multipart", "huggingface-hub", "Pillow")
 }
 
 # TRELLIS deps (basic -- matches official setup.sh --basic)
 Write-Status -Step "Installing TRELLIS dependencies" -Progress 55
-$basicDeps = @(
+Invoke-Tool -Exe $pipExe -Arguments @(
     "install",
     "imageio", "imageio-ffmpeg", "tqdm", "easydict", "ninja",
     "trimesh", "zstandard", "opencv-python-headless", "transformers",
     "pandas", "lpips", "gradio==6.0.1", "tensorboard", "kornia", "timm"
 )
-& $pipExe @basicDeps 2>&1
 
 # utils3d from git
-$utils3dArgs = @("install", "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f")
-& $pipExe @utils3dArgs 2>&1
+Invoke-Tool -Exe $pipExe -Arguments @("install", "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f")
 
 # Install TRELLIS repo if pyproject.toml exists
 $pyproject = Join-Path $repoDir "pyproject.toml"
 if (Test-Path $pyproject) {
     Write-Status -Step "Installing TRELLIS package" -Progress 62
     Push-Location $repoDir
-    $installEditableArgs = @("install", "-e", ".")
-    & $pipExe @installEditableArgs 2>&1
+    Invoke-Tool -Exe $pipExe -Arguments @("install", "-e", ".")
     Pop-Location
 }
 
-# CUDA extensions (best-effort)
+# CUDA extensions (best-effort — never fatal)
 Write-Status -Step "Building CUDA extensions (may take a while)" -Progress 65
 $extensions = @(
     @{ name = "flash-attn"; install = "flash-attn==2.7.3" },
@@ -328,26 +384,20 @@ New-Item -ItemType Directory -Path $extDir -Force | Out-Null
 
 foreach ($ext in $extensions) {
     Write-Host "  Building $($ext.name)..." -NoNewline
-    try {
-        if ($ext.repo) {
-            $cloneDir = Join-Path $extDir $ext.name
-            if (-not (Test-Path (Join-Path $cloneDir ".git"))) {
-                $extCloneArgs = @("clone", "--depth", "1", $ext.repo, $cloneDir)
-                & $gitExe @extCloneArgs 2>&1 | Out-Null
-            }
-            Push-Location $cloneDir
-            $extInstallArgs = @("install", ".")
-            & $pipExe @extInstallArgs 2>&1 | Out-Null
-            Pop-Location
+    if ($ext.repo) {
+        $cloneDir = Join-Path $extDir $ext.name
+        if (-not (Test-Path (Join-Path $cloneDir ".git"))) {
+            $cloneOk = Invoke-Tool -Exe $gitExe -Arguments @("clone", "--depth", "1", $ext.repo, $cloneDir)
+            if (-not $cloneOk) { Write-Host " SKIPPED (clone failed)" -ForegroundColor Yellow; continue }
         }
-        else {
-            $extPipArgs = @("install", $ext.install)
-            & $pipExe @extPipArgs 2>&1 | Out-Null
-        }
-        Write-Host " OK" -ForegroundColor Green
+        Push-Location $cloneDir
+        $buildOk = Invoke-Tool -Exe $pipExe -Arguments @("install", ".")
+        Pop-Location
+        if ($buildOk) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " SKIPPED (build failed)" -ForegroundColor Yellow }
     }
-    catch {
-        Write-Host " SKIPPED (non-critical)" -ForegroundColor Yellow
+    else {
+        $buildOk = Invoke-Tool -Exe $pipExe -Arguments @("install", $ext.install)
+        if ($buildOk) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " SKIPPED (non-critical)" -ForegroundColor Yellow }
     }
 }
 
@@ -355,16 +405,10 @@ foreach ($ext in $extensions) {
 $oVoxelDir = Join-Path $repoDir "extensions\o-voxel"
 if (Test-Path (Join-Path $oVoxelDir "setup.py")) {
     Write-Host "  Building o-voxel..." -NoNewline
-    try {
-        Push-Location $oVoxelDir
-        $oVoxelArgs = @("install", ".")
-        & $pipExe @oVoxelArgs 2>&1 | Out-Null
-        Pop-Location
-        Write-Host " OK" -ForegroundColor Green
-    }
-    catch {
-        Write-Host " SKIPPED" -ForegroundColor Yellow
-    }
+    Push-Location $oVoxelDir
+    $oOk = Invoke-Tool -Exe $pipExe -Arguments @("install", ".")
+    Pop-Location
+    if ($oOk) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " SKIPPED" -ForegroundColor Yellow }
 }
 
 # ---------------------------------------------------------------------------
@@ -391,9 +435,8 @@ print('Done')
 "@
 
     $env:TRELLIS_WEIGHTS = $weightsDir
-    $dlArgs = @("-c", $downloadScript)
-    & $pythonExe @dlArgs 2>&1
-    if ($LASTEXITCODE -ne 0) {
+    $dlOk = Invoke-Tool -Exe $pythonExe -Arguments @("-c", $downloadScript)
+    if (-not $dlOk) {
         Write-Host "  WARNING: Weight download failed. You can retry later." -ForegroundColor Yellow
     }
 }
@@ -402,7 +445,7 @@ print('Done')
 # Step 6: Copy worker files
 # ---------------------------------------------------------------------------
 
-Write-Status -Step "Copying worker files" -Progress 92
+Write-Status -Step "Copying worker files" -Progress 90
 
 $workerSrc = Split-Path $PSScriptRoot -Parent
 $workerDest = Join-Path $InstallDir "worker"
@@ -416,7 +459,27 @@ if (Test-Path (Join-Path $workerSrc "ui")) {
 }
 
 # ---------------------------------------------------------------------------
-# Step 7: Create start script
+# Step 7: Windows Firewall rule
+# ---------------------------------------------------------------------------
+
+Write-Status -Step "Configuring Windows Firewall" -Progress 93
+
+try {
+    $ruleName = "Bjorq 3D Worker (TCP $Port)"
+    $existing = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+    if (-not $existing) {
+        New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Protocol TCP -LocalPort $Port -Action Allow -Profile Any | Out-Null
+        Write-Host "  Firewall rule created: allow inbound TCP $Port" -ForegroundColor Green
+    } else {
+        Write-Host "  Firewall rule already exists" -ForegroundColor Green
+    }
+} catch {
+    Write-Host "  WARNING: Could not create firewall rule (run as admin?): $_" -ForegroundColor Yellow
+    Add-Content -Path $LogFile -Value "Firewall rule failed: $_"
+}
+
+# ---------------------------------------------------------------------------
+# Step 8: Create launcher
 # ---------------------------------------------------------------------------
 
 Write-Status -Step "Creating launcher" -Progress 95
@@ -428,24 +491,29 @@ cd /d "$workerDest"
 set TRELLIS_REPO=$repoDir
 set TRELLIS_WEIGHTS=$weightsDir
 set WORKER_PORT=$Port
+set WORKER_HOST=0.0.0.0
 set JOBS_DIR=$InstallDir\jobs
+echo Starting Bjorq 3D Worker on port $Port...
+echo Dashboard: http://localhost:$Port/ui
+echo.
 "$pythonExe" worker.py
-pause
+echo.
+echo Worker stopped. Press any key to close...
+pause > nul
 "@
 
 $launchBat = Join-Path $InstallDir "Start-Worker.bat"
 [System.IO.File]::WriteAllText($launchBat, $launchScript)
 
 # ---------------------------------------------------------------------------
-# Step 8: Register as service (optional)
+# Step 9: Register as service (optional)
 # ---------------------------------------------------------------------------
 
 if (-not $NoService) {
     $servicePath = Join-Path $PSScriptRoot "register-service.ps1"
     if (Test-Path $servicePath) {
         Write-Status -Step "Registering Windows service" -Progress 97
-        $svcArgs = @("-ExecutionPolicy", "Bypass", "-File", $servicePath, "-InstallDir", $InstallDir, "-Port", $Port)
-        & powershell @svcArgs 2>&1
+        Invoke-Tool -Exe "powershell" -Arguments @("-ExecutionPolicy", "Bypass", "-File", $servicePath, "-InstallDir", $InstallDir, "-Port", "$Port")
     }
 }
 

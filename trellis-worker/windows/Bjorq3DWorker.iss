@@ -9,7 +9,7 @@
 
 [Setup]
 AppName=Bjorq 3D Worker
-AppVersion=2.5.0
+AppVersion=2.5.1
 AppPublisher=Bjorq
 AppPublisherURL=https://github.com/n1bman/bjorq-asset-wizard
 DefaultDirName={commonpf}\Bjorq3DWorker
@@ -39,17 +39,18 @@ Source: "register-service.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "healthcheck.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\Start Bjorq 3D Worker"; Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\start-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; WorkingDir: "{app}"
+; Use {sysnative} to ensure 64-bit PowerShell even on 32-bit Inno Setup process
+Name: "{group}\Start Bjorq 3D Worker"; Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\start-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; WorkingDir: "{app}"; Comment: "Start the 3D generation worker"
 Name: "{group}\Worker Dashboard"; Filename: "http://localhost:8080/ui"
 Name: "{group}\Uninstall Bjorq 3D Worker"; Filename: "{uninstallexe}"
 
 [Run]
-; Run the full installer after setup extracts files
-Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: runhidden waituntilterminated
+; Run install.ps1 via 64-bit PowerShell after setup extracts files
+Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: runhidden waituntilterminated
 
 [UninstallRun]
 ; Stop and remove service
-Filename: "powershell.exe"; Parameters: "-Command ""& nssm stop Bjorq3DWorker 2>$null; nssm remove Bjorq3DWorker confirm 2>$null"""; Flags: runhidden
+Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-Command ""& nssm stop Bjorq3DWorker 2>$null; nssm remove Bjorq3DWorker confirm 2>$null"""; Flags: runhidden
 
 [Code]
 function InitializeSetup(): Boolean;
