@@ -9,7 +9,7 @@
 
 [Setup]
 AppName=Bjorq 3D Worker
-AppVersion=1.0.0
+AppVersion=2.4.1
 AppPublisher=Bjorq
 AppPublisherURL=https://github.com/n1bman/bjorq-asset-wizard
 DefaultDirName={commonpf}\Bjorq3DWorker
@@ -19,7 +19,6 @@ OutputBaseFilename=Bjorq3DWorkerSetup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=admin
-SetupIconFile=..\..\public\placeholder.svg
 UninstallDisplayIcon={app}\worker.py
 WizardStyle=modern
 
