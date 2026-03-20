@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.4.3] — 2026-03-20
+## [2.5.0] — 2026-03-20
 
 ### Fixed
 - **Windows installer: zero-manual-prereqs** — Replaced embeddable Python (which lacked `venv` module) with **micromamba** as the primary runtime strategy. The installer now downloads micromamba and creates a fully functional conda environment with Python 3.11 — no system Python installation needed. If micromamba fails, falls back to the full Python 3.11 installer with silent install.
