@@ -212,6 +212,16 @@ function ExternalWorkerStatus({
         </Button>
         <Button size="sm" variant="ghost" asChild>
           <a
+            href="https://github.com/n1bman/bjorq-asset-wizard/releases/latest"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Download className="mr-2 h-3.5 w-3.5" />
+            Download Worker Installer
+          </a>
+        </Button>
+        <Button size="sm" variant="ghost" asChild>
+          <a
             href="https://github.com/n1bman/bjorq-asset-wizard/blob/main/docs/WORKER_SETUP_WINDOWS.md"
             target="_blank"
             rel="noopener noreferrer"

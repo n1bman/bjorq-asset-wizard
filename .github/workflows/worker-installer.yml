@@ -1,0 +1,71 @@
+name: Build Windows Worker Installer
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach assets to (e.g. v2.4.0)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-installer:
+    name: Build Bjorq3DWorkerSetup.exe
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Build installer
+        run: iscc trellis-worker\windows\Bjorq3DWorker.iss
+
+      - name: Create ZIP archive
+        run: |
+          Compress-Archive -Path trellis-worker\* -DestinationPath dist\windows\Bjorq3DWorker.zip
+
+      - name: Generate SHA256SUMS
+        shell: pwsh
+        run: |
+          $exe = Get-FileHash dist\windows\Bjorq3DWorkerSetup.exe -Algorithm SHA256
+          $zip = Get-FileHash dist\windows\Bjorq3DWorker.zip -Algorithm SHA256
+          @(
+            "$($exe.Hash)  Bjorq3DWorkerSetup.exe"
+            "$($zip.Hash)  Bjorq3DWorker.zip"
+          ) | Set-Content dist\windows\SHA256SUMS.txt
+
+      - name: Determine release tag
+        id: tag
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            echo "tag=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ github.event.release.tag_name }}" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload to GitHub Release
+        if: steps.tag.outputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: |
+            dist/windows/Bjorq3DWorkerSetup.exe
+            dist/windows/Bjorq3DWorker.zip
+            dist/windows/SHA256SUMS.txt
+
+      - name: Upload build artifacts (fallback)
+        if: steps.tag.outputs.tag == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/windows/
