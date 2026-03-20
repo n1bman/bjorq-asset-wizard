@@ -1,141 +1,95 @@
 
 
-# External 3D Worker Architecture — v2.4.0
+# v2.4.3 — Micromamba-based installer + UX improvements
 
-## Summary
+## Problem
 
-Pivot Photo→3D from in-addon TRELLIS installation to an external "Bjorq 3D Worker" running on Windows with NVIDIA GPU. The Wizard addon becomes a thin proxy. This is a major feature addition spanning ~15 new files and ~8 modified files.
+`install.ps1` uses embeddable Python which lacks `venv` module, causing `No module named venv` on clean Windows machines. Additionally, the EngineStatus UI needs clearer step-by-step guidance and `lastError` display.
 
-## Architecture
+## Changes
 
-```text
-┌─────────────────────┐       HTTP :8080        ┌──────────────────────┐
-│  HA Add-on (Wizard)  │ ─────────────────────► │  Bjorq 3D Worker     │
-│  Alpine / no GPU     │                         │  Windows / NVIDIA GPU│
-│  TRELLIS_MODE=       │  GET /status            │  FastAPI + TRELLIS.2 │
-│    external          │  POST /jobs             │  Async job queue     │
-│  TRELLIS_WORKER_URL  │  GET /jobs/:id          │  Optional auth token │
-│                      │  GET /jobs/:id/result   │                      │
-└─────────────────────┘                          └──────────────────────┘
-```
+### 1. Rewrite `trellis-worker/windows/install.ps1` — Micromamba primary, full Python fallback
 
-## Implementation Plan
+Replace the entire Python setup section (current lines 117-163) with:
 
-### 1. Create `trellis-worker/` — Python/FastAPI worker (6 files)
+**Primary path (micromamba):**
+- Download `micromamba.exe` to `$InstallDir\bin\micromamba.exe` from conda-forge GitHub releases
+- Create environment: `micromamba create -p $InstallDir\env python=3.11 pip -y -c conda-forge`
+- Set `$pythonExe = "$InstallDir\env\python.exe"` and `$pipExe = "$InstallDir\env\Scripts\pip.exe"`
+- All subsequent pip/python calls use these paths
 
-**`trellis-worker/worker.py`** — FastAPI server:
-- `GET /status` → `{ ok, version, gpu, driver, cudaRuntime, vramGB, installing, progress, lastError, endpoints }`
-- `POST /jobs` — multipart `images[]` + JSON `options` → `{ jobId }` (202)
-- `GET /jobs/{id}` → `{ status, progress, step, error? }`
-- `GET /jobs/{id}/result.glb` → binary GLB (application/octet-stream)
-- `GET /ui` → static HTML dashboard
-- `Authorization: Bearer <token>` via env `WORKER_TOKEN`
-- GPU detection via `torch.cuda` at startup
-- Thread-pool executor for async generation (1 concurrent job)
+**Fallback path (if micromamba download fails):**
+- Download full Python 3.11.9 installer (`python-3.11.9-amd64.exe`) from python.org
+- Run silent install to `$InstallDir\python` with pip enabled: `python-3.11.9-amd64.exe /quiet InstallAllUsers=0 TargetDir=$InstallDir\python Include_pip=1 PrependPath=0`
+- Create venv: `$InstallDir\python\python.exe -m venv $InstallDir\venv`
+- Set `$pythonExe = "$InstallDir\venv\Scripts\python.exe"` and `$pipExe = "$InstallDir\venv\Scripts\pip.exe"`
 
-**`trellis-worker/trellis_bridge.py`** — wraps TRELLIS.2 inference:
-- Loads TRELLIS pipeline from local clone
-- `generate(images, options) → GLB bytes`
-- Sets `TRELLIS_WEIGHTS` env for weight path
+**Path resolution logic:**
+- After setup, write the chosen `$pythonExe` path to `$InstallDir\python-path.txt` so other scripts (`start-worker.ps1`, `register-service.ps1`) can read it
+- Log which strategy was used
 
-**`trellis-worker/jobs.py`** — in-memory job store:
-- Job states: `queued → processing → done | failed`
-- Progress tracking per step
-- Auto-cleanup of completed jobs after 1h
+All command invocations use array splatting (already done in v2.4.2).
 
-**`trellis-worker/ui/index.html`** — static dashboard:
-- Shows: running state, GPU info, VRAM, version, last job, port, log tail, "copy URL" button
-- Auto-refreshes every 5s via fetch `/status`
+### 2. Update `trellis-worker/windows/start-worker.ps1`
 
-**`trellis-worker/requirements.txt`** — FastAPI, uvicorn, torch, torchvision, huggingface-hub, python-multipart
+- Read `python-path.txt` if it exists, otherwise try `$InstallDir\env\python.exe`, then `$InstallDir\venv\Scripts\python.exe`
+- Use whichever path exists
 
-**`trellis-worker/README.md`** — usage docs
+### 3. Update `trellis-worker/windows/register-service.ps1`
 
-### 2. Create `trellis-worker/windows/` — Windows installer (5 files)
+- Same path resolution logic as `start-worker.ps1`
 
-**`install.ps1`** — main setup:
-- Creates `C:\ProgramData\Bjorq3DWorker\`
-- Downloads embedded Python 3.11, creates venv
-- Clones TRELLIS.2 `--recursive`
-- Installs PyTorch GPU wheels + deps
-- Downloads weights via huggingface-hub (~15GB, resumable)
-- Detects NVIDIA driver via `nvidia-smi`; clear error if missing
-- Writes `status.json` during install for progress tracking
+### 4. Update `trellis-worker/windows/Bjorq3DWorker.iss`
 
-**`start-worker.ps1`** — launch worker (bind 0.0.0.0:8080)
+- Update `AppVersion` to `2.4.3`
 
-**`register-service.ps1`** — optional Windows Service via `nssm`
+### 5. Update `src/components/generate/EngineStatus.tsx` — Better guided flow
 
-**`healthcheck.ps1`** — verify worker is responding on port 8080
+In the "Not connected" section of `ExternalWorkerStatus`:
+- Add numbered step badges (Step 1, 2, 3) with clearer visual hierarchy
+- Step 1: "Install Worker" — download link + brief instruction
+- Step 2: "Configure URL" — show current URL, explain NAT vs Bridged with concrete examples
+- Step 3: "Test Connection" — the existing test button
+- Display `lastError` from worker status more prominently (amber warning box when it contains GPU/install errors vs red for connection errors)
+- Add auto-refresh polling every 10s when not connected (stop when connected)
 
-**`Bjorq3DWorker.iss`** — Inno Setup script (recipe only; .exe built in CI)
+### 6. Update `docs/WORKER_SETUP_WINDOWS.md` — Complete zero-to-done guide
 
-### 3. Modify backend — External worker proxy
+Restructure to follow the exact flow:
+1. Prerequisites (GPU driver, Git, disk space)
+2. Download `.exe` from Releases (with direct link)
+3. Run installer (note SmartScreen warning)
+4. Verify: open `http://localhost:8080/status` on Windows
+5. Configure HA add-on: set `trellis_mode: external` + URL
+6. Test Connection from Wizard UI
+7. Troubleshooting table (firewall, NAT/Bridged, GPU, weights)
 
-**`server/src/services/trellis/manager.ts`** (+ bjorq copy):
-- Read `TRELLIS_MODE` env (`local` | `external`, default `local`)
-- Read `TRELLIS_WORKER_URL` and `TRELLIS_WORKER_TOKEN`
-- `getTrellisStatus()`: when external, fetch `GET WORKER_URL/status`, translate to `TrellisStatusResponse` with `mode: "external"` and `workerUrl`
-- `generateWithTrellis()`: when external, POST images to worker `/jobs`, poll `/jobs/:id`, fetch `/jobs/:id/result.glb`, return `Uint8Array`
-- New export: `testWorkerConnection()` — ping worker `/status`
-- When external, `startTrellisInstall()` becomes a no-op with guidance message
-- All existing local-mode code preserved (gated by `mode !== "external"`)
+Update "Option A" to mention micromamba-based install (no manual Python needed). Remove references to `venv` in the one-click path.
 
-**`server/src/routes/trellis.ts`** (+ bjorq copy):
-- `POST /trellis/install`: when external, return `{ success: true, message: "External worker mode — run the installer on your GPU PC" }`
-- New `GET /trellis/test-connection` — proxy ping to worker `/status`
+### 7. Version bump to 2.4.3
 
-**`server/.env.example`** — add:
-```
-# TRELLIS mode: "local" (install in container) or "external" (use remote worker)
-TRELLIS_MODE=external
-TRELLIS_WORKER_URL=http://10.0.2.2:8080
-TRELLIS_WORKER_TOKEN=
-```
+Update all 5 locations:
+- `server/package.json`
+- `server/src/index.ts`
+- `bjorq_asset_wizard/server/package.json`
+- `bjorq_asset_wizard/server/src/index.ts`
+- `bjorq_asset_wizard/config.yaml`
+- `trellis-worker/windows/Bjorq3DWorker.iss`
+- `CHANGELOG.md`
 
-### 4. Modify frontend — Dual-mode EngineStatus
+## Files modified
 
-**`src/types/generate.ts`**:
-- Add to `TrellisStatusResponse`: `mode?: "local" | "external"`, `workerUrl?: string`, `lastError?: string`
+- `trellis-worker/windows/install.ps1` (major rewrite of Python setup)
+- `trellis-worker/windows/start-worker.ps1` (path resolution)
+- `trellis-worker/windows/register-service.ps1` (path resolution)
+- `trellis-worker/windows/Bjorq3DWorker.iss` (version)
+- `src/components/generate/EngineStatus.tsx` (guided flow + auto-refresh)
+- `docs/WORKER_SETUP_WINDOWS.md` (complete rewrite)
+- `CHANGELOG.md` + 5 version files
 
-**`src/components/generate/EngineStatus.tsx`** — rewrite for dual mode:
-- When `mode=external` + connected: green badge "Worker connected", GPU/VRAM/version info
-- When `mode=external` + not connected: red badge, worker URL display, "Test Connection" button, setup instructions with link to docs, "Download Worker Installer" link
-- When `mode=local`: existing behavior unchanged
-- No "Install Anyway" in external mode
+## Technical notes
 
-**`src/services/generate-api.ts`**:
-- Add `testWorkerConnection()` → `GET /trellis/test-connection`
-
-### 5. Add-on configuration
-
-**`bjorq_asset_wizard/config.yaml`** — add options:
-```yaml
-trellis_mode: external
-trellis_worker_url: "http://10.0.2.2:8080"
-trellis_worker_token: ""
-```
-With schema validation. These get passed as env vars via `run.sh`.
-
-### 6. Documentation
-
-**`docs/WORKER_SETUP_WINDOWS.md`**:
-- Prerequisites (NVIDIA GPU, driver, Windows 10+)
-- Download & run installer
-- VirtualBox networking: Bridged (use LAN IP) vs NAT (use `10.0.2.2:8080`)
-- Windows Firewall: allow port 8080
-- Configure Wizard: set worker URL in add-on config
-- Troubleshooting: not reachable, no GPU, weights download, disk space
-
-### 7. Version bump to 2.4.0
-
-Update 5 locations: `server/package.json`, `server/src/index.ts`, `bjorq_asset_wizard/config.yaml`, `bjorq_asset_wizard/server/package.json`, `bjorq_asset_wizard/server/src/index.ts` + `CHANGELOG.md`.
-
-## Files Summary
-
-**New (12):**
-`trellis-worker/worker.py`, `trellis-worker/trellis_bridge.py`, `trellis-worker/jobs.py`, `trellis-worker/ui/index.html`, `trellis-worker/requirements.txt`, `trellis-worker/README.md`, `trellis-worker/windows/install.ps1`, `trellis-worker/windows/start-worker.ps1`, `trellis-worker/windows/register-service.ps1`, `trellis-worker/windows/healthcheck.ps1`, `trellis-worker/windows/Bjorq3DWorker.iss`, `docs/WORKER_SETUP_WINDOWS.md`
-
-**Modified (12):**
-`server/src/services/trellis/manager.ts`, `bjorq_asset_wizard/server/src/services/trellis/manager.ts`, `server/src/routes/trellis.ts`, `bjorq_asset_wizard/server/src/routes/trellis.ts`, `server/.env.example`, `src/types/generate.ts`, `server/src/types/generate.ts`, `bjorq_asset_wizard/server/src/types/generate.ts`, `src/components/generate/EngineStatus.tsx`, `src/services/generate-api.ts`, `bjorq_asset_wizard/config.yaml`, `CHANGELOG.md` + 4 version files
+- Micromamba binary is ~5MB, downloaded from `https://github.com/mamba-org/micromamba-releases/releases/latest/download/micromamba-win-64`
+- Micromamba creates a fully functional conda env with real Python (not embeddable), so `pip`, `venv`, and all stdlib modules work
+- The `python-path.txt` file acts as a simple registry so all scripts agree on which Python to use regardless of which strategy was chosen
 
