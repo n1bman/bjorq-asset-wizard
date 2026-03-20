@@ -193,6 +193,18 @@ curl -s http://10.0.2.2:8080/status | jq .
 - Check service status: `Get-Service Bjorq3DWorker`
 - View logs: `C:\ProgramData\Bjorq3DWorker\service-stderr.log`
 
+## SmartScreen Warning
+
+When running the installer, Windows SmartScreen may show **"Windows protected
+your PC"** with "Unknown publisher". This is expected for unsigned builds.
+
+- Click **"More info"** → **"Run anyway"** to proceed.
+- To eliminate this warning, the project maintainer can add an Authenticode
+  code-signing certificate. Set `CODE_SIGN_PFX_BASE64` and
+  `CODE_SIGN_PFX_PASSWORD` as GitHub repository secrets — the CI workflow
+  will sign the `.exe` automatically. Code-signing certificates cost
+  ~$70–$400/year from providers like DigiCert, Sectigo, or SSL.com.
+
 ## Security
 
 The worker listens on **all interfaces** (`0.0.0.0`). On a home network
