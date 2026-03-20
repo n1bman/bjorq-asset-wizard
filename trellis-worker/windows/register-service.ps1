@@ -84,6 +84,7 @@ Write-Host "Registering service: $serviceName"
     "TRELLIS_REPO=$(Join-Path $InstallDir 'trellis-repo')" `
     "TRELLIS_WEIGHTS=$(Join-Path $InstallDir 'weights')" `
     "WORKER_PORT=$Port" `
+    "WORKER_HOST=0.0.0.0" `
     "JOBS_DIR=$(Join-Path $InstallDir 'jobs')"
 & $nssmPath set $serviceName DisplayName "Bjorq 3D Worker"
 & $nssmPath set $serviceName Description "TRELLIS.2 inference server for Bjorq Asset Wizard"
