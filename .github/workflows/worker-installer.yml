@@ -31,6 +31,39 @@ jobs:
         run: |
           Compress-Archive -Path trellis-worker\* -DestinationPath dist\windows\Bjorq3DWorker.zip
 
+      - name: Sign installer (optional)
+        if: env.SIGN_PFX_BASE64 != ''
+        shell: pwsh
+        env:
+          SIGN_PFX_BASE64: ${{ secrets.CODE_SIGN_PFX_BASE64 }}
+          SIGN_PFX_PASSWORD: ${{ secrets.CODE_SIGN_PFX_PASSWORD }}
+        run: |
+          $pfxPath = Join-Path $env:TEMP "codesign.pfx"
+          [System.IO.File]::WriteAllBytes($pfxPath, [System.Convert]::FromBase64String($env:SIGN_PFX_BASE64))
+
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "signtool.exe" |
+            Where-Object { $_.FullName -match "x64" } |
+            Sort-Object { [version]($_.FullName -replace '.*\\(\d+\.\d+\.\d+\.\d+)\\.*','$1') } -Descending |
+            Select-Object -First 1
+
+          if (-not $signtool) {
+            Write-Host "WARNING: signtool.exe not found, skipping signing" -ForegroundColor Yellow
+            exit 0
+          }
+
+          $files = @(
+            "dist\windows\Bjorq3DWorkerSetup.exe"
+          )
+
+          foreach ($f in $files) {
+            if (Test-Path $f) {
+              Write-Host "Signing $f..."
+              & $signtool.FullName sign /f $pfxPath /p $env:SIGN_PFX_PASSWORD /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f
+            }
+          }
+
+          Remove-Item $pfxPath -Force
+
       - name: Generate SHA256SUMS
         shell: pwsh
         run: |
