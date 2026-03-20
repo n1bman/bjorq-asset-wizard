@@ -235,7 +235,7 @@ function ExternalWorkerStatus({
       <div className="text-xs text-muted-foreground space-y-1 border-t border-border pt-2">
         <p className="font-medium">Quick setup:</p>
         <ol className="list-decimal list-inside space-y-0.5 pl-1">
-          <li>Download & run <strong>Bjorq3DWorkerSetup.exe</strong> on your Windows GPU PC</li>
+          <li>Download & run <a href="https://github.com/n1bman/bjorq-asset-wizard/releases/latest" target="_blank" rel="noopener noreferrer" className="underline text-primary"><strong>Bjorq3DWorkerSetup.exe</strong></a> on your Windows GPU PC</li>
           <li>Set the worker URL in the add-on configuration</li>
           <li>Click "Test Connection" above</li>
         </ol>
