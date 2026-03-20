@@ -50,6 +50,7 @@ $weightsDir = Join-Path $InstallDir "weights"
 $env:TRELLIS_REPO = $repoDir
 $env:TRELLIS_WEIGHTS = $weightsDir
 $env:WORKER_PORT = $Port
+$env:WORKER_HOST = "0.0.0.0"
 $env:JOBS_DIR = Join-Path $InstallDir "jobs"
 
 Write-Host "Starting Bjorq 3D Worker on port $Port..." -ForegroundColor Green

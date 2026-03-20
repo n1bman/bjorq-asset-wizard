@@ -24,7 +24,9 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$MICROMAMBA_URL = "https://github.com/mamba-org/micromamba-releases/releases/latest/download/micromamba-win-64"
+$MICROMAMBA_VERSION = "2.0.5"
+$MICROMAMBA_URL = "https://github.com/mamba-org/micromamba-releases/releases/download/$MICROMAMBA_VERSION/micromamba-win-64"
+$MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/releases/latest/download/micromamba-win-64"
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
@@ -149,8 +151,14 @@ else {
     $mambaOk = $false
     try {
         New-Item -ItemType Directory -Path $mambaDir -Force | Out-Null
-        Write-Host "  Downloading micromamba..."
-        Invoke-WebRequest -Uri $MICROMAMBA_URL -OutFile $mambaExe -UseBasicParsing
+        Write-Host "  Downloading micromamba v$MICROMAMBA_VERSION..."
+        try {
+            Invoke-WebRequest -Uri $MICROMAMBA_URL -OutFile $mambaExe -UseBasicParsing
+        }
+        catch {
+            Write-Host "  Pinned version failed, trying latest..." -ForegroundColor Yellow
+            Invoke-WebRequest -Uri $MICROMAMBA_URL_LATEST -OutFile $mambaExe -UseBasicParsing
+        }
 
         if (Test-Path $mambaExe) {
             Write-Host "  Creating conda environment with Python $PYTHON_VERSION..."
