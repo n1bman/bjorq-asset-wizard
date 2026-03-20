@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.4.2] — 2026-03-20
+
+### Fixed
+- **Windows installer PS 5.1 compatibility** — All external command invocations (`git`, `pip`, `python`) now use array splatting instead of bare `--flag` tokens, fixing parser errors on Windows PowerShell 5.1 ("Missing expression after unary operator '--'").
+- **Prerequisite handling** — Installer resolves `git` via `Get-Command` and reports actionable errors with download links when git or NVIDIA drivers are missing. Failures write structured `status.json` + `install.log` instead of crashing.
+
+### Added
+- **Optional Authenticode code signing** — `worker-installer.yml` now signs `Bjorq3DWorkerSetup.exe` when `CODE_SIGN_PFX_BASE64` and `CODE_SIGN_PFX_PASSWORD` secrets are configured. Unsigned builds still succeed without signing secrets.
+
 ## [2.4.1] — 2026-03-20
 
 ### Fixed

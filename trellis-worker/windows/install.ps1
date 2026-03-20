@@ -27,7 +27,7 @@ $ProgressPreference = "SilentlyContinue"
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-embed-amd64.zip"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "1.0.0"
+$WORKER_VERSION = "2.4.2"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -61,7 +61,8 @@ function Write-Fatal {
 
 function Test-NvidiaGpu {
     try {
-        $output = & nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>$null
+        $nvArgs = @("--query-gpu=name,memory.total,driver_version", "--format=csv,noheader,nounits")
+        $output = & nvidia-smi @nvArgs 2>$null
         if ($LASTEXITCODE -ne 0) { return $null }
         $parts = $output.Split(",") | ForEach-Object { $_.Trim() }
         return @{
@@ -91,23 +92,26 @@ New-Item -ItemType Directory -Path (Join-Path $InstallDir "jobs") -Force | Out-N
 Write-Status -Step "Checking NVIDIA GPU" -Progress 2
 $gpu = Test-NvidiaGpu
 if (-not $gpu) {
-    Write-Fatal "No NVIDIA GPU detected. Install NVIDIA drivers first. See: https://www.nvidia.com/Download/index.aspx"
+    Write-Fatal "No NVIDIA GPU detected. Install the latest NVIDIA driver first: https://www.nvidia.com/Download/index.aspx"
 }
 
 $vramGB = [math]::Round($gpu.VramMB / 1024)
 Write-Host "  GPU: $($gpu.Name) ($($vramGB) GB VRAM, driver $($gpu.Driver))" -ForegroundColor Green
 if ($vramGB -lt 12) {
-    Write-Host "  WARNING: Low VRAM ($vramGB GB). Generation may fail or be very slow." -ForegroundColor Yellow
+    Write-Host "  WARNING: Low VRAM ($vramGB GB). Generation may fail or be very slow. 24 GB+ recommended." -ForegroundColor Yellow
 }
 
 # Check git
 Write-Status -Step "Checking git" -Progress 5
+$gitExe = $null
 try {
-    $gitVer = & git --version 2>$null
-    Write-Host "  Git: $gitVer"
+    $gitExe = (Get-Command git -ErrorAction Stop).Source
+    $gitVerArgs = @("--version")
+    $gitVer = & $gitExe @gitVerArgs 2>$null
+    Write-Host "  Git: $gitVer ($gitExe)"
 }
 catch {
-    Write-Fatal "Git is not installed. Download from https://git-scm.com/download/win"
+    Write-Fatal "Git is not installed. Download from https://git-scm.com/download/win and restart this installer."
 }
 
 # ---------------------------------------------------------------------------
@@ -142,11 +146,13 @@ if (-not (Test-Path $pythonExe)) {
     $getPip = Join-Path $env:TEMP "get-pip.py"
     Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPip -UseBasicParsing
     $sysPython = Join-Path $pythonDir "python.exe"
-    & $sysPython $getPip --no-warn-script-location 2>&1 | Out-Null
+    $getPipArgs = @($getPip, "--no-warn-script-location")
+    & $sysPython @getPipArgs 2>&1 | Out-Null
 
     # Create venv
     Write-Host "  Creating virtual environment..."
-    & $sysPython -m venv $venvDir 2>&1 | Out-Null
+    $venvArgs = @("-m", "venv", $venvDir)
+    & $sysPython @venvArgs 2>&1 | Out-Null
 
     if (-not (Test-Path $pythonExe)) {
         Write-Fatal "Failed to create Python virtual environment"
@@ -166,7 +172,8 @@ $repoDir = Join-Path $InstallDir "trellis-repo"
 if (-not (Test-Path (Join-Path $repoDir ".git"))) {
     if (Test-Path $repoDir) { Remove-Item $repoDir -Recurse -Force }
     Write-Host "  Cloning TRELLIS.2 (--recursive)..."
-    & git clone --recursive --depth 1 $TRELLIS_REPO_URL $repoDir 2>&1
+    $cloneArgs = @("clone", "--recursive", "--depth", "1", $TRELLIS_REPO_URL, $repoDir)
+    & $gitExe @cloneArgs 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Fatal "Failed to clone TRELLIS.2 repository"
     }
@@ -174,7 +181,8 @@ if (-not (Test-Path (Join-Path $repoDir ".git"))) {
 else {
     Write-Host "  TRELLIS.2 repo exists — pulling latest..."
     Push-Location $repoDir
-    & git pull --ff-only 2>&1 | Out-Null
+    $pullArgs = @("pull", "--ff-only")
+    & $gitExe @pullArgs 2>&1 | Out-Null
     Pop-Location
 }
 
@@ -184,10 +192,12 @@ else {
 
 Write-Status -Step "Installing PyTorch (CUDA)" -Progress 35
 
-& $pipExe install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124 2>&1
+$torchArgs = @("install", "torch==2.6.0", "torchvision==0.21.0", "--index-url", "https://download.pytorch.org/whl/cu124")
+& $pipExe @torchArgs 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  WARNING: CUDA PyTorch install failed, trying CPU fallback..." -ForegroundColor Yellow
-    & $pipExe install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu 2>&1
+    $torchCpuArgs = @("install", "torch==2.6.0", "torchvision==0.21.0", "--index-url", "https://download.pytorch.org/whl/cpu")
+    & $pipExe @torchCpuArgs 2>&1
 }
 
 # ---------------------------------------------------------------------------
@@ -199,30 +209,35 @@ Write-Status -Step "Installing Python dependencies" -Progress 50
 # Worker deps
 $workerReqs = Join-Path $PSScriptRoot "..\requirements.txt"
 if (Test-Path $workerReqs) {
-    & $pipExe install -r $workerReqs 2>&1
+    $reqArgs = @("install", "-r", $workerReqs)
+    & $pipExe @reqArgs 2>&1
 }
 else {
-    & $pipExe install fastapi uvicorn python-multipart huggingface-hub Pillow 2>&1
+    $fallbackArgs = @("install", "fastapi", "uvicorn", "python-multipart", "huggingface-hub", "Pillow")
+    & $pipExe @fallbackArgs 2>&1
 }
 
-# TRELLIS deps (basic)
+# TRELLIS deps (basic — matches official setup.sh --basic)
 Write-Status -Step "Installing TRELLIS dependencies" -Progress 55
 $basicDeps = @(
+    "install",
     "imageio", "imageio-ffmpeg", "tqdm", "easydict", "ninja",
     "trimesh", "zstandard", "opencv-python-headless", "transformers",
     "pandas", "lpips", "gradio==6.0.1", "tensorboard", "kornia", "timm"
 )
-& $pipExe install @basicDeps 2>&1
+& $pipExe @basicDeps 2>&1
 
 # utils3d from git
-& $pipExe install "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f" 2>&1
+$utils3dArgs = @("install", "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f")
+& $pipExe @utils3dArgs 2>&1
 
 # Install TRELLIS repo if pyproject.toml exists
 $pyproject = Join-Path $repoDir "pyproject.toml"
 if (Test-Path $pyproject) {
     Write-Status -Step "Installing TRELLIS package" -Progress 62
     Push-Location $repoDir
-    & $pipExe install -e . 2>&1
+    $installEditableArgs = @("install", "-e", ".")
+    & $pipExe @installEditableArgs 2>&1
     Pop-Location
 }
 
@@ -245,14 +260,17 @@ foreach ($ext in $extensions) {
         if ($ext.repo) {
             $cloneDir = Join-Path $extDir $ext.name
             if (-not (Test-Path (Join-Path $cloneDir ".git"))) {
-                & git clone --depth 1 $ext.repo $cloneDir 2>&1 | Out-Null
+                $extCloneArgs = @("clone", "--depth", "1", $ext.repo, $cloneDir)
+                & $gitExe @extCloneArgs 2>&1 | Out-Null
             }
             Push-Location $cloneDir
-            & $pipExe install . 2>&1 | Out-Null
+            $extInstallArgs = @("install", ".")
+            & $pipExe @extInstallArgs 2>&1 | Out-Null
             Pop-Location
         }
         else {
-            & $pipExe install $ext.install 2>&1 | Out-Null
+            $extPipArgs = @("install", $ext.install)
+            & $pipExe @extPipArgs 2>&1 | Out-Null
         }
         Write-Host " OK" -ForegroundColor Green
     }
@@ -267,7 +285,8 @@ if (Test-Path (Join-Path $oVoxelDir "setup.py")) {
     Write-Host "  Building o-voxel..." -NoNewline
     try {
         Push-Location $oVoxelDir
-        & $pipExe install . 2>&1 | Out-Null
+        $oVoxelArgs = @("install", ".")
+        & $pipExe @oVoxelArgs 2>&1 | Out-Null
         Pop-Location
         Write-Host " OK" -ForegroundColor Green
     }
@@ -300,7 +319,8 @@ print('Done')
 "@
 
     $env:TRELLIS_WEIGHTS = $weightsDir
-    & $pythonExe -c $downloadScript 2>&1
+    $dlArgs = @("-c", $downloadScript)
+    & $pythonExe @dlArgs 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "  WARNING: Weight download failed. You can retry later." -ForegroundColor Yellow
     }
@@ -351,7 +371,8 @@ if (-not $NoService) {
     $servicePath = Join-Path $PSScriptRoot "register-service.ps1"
     if (Test-Path $servicePath) {
         Write-Status -Step "Registering Windows service" -Progress 97
-        & powershell -ExecutionPolicy Bypass -File $servicePath -InstallDir $InstallDir -Port $Port 2>&1
+        $svcArgs = @("-ExecutionPolicy", "Bypass", "-File", $servicePath, "-InstallDir", $InstallDir, "-Port", $Port)
+        & powershell @svcArgs 2>&1
     }
 }
 
