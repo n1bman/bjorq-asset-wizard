@@ -4,7 +4,7 @@
     Bjorq 3D Worker — Windows Installer
 .DESCRIPTION
     Installs everything needed to run the Bjorq 3D Worker on Windows:
-    1. Embedded Python 3.11 + venv
+    1. Micromamba (primary) or full Python 3.11 (fallback)
     2. TRELLIS.2 repository (recursive clone)
     3. PyTorch with CUDA support
     4. Python dependencies
@@ -24,13 +24,15 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
+$MICROMAMBA_URL = "https://github.com/mamba-org/micromamba-releases/releases/latest/download/micromamba-win-64"
 $PYTHON_VERSION = "3.11.9"
-$PYTHON_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-embed-amd64.zip"
+$PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.4.2"
+$WORKER_VERSION = "2.4.3"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
+$PythonPathFile = Join-Path $InstallDir "python-path.txt"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -115,52 +117,114 @@ catch {
 }
 
 # ---------------------------------------------------------------------------
-# Step 1: Python
+# Step 1: Python runtime (micromamba primary, full Python fallback)
 # ---------------------------------------------------------------------------
 
-Write-Status -Step "Setting up Python $PYTHON_VERSION" -Progress 10
+Write-Status -Step "Setting up Python runtime" -Progress 10
 
-$pythonDir = Join-Path $InstallDir "python"
-$venvDir = Join-Path $InstallDir "venv"
-$pythonExe = Join-Path $venvDir "Scripts\python.exe"
-$pipExe = Join-Path $venvDir "Scripts\pip.exe"
+$pythonExe = $null
+$pipExe = $null
+$runtimeStrategy = "none"
 
-if (-not (Test-Path $pythonExe)) {
-    # Download embeddable Python
-    $zipPath = Join-Path $env:TEMP "python-embed.zip"
-    Write-Host "  Downloading Python $PYTHON_VERSION..."
-    Invoke-WebRequest -Uri $PYTHON_URL -OutFile $zipPath -UseBasicParsing
+# --- Strategy A: micromamba ---
+$mambaDir = Join-Path $InstallDir "bin"
+$mambaExe = Join-Path $mambaDir "micromamba.exe"
+$envDir = Join-Path $InstallDir "env"
 
-    # Extract
-    if (Test-Path $pythonDir) { Remove-Item $pythonDir -Recurse -Force }
-    Expand-Archive -Path $zipPath -DestinationPath $pythonDir -Force
-    Remove-Item $zipPath -Force
-
-    # Enable pip in embeddable python (uncomment import site)
-    $pthFile = Get-ChildItem $pythonDir -Filter "python*._pth" | Select-Object -First 1
-    if ($pthFile) {
-        (Get-Content $pthFile.FullName) -replace '#import site', 'import site' | Set-Content $pthFile.FullName
-    }
-
-    # Install pip
-    $getPip = Join-Path $env:TEMP "get-pip.py"
-    Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPip -UseBasicParsing
-    $sysPython = Join-Path $pythonDir "python.exe"
-    $getPipArgs = @($getPip, "--no-warn-script-location")
-    & $sysPython @getPipArgs 2>&1 | Out-Null
-
-    # Create venv
-    Write-Host "  Creating virtual environment..."
-    $venvArgs = @("-m", "venv", $venvDir)
-    & $sysPython @venvArgs 2>&1 | Out-Null
-
-    if (-not (Test-Path $pythonExe)) {
-        Write-Fatal "Failed to create Python virtual environment"
-    }
+if (Test-Path (Join-Path $envDir "python.exe")) {
+    Write-Host "  Micromamba env already exists - skipping"
+    $pythonExe = Join-Path $envDir "python.exe"
+    $pipExe = Join-Path $envDir "Scripts\pip.exe"
+    $runtimeStrategy = "micromamba"
+}
+elseif (Test-Path (Join-Path $InstallDir "venv\Scripts\python.exe")) {
+    Write-Host "  Python venv already exists - skipping"
+    $pythonExe = Join-Path $InstallDir "venv\Scripts\python.exe"
+    $pipExe = Join-Path $InstallDir "venv\Scripts\pip.exe"
+    $runtimeStrategy = "full-python"
 }
 else {
-    Write-Host "  Python venv already exists — skipping"
+    # Try micromamba first
+    Write-Host "  Trying micromamba (primary strategy)..."
+    $mambaOk = $false
+    try {
+        New-Item -ItemType Directory -Path $mambaDir -Force | Out-Null
+        Write-Host "  Downloading micromamba..."
+        Invoke-WebRequest -Uri $MICROMAMBA_URL -OutFile $mambaExe -UseBasicParsing
+
+        if (Test-Path $mambaExe) {
+            Write-Host "  Creating conda environment with Python $PYTHON_VERSION..."
+            $env:MAMBA_ROOT_PREFIX = Join-Path $InstallDir "mamba-root"
+            $createArgs = @("create", "-p", $envDir, "python=3.11", "pip", "-y", "-c", "conda-forge")
+            & $mambaExe @createArgs 2>&1
+            if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $envDir "python.exe"))) {
+                $pythonExe = Join-Path $envDir "python.exe"
+                $pipExe = Join-Path $envDir "Scripts\pip.exe"
+                $runtimeStrategy = "micromamba"
+                $mambaOk = $true
+                Write-Host "  Micromamba environment created successfully" -ForegroundColor Green
+            }
+        }
+    }
+    catch {
+        Write-Host "  Micromamba setup failed: $_" -ForegroundColor Yellow
+    }
+
+    # --- Strategy B: Full Python installer fallback ---
+    if (-not $mambaOk) {
+        Write-Host "  Falling back to full Python installer..." -ForegroundColor Yellow
+        Write-Status -Step "Downloading Python $PYTHON_VERSION (fallback)" -Progress 12
+
+        $pythonInstallerPath = Join-Path $env:TEMP "python-installer.exe"
+        try {
+            Invoke-WebRequest -Uri $PYTHON_INSTALLER_URL -OutFile $pythonInstallerPath -UseBasicParsing
+        }
+        catch {
+            Write-Fatal "Failed to download Python installer from $PYTHON_INSTALLER_URL"
+        }
+
+        $pythonInstallDir = Join-Path $InstallDir "python"
+        Write-Host "  Installing Python $PYTHON_VERSION to $pythonInstallDir..."
+        $installerArgs = @(
+            "/quiet",
+            "InstallAllUsers=0",
+            "TargetDir=$pythonInstallDir",
+            "Include_pip=1",
+            "Include_test=0",
+            "PrependPath=0",
+            "Include_launcher=0"
+        )
+        Start-Process -FilePath $pythonInstallerPath -ArgumentList $installerArgs -Wait -NoNewWindow
+        Remove-Item $pythonInstallerPath -Force -ErrorAction SilentlyContinue
+
+        $sysPython = Join-Path $pythonInstallDir "python.exe"
+        if (-not (Test-Path $sysPython)) {
+            Write-Fatal "Python installation failed. Neither micromamba nor the Python installer succeeded."
+        }
+
+        # Create venv
+        Write-Host "  Creating virtual environment..."
+        $venvDir = Join-Path $InstallDir "venv"
+        $venvArgs = @("-m", "venv", $venvDir)
+        & $sysPython @venvArgs 2>&1
+
+        $pythonExe = Join-Path $venvDir "Scripts\python.exe"
+        $pipExe = Join-Path $venvDir "Scripts\pip.exe"
+
+        if (-not (Test-Path $pythonExe)) {
+            Write-Fatal "Failed to create Python virtual environment"
+        }
+
+        $runtimeStrategy = "full-python"
+        Write-Host "  Python venv created successfully (fallback)" -ForegroundColor Green
+    }
 }
+
+# Write chosen path so other scripts can find it
+[System.IO.File]::WriteAllText($PythonPathFile, $pythonExe)
+Write-Host "  Runtime strategy: $runtimeStrategy"
+Write-Host "  Python: $pythonExe"
+Add-Content -Path $LogFile -Value "Runtime strategy: $runtimeStrategy  Python: $pythonExe"
 
 # ---------------------------------------------------------------------------
 # Step 2: Clone TRELLIS.2
@@ -179,7 +243,7 @@ if (-not (Test-Path (Join-Path $repoDir ".git"))) {
     }
 }
 else {
-    Write-Host "  TRELLIS.2 repo exists — pulling latest..."
+    Write-Host "  TRELLIS.2 repo exists - pulling latest..."
     Push-Location $repoDir
     $pullArgs = @("pull", "--ff-only")
     & $gitExe @pullArgs 2>&1 | Out-Null
@@ -217,7 +281,7 @@ else {
     & $pipExe @fallbackArgs 2>&1
 }
 
-# TRELLIS deps (basic — matches official setup.sh --basic)
+# TRELLIS deps (basic -- matches official setup.sh --basic)
 Write-Status -Step "Installing TRELLIS dependencies" -Progress 55
 $basicDeps = @(
     "install",
@@ -349,6 +413,7 @@ if (Test-Path (Join-Path $workerSrc "ui")) {
 
 Write-Status -Step "Creating launcher" -Progress 95
 
+$weightsDir = Join-Path $InstallDir "weights"
 $launchScript = @"
 @echo off
 cd /d "$workerDest"
@@ -389,10 +454,12 @@ $doneStatus = @{
     gpu        = $gpu.Name
     vramGB     = $vramGB
     port       = $Port
+    runtimeStrategy = $runtimeStrategy
 } | ConvertTo-Json
 [System.IO.File]::WriteAllText($StatusFile, $doneStatus)
 
 Write-Host "`n  Installation complete!" -ForegroundColor Green
+Write-Host "  Runtime: $runtimeStrategy"
 Write-Host "  Start worker: $launchBat"
 Write-Host "  Dashboard:    http://localhost:$Port/ui"
 Write-Host "  Worker URL:   http://<this-pc-ip>:$Port`n"

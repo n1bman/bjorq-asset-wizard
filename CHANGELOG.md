@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.4.3] — 2026-03-20
+
+### Fixed
+- **Windows installer: zero-manual-prereqs** — Replaced embeddable Python (which lacked `venv` module) with **micromamba** as the primary runtime strategy. The installer now downloads micromamba and creates a fully functional conda environment with Python 3.11 — no system Python installation needed. If micromamba fails, falls back to the full Python 3.11 installer with silent install.
+- **Runtime path resolution** — All worker scripts (`start-worker.ps1`, `register-service.ps1`) now read `python-path.txt` to discover the correct Python executable, with fallback to `env\python.exe` (micromamba) then `venv\Scripts\python.exe` (full Python). Supports both installation strategies transparently.
+
+### Changed
+- **EngineStatus UI guided flow** — External worker setup now shows numbered steps (Install → Configure URL → Test Connection) with clearer visual hierarchy, VirtualBox networking examples inline, and auto-refresh polling every 10s when not connected. `lastError` is displayed prominently with amber styling for GPU/driver errors vs red for connection errors.
+- **Documentation rewrite** — `docs/WORKER_SETUP_WINDOWS.md` restructured as a complete "zero to done" guide matching the actual flow: prerequisites → download → install → verify → configure → test → troubleshooting. Removed references to manual Python/venv setup in the one-click path.
+
 ## [2.4.2] — 2026-03-20
 
 ### Fixed

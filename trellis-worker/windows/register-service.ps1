@@ -15,13 +15,34 @@ param(
 $ErrorActionPreference = "Stop"
 $serviceName = "Bjorq3DWorker"
 
-$pythonExe = Join-Path $InstallDir "venv\Scripts\python.exe"
-$workerPy = Join-Path $InstallDir "worker\worker.py"
+# ---------------------------------------------------------------------------
+# Resolve Python path (supports both micromamba env and venv)
+# ---------------------------------------------------------------------------
 
-if (-not (Test-Path $pythonExe)) {
-    Write-Host "ERROR: Worker not installed." -ForegroundColor Red
-    exit 1
+$pythonPathFile = Join-Path $InstallDir "python-path.txt"
+$pythonExe = $null
+
+if (Test-Path $pythonPathFile) {
+    $pythonExe = (Get-Content $pythonPathFile -Raw).Trim()
 }
+
+if (-not $pythonExe -or -not (Test-Path $pythonExe)) {
+    $envPython = Join-Path $InstallDir "env\python.exe"
+    $venvPython = Join-Path $InstallDir "venv\Scripts\python.exe"
+
+    if (Test-Path $envPython) {
+        $pythonExe = $envPython
+    }
+    elseif (Test-Path $venvPython) {
+        $pythonExe = $venvPython
+    }
+    else {
+        Write-Host "ERROR: Worker not installed." -ForegroundColor Red
+        exit 1
+    }
+}
+
+$workerPy = Join-Path $InstallDir "worker\worker.py"
 
 # Check for nssm
 $nssmPath = Join-Path $InstallDir "nssm.exe"
