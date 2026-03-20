@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.4.0] — 2026-03-20
+
+### Added
+- **External 3D Worker architecture** — Photo → 3D generation can now be offloaded to a standalone "Bjorq 3D Worker" running on a Windows PC with NVIDIA GPU, solving all TRELLIS/CUDA/Rust dependency issues in the HA container.
+- **New project: `trellis-worker/`** — Python/FastAPI inference server with async job API (`POST /jobs`, `GET /jobs/:id`, `GET /jobs/:id/result.glb`), GPU auto-detection, static status dashboard (`/ui`), and optional Bearer token auth.
+- **Windows installer scripts** — `trellis-worker/windows/` with PowerShell installer (`install.ps1`), service registration (`register-service.ps1`), launcher, healthcheck, and Inno Setup `.iss` config for building `Bjorq3DWorkerSetup.exe` in CI.
+- **Dual engine mode** — `TRELLIS_MODE` env var (`local` | `external`). External mode proxies all generation to the remote worker; local mode preserves existing in-container behavior.
+- **Worker connection test** — `GET /trellis/test-connection` endpoint and "Test Connection" button in UI.
+- **Add-on config options** — `trellis_mode`, `trellis_worker_url`, `trellis_worker_token` configurable in HA UI.
+- **Setup documentation** — `docs/WORKER_SETUP_WINDOWS.md` with VirtualBox networking guide (Bridged/NAT/Host-only), firewall setup, and troubleshooting.
+
+### Changed
+- `EngineStatus.tsx` rewritten as dual-mode component: shows worker connection status in external mode, preserves local install UI in local mode.
+- `manager.ts` refactored with external worker client (submit → poll → fetch GLB) alongside preserved local install pipeline.
+
 ## [2.3.9] — 2026-03-18
 
 ### Changed

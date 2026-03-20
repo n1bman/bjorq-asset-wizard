@@ -4,7 +4,7 @@
 # Reference: https://developers.home-assistant.io/docs/add-ons/configuration
 
 name: Bjorq Asset Wizard
-version: "2.3.9"
+version: "2.4.0"
 slug: bjorq_asset_wizard
 init: false
 description: "3D asset analysis, optimization, and catalog service for Bjorq"
@@ -43,6 +43,9 @@ options:
   max_texture_size: 2048
   texture_quality: 85
   job_retention_hours: 24
+  trellis_mode: external
+  trellis_worker_url: "http://10.0.2.2:8080"
+  trellis_worker_token: ""
 
 # Schema for validating options
 schema:
@@ -53,6 +56,9 @@ schema:
   max_texture_size: int(512,4096)
   texture_quality: int(50,100)
   job_retention_hours: int(0,168)
+  trellis_mode: list(local|external)
+  trellis_worker_url: str
+  trellis_worker_token: str
 
 # Resource usage
 startup: services

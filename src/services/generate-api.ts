@@ -1,5 +1,5 @@
 /**
- * Bjorq Asset Wizard — Photo → 3D Generation API (v2.3.0)
+ * Bjorq Asset Wizard — Photo → 3D Generation API (v2.4.0)
  *
  * All functions try the real backend first via apiClient.
  * Falls back to mock data when backend is unreachable.
@@ -126,7 +126,7 @@ export async function getTrellisStatus(): Promise<TrellisStatusResponse> {
     return await apiClient.request<TrellisStatusResponse>("/trellis/status");
   } catch (err) {
     if (err instanceof ApiError && err.status > 0) throw err;
-    return { installed: true, running: true, gpu: false, version: "mock" };
+    return { installed: true, running: true, gpu: false, version: "mock", mode: "local" };
   }
 }
 
@@ -139,6 +139,29 @@ export async function installTrellis(): Promise<{ success: boolean; message: str
     if (err instanceof ApiError && err.status > 0) throw err;
     await fakeDel(1500);
     return { success: true, message: "Mock install complete" };
+  }
+}
+
+export async function testWorkerConnection(): Promise<{
+  ok: boolean;
+  workerUrl: string;
+  version?: string;
+  gpu?: boolean;
+  gpuName?: string;
+  error?: string;
+}> {
+  try {
+    return await apiClient.request<{
+      ok: boolean;
+      workerUrl: string;
+      version?: string;
+      gpu?: boolean;
+      gpuName?: string;
+      error?: string;
+    }>("/trellis/test-connection");
+  } catch (err) {
+    if (err instanceof ApiError && err.status > 0) throw err;
+    return { ok: false, workerUrl: "", error: "Backend unreachable" };
   }
 }
 

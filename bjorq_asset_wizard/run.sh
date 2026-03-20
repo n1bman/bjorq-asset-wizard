@@ -28,6 +28,9 @@ export THUMBNAIL_QUALITY=$(bashio::config 'thumbnail_quality')
 export DEFAULT_MAX_TEXTURE_SIZE=$(bashio::config 'max_texture_size')
 export DEFAULT_TEXTURE_QUALITY=$(bashio::config 'texture_quality')
 export JOB_RETENTION_HOURS=$(bashio::config 'job_retention_hours')
+export TRELLIS_MODE=$(bashio::config 'trellis_mode')
+export TRELLIS_WORKER_URL=$(bashio::config 'trellis_worker_url')
+export TRELLIS_WORKER_TOKEN=$(bashio::config 'trellis_worker_token')
 
 # --- Fixed paths for HA add-on environment ---
 export NODE_ENV=production
