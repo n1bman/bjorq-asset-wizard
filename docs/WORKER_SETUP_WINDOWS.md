@@ -73,7 +73,7 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.4.3",
+  "version": "2.5.0",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
