@@ -153,6 +153,7 @@ function ExternalWorkerStatus({
   const env = status.environment;
   const workerError = error || status.lastError;
   const isGpuError = workerError && /gpu|nvidia|cuda|driver|vram/i.test(workerError);
+  const isBridgeError = workerError && /trellis|import|module|bridge/i.test(workerError);
 
   // Connected
   if (connected) {
@@ -185,6 +186,29 @@ function ExternalWorkerStatus({
           {env?.cudaVersion && <span>CUDA: {env.cudaVersion}</span>}
         </div>
 
+        {/* Show lastError even when connected (e.g. bridge not loaded) */}
+        {workerError && (
+          <div className={cn(
+            "flex items-start gap-2 text-xs rounded px-3 py-2",
+            isBridgeError
+              ? "text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30"
+              : "text-muted-foreground bg-muted/30 border border-border"
+          )}>
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+            <div>
+              <span>{workerError}</span>
+              <a
+                href={workerUrl ? `${workerUrl}/ui` : "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 underline hover:no-underline"
+              >
+                Open worker UI
+              </a>
+            </div>
+          </div>
+        )}
+
         {workerUrl && (
           <div className="text-xs text-muted-foreground font-mono bg-muted/30 rounded px-2 py-1">
             {workerUrl}
@@ -208,20 +232,40 @@ function ExternalWorkerStatus({
         Photo → 3D requires a Bjorq 3D Worker running on a Windows PC with an NVIDIA GPU.
       </p>
 
-      {/* Error display */}
+      {/* Error display with root cause */}
       {workerError && (
         <div className={cn(
           "flex items-start gap-2 text-xs rounded px-3 py-2",
           isGpuError
             ? "text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30"
-            : "text-destructive bg-destructive/10 border border-destructive/30"
+            : isBridgeError
+              ? "text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30"
+              : "text-destructive bg-destructive/10 border border-destructive/30"
         )}>
-          {isGpuError ? (
+          {isGpuError || isBridgeError ? (
             <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
           ) : (
             <XCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
           )}
-          <span>{workerError}</span>
+          <div className="space-y-1">
+            <span className="block">{workerError}</span>
+            {isBridgeError && (
+              <span className="block text-muted-foreground">
+                The worker is running but TRELLIS failed to load. Check the worker logs for details.
+              </span>
+            )}
+            {workerUrl && (
+              <a
+                href={`${workerUrl}/ui`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 underline hover:no-underline"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Open worker UI for details
+              </a>
+            )}
+          </div>
         </div>
       )}
 
@@ -496,6 +540,5 @@ function getInstallStep(progress: number): string {
   if (progress <= 25) return "3/6 — Installing PyTorch";
   if (progress <= 45) return "4/6 — Installing dependencies";
   if (progress <= 65) return "5/6 — Building CUDA extensions";
-  if (progress <= 85) return "6/6 — Downloading model weights";
-  return "Finalizing";
+  return "6/6 — Downloading model weights";
 }

@@ -28,8 +28,9 @@ from trellis_bridge import TrellisBridge, BridgeError
 # Configuration
 # ---------------------------------------------------------------------------
 
-WORKER_VERSION = "1.0.0"
+WORKER_VERSION = "2.5.1"
 WORKER_PORT = int(os.environ.get("WORKER_PORT", "8080"))
+WORKER_HOST = os.environ.get("WORKER_HOST", "0.0.0.0")
 WORKER_TOKEN = os.environ.get("WORKER_TOKEN", "")
 TRELLIS_REPO = os.environ.get("TRELLIS_REPO", str(Path(__file__).parent / "trellis-repo"))
 TRELLIS_WEIGHTS = os.environ.get("TRELLIS_WEIGHTS", str(Path(__file__).parent / "weights"))
@@ -117,12 +118,13 @@ async def verify_token(request: Request) -> None:
 
 gpu_info: dict = {}
 bridge: Optional[TrellisBridge] = None
+bridge_error: Optional[str] = None
 job_store = JobStore(JOBS_DIR)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global gpu_info, bridge
+    global gpu_info, bridge, bridge_error
 
     # Configure logging
     handler = logging.StreamHandler()
@@ -140,6 +142,7 @@ async def lifespan(app: FastAPI):
         bridge = TrellisBridge(TRELLIS_REPO, TRELLIS_WEIGHTS)
         logger.info("TRELLIS bridge initialized")
     except Exception as e:
+        bridge_error = str(e)
         logger.warning("TRELLIS bridge not available: %s", e)
         bridge = None
 
@@ -164,7 +167,7 @@ app = FastAPI(title="Bjorq 3D Worker", version=WORKER_VERSION, lifespan=lifespan
 async def status():
     last_job = job_store.get_latest()
     return {
-        "ok": True,
+        "ok": bridge is not None,
         "version": WORKER_VERSION,
         "gpu": gpu_info.get("available", False),
         "gpuName": gpu_info.get("name"),
@@ -173,7 +176,7 @@ async def status():
         "vramGB": gpu_info.get("vramGB"),
         "installing": False,
         "progress": 100,
-        "lastError": None,
+        "lastError": bridge_error,
         "lastJob": {
             "id": last_job.id,
             "status": last_job.status.value,
@@ -191,7 +194,8 @@ async def create_job(
     options: str = Form("{}"),
 ):
     if not bridge:
-        raise HTTPException(503, "TRELLIS engine not available — run installer first")
+        detail = f"TRELLIS engine not available — {bridge_error or 'run installer first'}"
+        raise HTTPException(503, detail)
 
     if not images:
         raise HTTPException(400, "At least one image is required")
@@ -305,7 +309,7 @@ async def logs():
 if __name__ == "__main__":
     uvicorn.run(
         "worker:app",
-        host="0.0.0.0",
+        host=WORKER_HOST,
         port=WORKER_PORT,
         log_level="info",
     )

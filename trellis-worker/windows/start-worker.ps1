@@ -39,6 +39,8 @@ if (-not $pythonExe -or -not (Test-Path $pythonExe)) {
         Write-Host "    $pythonPathFile (not found or invalid)" -ForegroundColor Yellow
         Write-Host "    $envPython (not found)" -ForegroundColor Yellow
         Write-Host "    $venvPython (not found)" -ForegroundColor Yellow
+        Write-Host "`nPress any key to close..." -ForegroundColor Yellow
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         exit 1
     }
 }
@@ -61,3 +63,7 @@ Write-Host "Press Ctrl+C to stop.`n"
 Push-Location $workerDir
 & $pythonExe worker.py
 Pop-Location
+
+# If worker exits, keep window open
+Write-Host "`nWorker stopped. Press any key to close..." -ForegroundColor Yellow
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
