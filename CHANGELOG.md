@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.5.1] — 2026-03-20
+
+### Fixed
+- **TRELLIS bridge imports** — Fixed `No module named 'trellis'` by updating `trellis_bridge.py` to import from `trellis2` (matching the actual TRELLIS.2 repo package name). Falls back through `trellis2.pipelines.Trellis2ImageTo3DPipeline` → `TrellisImageTo3DPipeline` → legacy `trellis.pipelines` with detailed error reporting on failure.
+- **Installer stderr handling** — Replaced `$ErrorActionPreference = "Stop"` with a new `Invoke-Tool` helper that checks `$LASTEXITCODE` only. pip stderr warnings (deprecation notices, etc.) no longer abort the install with `NativeCommandError`.
+- **64-bit PowerShell** — Inno Setup now launches `install.ps1` and Start Menu shortcuts via `{sysnative}\WindowsPowerShell\v1.0\powershell.exe`, preventing SysWOW64 path issues on 64-bit Windows.
+- **nvidia-smi resolution** — `Find-NvidiaSmi` checks PATH, `System32`, and `C:\Program Files\NVIDIA Corporation\NVSMI\` for robust GPU detection.
+- **Worker bridge error reporting** — `worker.py` now tracks `bridge_error` and exposes it in `/status.lastError` so the Wizard shows the real reason generation fails (e.g. missing TRELLIS module) instead of generic errors.
+
+### Added
+- **Windows Firewall rule** — `install.ps1` automatically creates an inbound TCP rule for the worker port (default 8080) so HA VMs can reach the worker without manual firewall configuration.
+- **"Press any key" on exit** — `start-worker.ps1` and the `.bat` launcher keep the console window open on error so users can read the error message.
+- **Root cause errors in UI** — `EngineStatus.tsx` now detects bridge/import errors vs connection errors and shows actionable guidance with a "Open worker UI" link for debugging.
+
+### Changed
+- Worker version bumped to 2.5.1 across all 7 locations.
+
 ## [2.5.0] — 2026-03-20
 
 ### Fixed
