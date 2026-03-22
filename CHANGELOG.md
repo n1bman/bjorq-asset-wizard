@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.3] — 2026-03-22
+
+### Changed
+- **Worker lifecycle is now explicit** — The Windows installer no longer enables the background service by default. Users now start the visible console worker manually, and background auto-start is an explicit checkbox/shortcut instead of implicit behavior.
+- **New stop/cleanup flow** — Added `stop-worker.ps1` and `cleanup.ps1` so users can stop the worker cleanly, remove the Windows service, free port 8080, remove the firewall rule, and let uninstall clean `C:\ProgramData\Bjorq3DWorker`.
+- **Safer startup UX** — `start-worker.ps1` now refuses to launch if the background service is already running or if port 8080 is already occupied, preventing duplicate hidden worker processes.
+
 ## [2.5.2] — 2026-03-22
 
 ### Fixed

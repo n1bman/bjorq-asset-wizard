@@ -57,11 +57,12 @@ Download **Bjorq3DWorkerSetup.exe** from the
    - Install PyTorch with CUDA GPU support
    - Install all Python dependencies
    - Download model weights (~15 GB — resumable if interrupted)
-   - Start the worker on port 8080
-   - Optionally register as a Windows Service (auto-start on boot)
+   - Prepare a visible **Start Bjorq 3D Worker** shortcut
+   - Optionally enable a **background Windows Service** if you check that box
 
 > **Installation takes 15–30 minutes** depending on download speed.
 > Progress is shown in the installer window.
+> By default, the worker does **not** auto-start with Windows.
 
 ## Step 3 — Verify the Worker
 
@@ -75,7 +76,7 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.5.2",
+  "version": "2.5.3",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
@@ -86,6 +87,14 @@ You should see a JSON response like:
 ```
 
 The worker dashboard is available at: `http://localhost:8080/ui`
+
+## Start and Stop
+
+- Use the Start menu shortcut **Start Bjorq 3D Worker** when you want the visible console window.
+- Use **Stop Bjorq 3D Worker** to stop the console worker, stop the background service, and free port 8080.
+- Use **Disable Background Service** if you no longer want the worker to auto-start with Windows.
+- Only enable **background service** if you want the worker to start automatically with Windows.
+- If the service is enabled, do not also start the visible console worker at the same time.
 
 ## Step 4 — Configure the Wizard Add-on
 
@@ -192,6 +201,8 @@ python worker.py
 | Weights download fails | Disk space or network | Need ~15 GB free; download is resumable — just re-run installer |
 | Generation fails / OOM | Insufficient VRAM | Close other GPU apps; 12+ GB VRAM recommended |
 | Service won't start | NSSM issue | Check `C:\ProgramData\Bjorq3DWorker\service-stderr.log` |
+| Port 8080 already in use | Worker/service already running | Use the **Stop Bjorq 3D Worker** shortcut, then start again |
+| Uninstall left files behind | Old installer build | Use v2.5.3+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
 
 **Test from HA terminal:**
 ```bash

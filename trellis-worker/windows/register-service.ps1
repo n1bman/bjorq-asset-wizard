@@ -14,6 +14,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $serviceName = "Bjorq3DWorker"
+$stopScript = Join-Path $PSScriptRoot "stop-worker.ps1"
 
 # ---------------------------------------------------------------------------
 # Resolve Python path (supports both micromamba env and venv)
@@ -70,11 +71,9 @@ if (-not (Test-Path $nssmPath)) {
 }
 
 # Remove existing service if present
-try {
-    & $nssmPath stop $serviceName 2>$null | Out-Null
-    & $nssmPath remove $serviceName confirm 2>$null | Out-Null
+if (Test-Path $stopScript) {
+    & $stopScript -InstallDir $InstallDir -Port $Port -RemoveService
 }
-catch { }
 
 # Install service
 Write-Host "Registering service: $serviceName"

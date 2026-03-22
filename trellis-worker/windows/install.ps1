@@ -30,7 +30,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.5.2"
+$WORKER_VERSION = "2.5.3"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -570,9 +570,13 @@ $doneStatus = @{
 Write-Host "`n  Installation complete!" -ForegroundColor Green
 Write-Host "  Runtime: $runtimeStrategy"
 Write-Host "  Start worker: $launchBat"
+Write-Host "  Stop worker:  $(Join-Path $PSScriptRoot 'stop-worker.ps1')"
 Write-Host "  Dashboard:    http://localhost:$Port/ui"
 Write-Host "  Worker URL:   http://<this-pc-ip>:$Port`n"
-
-# Auto-start
-Write-Host "  Starting worker..." -ForegroundColor Cyan
-Start-Process $launchBat
+if (-not $NoService) {
+    Write-Host "  Background service: enabled (starts with Windows)" -ForegroundColor Yellow
+}
+else {
+    Write-Host "  Background service: disabled by default" -ForegroundColor Yellow
+    Write-Host "  Launch the Start shortcut when you want the visible console window." -ForegroundColor Yellow
+}

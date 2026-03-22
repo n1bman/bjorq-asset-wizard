@@ -48,6 +48,36 @@ if (-not $pythonExe -or -not (Test-Path $pythonExe)) {
 $workerDir = Join-Path $InstallDir "worker"
 $repoDir = Join-Path $InstallDir "trellis-repo"
 $weightsDir = Join-Path $InstallDir "weights"
+$stopScript = Join-Path $PSScriptRoot "stop-worker.ps1"
+
+if (-not (Test-Path (Join-Path $workerDir "worker.py"))) {
+    Write-Host "ERROR: Worker files are missing in $workerDir." -ForegroundColor Red
+    Write-Host "Re-run the installer to repair the installation." -ForegroundColor Yellow
+    Write-Host "`nPress any key to close..." -ForegroundColor Yellow
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
+
+$service = Get-Service -Name "Bjorq3DWorker" -ErrorAction SilentlyContinue
+if ($service -and $service.Status -ne "Stopped") {
+    Write-Host "The background service 'Bjorq3DWorker' is already running." -ForegroundColor Yellow
+    Write-Host "Stop the service first if you want to run the visible console worker instead." -ForegroundColor Yellow
+    Write-Host "  Stop script: $stopScript" -ForegroundColor Yellow
+    Write-Host "`nPress any key to close..." -ForegroundColor Yellow
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
+
+$portInUse = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+    Select-Object -ExpandProperty OwningProcess -First 1
+if ($portInUse) {
+    Write-Host "Port $Port is already in use by PID $portInUse." -ForegroundColor Red
+    Write-Host "Run the Stop Worker shortcut/script first so we do not start duplicate processes." -ForegroundColor Yellow
+    Write-Host "  Stop script: $stopScript" -ForegroundColor Yellow
+    Write-Host "`nPress any key to close..." -ForegroundColor Yellow
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
 
 $env:TRELLIS_REPO = $repoDir
 $env:TRELLIS_WEIGHTS = $weightsDir
