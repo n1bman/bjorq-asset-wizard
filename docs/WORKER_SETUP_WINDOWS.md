@@ -76,7 +76,7 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.5.4",
+  "version": "2.6.0",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
@@ -212,7 +212,7 @@ python worker.py
 | Generation fails / OOM | Insufficient VRAM | Close other GPU apps; 12+ GB VRAM recommended |
 | Service won't start | NSSM issue | Check `C:\ProgramData\Bjorq3DWorker\service-stderr.log` |
 | Port 8080 already in use | Worker/service already running | Use the **Stop Bjorq 3D Worker** shortcut, then start again |
-| Uninstall left files behind | Old installer build | Use v2.5.4+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
+| Uninstall left files behind | Old installer build | Use v2.6.0+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
 
 **Test from HA terminal:**
 ```bash

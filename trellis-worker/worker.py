@@ -28,7 +28,7 @@ from trellis_bridge import TrellisBridge, BridgeError
 # Configuration
 # ---------------------------------------------------------------------------
 
-WORKER_VERSION = "2.5.4"
+WORKER_VERSION = "2.6.0"
 WORKER_PORT = int(os.environ.get("WORKER_PORT", "8080"))
 WORKER_HOST = os.environ.get("WORKER_HOST", "0.0.0.0")
 WORKER_TOKEN = os.environ.get("WORKER_TOKEN", "")

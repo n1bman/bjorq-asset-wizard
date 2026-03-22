@@ -9,7 +9,7 @@
 
 [Setup]
 AppName=Bjorq 3D Worker
-AppVersion=2.5.4
+AppVersion=2.6.0
 AppPublisher=Bjorq
 AppPublisherURL=https://github.com/n1bman/bjorq-asset-wizard
 DefaultDirName={commonpf}\Bjorq3DWorker

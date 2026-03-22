@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.0] — 2026-03-22
+
+### Changed
+- **Version sync for HA + worker releases** — Bumped add-on, backend, worker, installer, docs, and release surfaces to `2.6.0` so Home Assistant and GitHub releases see a clearly new version instead of mixed `2.5.x` metadata.
+
+### Fixed
+- **TRELLIS.2 Windows integration** — Continued aligning the worker with the upstream TRELLIS.2 single-image pipeline and added stricter Windows prerequisite checks so installs fail earlier and more honestly when required CUDA build tooling is missing.
+
 ## [2.5.4] — 2026-03-22
 
 ### Fixed
