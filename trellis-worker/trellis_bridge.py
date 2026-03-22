@@ -13,7 +13,7 @@ import os
 import sys
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 logger = logging.getLogger("bjorq-worker.bridge")
 
@@ -122,21 +122,73 @@ class TrellisBridge:
                     f"sys.path includes: {self.repo_path}"
                 )
 
-            self._pipeline = pipeline_cls.from_pretrained(
-                str(self.weights_path)
-            )
+            self._pipeline = pipeline_cls.from_pretrained(str(self.weights_path))
+
+            try:
+                import torch
+
+                if torch.cuda.is_available():
+                    self._pipeline.to(torch.device("cuda"))
+                    logger.info("TRELLIS pipeline moved to CUDA")
+                else:
+                    logger.warning("CUDA is not available - TRELLIS will run on CPU")
+            except Exception as move_err:
+                logger.warning("Could not move TRELLIS pipeline to CUDA: %s", move_err)
+
             logger.info("TRELLIS pipeline loaded successfully")
         except BridgeError:
             raise
         except Exception as e:
             raise BridgeError(f"Failed to load TRELLIS pipeline: {e}")
 
+    def _export_glb(self, mesh_output: Any) -> bytes:
+        try:
+            import tempfile
+
+            if hasattr(mesh_output, "export"):
+                glb_bytes = mesh_output.export(file_type="glb")
+                return bytes(glb_bytes) if not isinstance(glb_bytes, bytes) else glb_bytes
+
+            try:
+                import o_voxel  # type: ignore
+
+                with tempfile.NamedTemporaryFile(suffix=".glb", delete=False) as tmp:
+                    tmp_path = tmp.name
+
+                try:
+                    o_voxel.postprocess.to_glb(
+                        mesh_output.vertices,
+                        mesh_output.faces,
+                        mesh_output.coords,
+                        mesh_output.attrs,
+                        mesh_output.layout,
+                        mesh_output.voxel_size,
+                        tmp_path,
+                    )
+                    return Path(tmp_path).read_bytes()
+                finally:
+                    Path(tmp_path).unlink(missing_ok=True)
+            except Exception:
+                pass
+
+            if isinstance(mesh_output, (bytes, bytearray)):
+                return bytes(mesh_output)
+
+            raise BridgeError(
+                "TRELLIS output could not be exported to GLB. "
+                "Expected MeshWithVoxel/exportable mesh output."
+            )
+        except BridgeError:
+            raise
+        except Exception as e:
+            raise BridgeError(f"Failed to export GLB: {e}")
+
     def generate(self, image_paths: list[str], options: dict) -> bytes:
         """
-        Generate a 3D model from input images.
+        Generate a 3D model from a single input image.
 
         Args:
-            image_paths: List of paths to input images (1-4 photos)
+            image_paths: List of paths to input images (first item is used)
             options: Generation options (style, target, variant)
 
         Returns:
@@ -148,43 +200,28 @@ class TrellisBridge:
 
         try:
             from PIL import Image
-            import tempfile
 
-            # Load images
-            images = []
-            for path in image_paths:
-                img = Image.open(path).convert("RGB")
-                images.append(img)
+            if not image_paths:
+                raise BridgeError("At least one input image is required")
 
-            # Run pipeline
-            # NOTE: The exact API depends on TRELLIS.2 version.
-            # This follows the expected pipeline interface.
+            if len(image_paths) > 1:
+                raise BridgeError(
+                    "TRELLIS.2 worker currently supports one input image per generation. "
+                    "Upload a single hero photo for now."
+                )
+
+            image = Image.open(image_paths[0]).convert("RGB")
             outputs = self._pipeline.run(
-                images[0] if len(images) == 1 else images,
+                image,
                 seed=options.get("seed", 42),
+                num_samples=1,
             )
 
-            # Extract GLB from pipeline output
-            # TRELLIS.2 outputs a dict with 'gaussian', 'radiance_field', 'mesh' keys
-            mesh_output = outputs.get("mesh") or outputs.get("glb")
-            if mesh_output is None:
-                raise BridgeError("Pipeline did not produce mesh output")
+            if not outputs:
+                raise BridgeError("TRELLIS pipeline returned no mesh output")
 
-            # Export to GLB bytes
-            if hasattr(mesh_output, "export"):
-                # trimesh-style export
-                glb_bytes = mesh_output.export(file_type="glb")
-            elif isinstance(mesh_output, (bytes, bytearray)):
-                glb_bytes = bytes(mesh_output)
-            else:
-                # Try saving to temp file
-                with tempfile.NamedTemporaryFile(suffix=".glb", delete=False) as tmp:
-                    tmp_path = tmp.name
-                try:
-                    mesh_output.save(tmp_path)
-                    glb_bytes = Path(tmp_path).read_bytes()
-                finally:
-                    Path(tmp_path).unlink(missing_ok=True)
+            mesh_output = outputs[0]
+            glb_bytes = self._export_glb(mesh_output)
 
             if len(glb_bytes) < 100:
                 raise BridgeError(f"Generated GLB is too small ({len(glb_bytes)} bytes)")

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.4] — 2026-03-22
+
+### Fixed
+- **TRELLIS.2 pipeline integration** — The worker now follows the upstream TRELLIS.2 API more closely: it loads `Trellis2ImageTo3DPipeline`, moves the pipeline to CUDA when available, calls `pipeline.run(image)[0]`, and exports GLB from mesh output instead of assuming a dict-shaped response.
+- **Single-image UX alignment** — The Wizard UI and backend now enforce one input image per generation so the product matches TRELLIS.2's official minimal example instead of incorrectly advertising a 1–4 image workflow.
+- **Build-tools preflight** — The Windows installer now checks for Visual Studio Build Tools / `cl.exe` before attempting required CUDA extension builds, failing early with a clear action instead of allowing a successful-looking install that later crashes on missing `cumesh` / `flex_gemm`.
+
 ## [2.5.3] — 2026-03-22
 
 ### Changed

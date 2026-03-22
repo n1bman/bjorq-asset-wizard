@@ -77,8 +77,11 @@ export async function generateRoutes(server: FastifyInstance) {
       return reply.code(400).send({ success: false, error: "At least one image is required" });
     }
 
-    if (imagePaths.length > 4) {
-      return reply.code(400).send({ success: false, error: "Maximum 4 images allowed" });
+    if (imagePaths.length > 1) {
+      return reply.code(400).send({
+        success: false,
+        error: "TRELLIS.2 worker currently supports one input image per generation",
+      });
     }
 
     const seed = generateSeed();

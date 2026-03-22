@@ -118,7 +118,7 @@ export default function PhotoGenerate() {
             {step === "review" && "Review Result"}
           </CardTitle>
           <CardDescription>
-            {step === "upload" && "Add 1–4 photos of the furniture piece"}
+            {step === "upload" && "Add one clear photo of the furniture piece"}
             {step === "style" && "Select style, variant and target quality"}
             {step === "generate" && "Your asset is being created"}
             {step === "review" && "Check the result and save to your library"}

@@ -76,7 +76,7 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.5.3",
+  "version": "2.5.4",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
@@ -108,7 +108,7 @@ trellis_worker_token: ""                        # optional
 
 Save and **restart the add-on**.
 
-## Step 5 — Test Connection
+## Step 5 – Test Connection
 
 In the Wizard UI, go to **Photo → 3D**. You should see:
 
@@ -116,6 +116,16 @@ In the Wizard UI, go to **Photo → 3D**. You should see:
 - ❌ **"Worker not connected"** with error details if something is wrong — see [Troubleshooting](#troubleshooting)
 
 Use the **"Test Connection"** button to verify connectivity.
+
+## Input Reality Check
+
+TRELLIS.2's official minimal example uses a single input image:
+
+```python
+mesh = pipeline.run(image)[0]
+```
+
+So the Bjorq worker currently supports **one image per generation**. We should not promise multi-photo reconstruction in the UI until we have validated a proper multi-view workflow against the upstream TRELLIS.2 codebase.
 
 ## VirtualBox Networking
 
@@ -202,7 +212,7 @@ python worker.py
 | Generation fails / OOM | Insufficient VRAM | Close other GPU apps; 12+ GB VRAM recommended |
 | Service won't start | NSSM issue | Check `C:\ProgramData\Bjorq3DWorker\service-stderr.log` |
 | Port 8080 already in use | Worker/service already running | Use the **Stop Bjorq 3D Worker** shortcut, then start again |
-| Uninstall left files behind | Old installer build | Use v2.5.3+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
+| Uninstall left files behind | Old installer build | Use v2.5.4+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
 
 **Test from HA terminal:**
 ```bash

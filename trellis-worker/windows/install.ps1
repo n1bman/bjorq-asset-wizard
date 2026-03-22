@@ -30,7 +30,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.5.3"
+$WORKER_VERSION = "2.5.4"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -122,6 +122,28 @@ function Find-NvidiaSmi {
     return $null
 }
 
+function Find-MsvcCompiler {
+    try {
+        $cmd = Get-Command cl.exe -ErrorAction Stop
+        return $cmd.Source
+    } catch {}
+
+    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    if (Test-Path $vswhere) {
+        try {
+            $installPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+            if ($installPath) {
+                $clExe = Get-ChildItem -Path $installPath -Recurse -Filter cl.exe -ErrorAction SilentlyContinue |
+                    Where-Object { $_.FullName -like "*Hostx64\\x64\\cl.exe" } |
+                    Select-Object -First 1
+                if ($clExe) { return $clExe.FullName }
+            }
+        } catch {}
+    }
+
+    return $null
+}
+
 function Test-NvidiaGpu {
     $nvSmi = Find-NvidiaSmi
     if (-not $nvSmi) { return $null }
@@ -201,6 +223,14 @@ try {
 catch {
     Write-Fatal "Git is not installed. Download from https://git-scm.com/download/win and restart this installer."
 }
+
+# Check MSVC build tools
+Write-Status -Step "Checking Visual Studio Build Tools" -Progress 7
+$clExe = Find-MsvcCompiler
+if (-not $clExe) {
+    Write-Fatal "Visual Studio Build Tools 2022 with 'Desktop development with C++' is required for TRELLIS.2 CUDA extensions on Windows. Install from https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022 and re-run this installer."
+}
+Write-Host "  MSVC: $clExe" -ForegroundColor Green
 
 # ---------------------------------------------------------------------------
 # Step 1: Python runtime (micromamba primary, full Python fallback)

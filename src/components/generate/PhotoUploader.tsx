@@ -16,7 +16,7 @@ const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export function PhotoUploader({
   images,
   onImagesChange,
-  maxImages = 4,
+  maxImages = 1,
   disabled = false,
 }: PhotoUploaderProps) {
   const [dragOver, setDragOver] = useState(false);
@@ -72,10 +72,10 @@ export function PhotoUploader({
         >
           <Camera className="mx-auto h-10 w-10 text-muted-foreground" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Drag & drop photos of your furniture
+            Drag & drop one clear photo of your furniture
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            JPG, PNG or WebP · Up to {maxImages} images
+            JPG, PNG or WebP - single image input
           </p>
           <label className="mt-3 inline-block">
             <Button variant="outline" size="sm" asChild disabled={disabled}>
@@ -85,7 +85,7 @@ export function PhotoUploader({
               ref={inputRef}
               type="file"
               accept={ACCEPTED_TYPES.join(",")}
-              multiple
+              multiple={maxImages > 1}
               onChange={handleChange}
               className="hidden"
               disabled={disabled}
@@ -116,7 +116,7 @@ export function PhotoUploader({
               </span>
             </div>
           ))}
-          {canAddMore && (
+          {canAddMore && maxImages > 1 && (
             <label className={cn(
               "aspect-square rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-accent/20 transition-colors",
               disabled && "opacity-50 pointer-events-none",
@@ -126,7 +126,7 @@ export function PhotoUploader({
               <input
                 type="file"
                 accept={ACCEPTED_TYPES.join(",")}
-                multiple
+                multiple={maxImages > 1}
                 onChange={handleChange}
                 className="hidden"
                 disabled={disabled}
@@ -143,10 +143,10 @@ export function PhotoUploader({
           <p className="text-xs font-medium text-foreground">Tips for best results</p>
         </div>
         <ul className="text-xs text-muted-foreground space-y-1 ml-6 list-disc">
-          <li>Use <strong>2–4 photos</strong> from different angles</li>
+          <li>Use <strong>one strong hero photo</strong> with a front or 3/4 angle</li>
           <li>Keep the background <strong>clean and simple</strong></li>
           <li>Avoid strong shadows or harsh lighting</li>
-          <li>Capture the <strong>full object</strong> in each photo</li>
+          <li>Capture the <strong>full object</strong> in frame</li>
           <li>Even lighting gives the best 3D result</li>
         </ul>
       </div>
