@@ -80,9 +80,19 @@ class TrellisBridge:
             # Try trellis2 first (TRELLIS.2 repo), then trellis (older)
             pipeline_cls = None
             try:
-                from trellis2.pipelines import Trellis2ImageTo3DPipeline
+                # TRELLIS.2 does not reliably re-export pipeline classes from trellis2.pipelines.__init__
+                from trellis2.pipelines.trellis2_image_to_3d import Trellis2ImageTo3DPipeline
                 pipeline_cls = Trellis2ImageTo3DPipeline
-                logger.info("Using trellis2.pipelines.Trellis2ImageTo3DPipeline")
+                logger.info("Using trellis2.pipelines.trellis2_image_to_3d.Trellis2ImageTo3DPipeline")
+            except ModuleNotFoundError as e:
+                # Common failure on fresh Windows machines: missing CUDA extension deps
+                if getattr(e, "name", "") in ("cumesh", "flex_gemm"):
+                    raise BridgeError(
+                        "TRELLIS.2 CUDA extensions are missing (cumesh/flex_gemm). "
+                        "Re-run the installer after installing Visual Studio Build Tools 2022 "
+                        "(Desktop development with C++)."
+                    )
+                raise
             except ImportError:
                 try:
                     from trellis2.pipelines import TrellisImageTo3DPipeline
