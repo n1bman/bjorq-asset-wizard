@@ -12,7 +12,7 @@
     6. Windows Firewall rule for worker port
 .NOTES
     Run as Administrator for best results.
-    Requires: NVIDIA GPU driver installed, git, ~25 GB free disk space.
+    Requires: NVIDIA GPU driver installed, git, ~35 GB free disk space (50+ GB recommended).
 #>
 
 param(
@@ -30,7 +30,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.5.1"
+$WORKER_VERSION = "2.5.2"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -155,6 +155,20 @@ Write-Host "  Install directory: $InstallDir`n"
 New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $InstallDir "jobs") -Force | Out-Null
 "" | Set-Content $LogFile
+
+# Check disk space (warning only)
+try {
+    $driveRoot = [System.IO.Path]::GetPathRoot($InstallDir)
+    $drive = New-Object System.IO.DriveInfo($driveRoot)
+    $freeGB = [math]::Round(($drive.AvailableFreeSpace / 1GB), 1)
+    if ($freeGB -lt 35) {
+        Write-Host "  WARNING: Low free disk space on $driveRoot ($freeGB GB). Install may fail. 35 GB minimum, 50+ GB recommended." -ForegroundColor Yellow
+        Add-Content -Path $LogFile -Value "WARNING: Low free disk space on $driveRoot ($freeGB GB)"
+    }
+}
+catch {
+    # ignore
+}
 
 # Check GPU
 Write-Status -Step "Checking NVIDIA GPU" -Progress 2
@@ -370,13 +384,13 @@ if (Test-Path $pyproject) {
 }
 
 # CUDA extensions (best-effort — never fatal)
-Write-Status -Step "Building CUDA extensions (may take a while)" -Progress 65
+Write-Status -Step "Skipping optional CUDA extensions" -Progress 65
+Write-Host "  Skipping optional CUDA extensions (can be installed later if needed)." -ForegroundColor Yellow
+if ($false) {
 $extensions = @(
     @{ name = "flash-attn"; install = "flash-attn==2.7.3" },
     @{ name = "nvdiffrast"; repo = "https://github.com/NVlabs/nvdiffrast.git" },
-    @{ name = "nvdiffrec"; repo = "https://github.com/JeffreyXiang/nvdiffrec.git" },
-    @{ name = "CuMesh"; repo = "https://github.com/JeffreyXiang/CuMesh.git" },
-    @{ name = "FlexGEMM"; repo = "https://github.com/JeffreyXiang/FlexGEMM.git" }
+    @{ name = "nvdiffrec"; repo = "https://github.com/JeffreyXiang/nvdiffrec.git" }
 )
 
 $extDir = Join-Path $InstallDir "_ext_build"
@@ -401,15 +415,33 @@ foreach ($ext in $extensions) {
     }
 }
 
-# o-voxel from submodule
-$oVoxelDir = Join-Path $repoDir "extensions\o-voxel"
-if (Test-Path (Join-Path $oVoxelDir "setup.py")) {
-    Write-Host "  Building o-voxel..." -NoNewline
-    Push-Location $oVoxelDir
-    $oOk = Invoke-Tool -Exe $pipExe -Arguments @("install", ".")
-    Pop-Location
-    if ($oOk) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " SKIPPED" -ForegroundColor Yellow }
+# o-voxel (required) — installs/compiles cumesh + flex_gemm which TRELLIS.2 imports at runtime
 }
+
+Write-Status -Step "Installing o-voxel (required CUDA extensions)" -Progress 70
+$oVoxelDir = Join-Path $repoDir "o-voxel"
+$oVoxelPyproject = Join-Path $oVoxelDir "pyproject.toml"
+if (-not (Test-Path $oVoxelPyproject)) {
+    Write-Fatal "TRELLIS.2 repo is missing o-voxel (expected: $oVoxelPyproject). Re-run installer to re-clone the repo."
+}
+
+# Ensure build helpers exist (cmake/ninja). MSVC Build Tools are still required for compilation.
+Invoke-Tool -Exe $pipExe -Arguments @("install", "cmake", "ninja")
+
+Push-Location $oVoxelDir
+Invoke-Tool `
+    -Exe $pipExe `
+    -Arguments @("install", "-e", ".") `
+    -Fatal `
+    -FatalMessage "Failed to build/install o-voxel (cumesh/flex_gemm). Install Visual Studio Build Tools 2022 (Desktop development with C++) and re-run this installer. See: https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022"
+Pop-Location
+
+# Validate that required modules import
+Invoke-Tool `
+    -Exe $pythonExe `
+    -Arguments @("-c", "import cumesh, flex_gemm; print('o-voxel ok')") `
+    -Fatal `
+    -FatalMessage "o-voxel install completed but cumesh/flex_gemm are still missing. Make sure MSVC Build Tools are installed and re-run the installer."
 
 # ---------------------------------------------------------------------------
 # Step 5: Download weights
@@ -447,7 +479,8 @@ print('Done')
 
 Write-Status -Step "Copying worker files" -Progress 90
 
-$workerSrc = Split-Path $PSScriptRoot -Parent
+$appRoot = Split-Path $PSScriptRoot -Parent
+$workerSrc = Join-Path $appRoot "worker"
 $workerDest = Join-Path $InstallDir "worker"
 if (-not (Test-Path $workerDest)) { New-Item -ItemType Directory -Path $workerDest -Force | Out-Null }
 

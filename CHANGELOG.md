@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.2] — 2026-03-22
+
+### Fixed
+- **Windows installer: worker file copy** — `install.ps1` now copies `worker.py`, `jobs.py`, `trellis_bridge.py`, and `ui/` from the correct extracted path (`{app}\\worker\\...`) into `C:\\ProgramData\\Bjorq3DWorker\\worker`. This fixes installs where the worker started with `can't open file ...\\worker.py` because the ProgramData worker directory was empty.
+- **TRELLIS pipeline import** — `trellis_bridge.py` now imports the pipeline class from `trellis2.pipelines.trellis2_image_to_3d` (since `trellis2.pipelines.__init__` does not reliably re-export it) and shows a clear error when required CUDA extension modules are missing.
+- **Required CUDA extensions** — Installer now installs **o-voxel** (which builds/installs `cumesh` and `flex_gemm`) and fails fast with actionable guidance if build tools are missing, preventing opaque runtime import failures.
+- **Disk space guidance** — Updated installer warning + Windows setup docs to reflect realistic disk usage (35 GB minimum, 50+ GB recommended).
+
 ## [2.5.1] — 2026-03-20
 
 ### Fixed

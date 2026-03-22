@@ -31,12 +31,14 @@ the NVIDIA GPU for fast TRELLIS.2 inference.
 | **GPU** | NVIDIA GPU with CUDA support |
 | **NVIDIA Driver** | Latest Game Ready or Studio driver ([download](https://www.nvidia.com/Download/index.aspx)) |
 | **Git** | [Git for Windows](https://git-scm.com/download/win) |
-| **Disk space** | ~25 GB (runtime + TRELLIS.2 + model weights) |
+| **Build tools** | Visual Studio Build Tools 2022 (Desktop development with C++) |
+| **Disk space** | 35 GB minimum (50+ GB recommended) |
 | **RAM** | 16 GB minimum |
 
-> **You do NOT need to install Python, CUDA Toolkit, or conda manually.**
-> The installer handles all runtime dependencies automatically using
-> micromamba (a lightweight conda alternative).
+> **You do NOT need to install Python or conda manually.**
+> The installer uses micromamba (a lightweight conda alternative).
+> If CUDA extensions fail to build (cumesh/flex_gemm), install **Visual Studio Build Tools 2022**
+> and re-run the installer.
 
 ## Step 1 — Download the Installer
 
@@ -73,7 +75,7 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.5.1",
+  "version": "2.5.2",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
