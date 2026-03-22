@@ -53,6 +53,7 @@ Download **Bjorq3DWorkerSetup.exe** from the
    - (See [SmartScreen notes](#smartscreen-warning) below)
 3. The installer will automatically:
    - Download and set up **micromamba** with Python 3.11 (no system Python needed)
+   - Offer to auto-install **Visual Studio Build Tools 2022** when the required C++ toolchain is missing
    - Clone the TRELLIS.2 repository
    - Install PyTorch with CUDA GPU support
    - Install all Python dependencies
@@ -76,7 +77,7 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.6.0",
+  "version": "2.6.1",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
@@ -212,7 +213,7 @@ python worker.py
 | Generation fails / OOM | Insufficient VRAM | Close other GPU apps; 12+ GB VRAM recommended |
 | Service won't start | NSSM issue | Check `C:\ProgramData\Bjorq3DWorker\service-stderr.log` |
 | Port 8080 already in use | Worker/service already running | Use the **Stop Bjorq 3D Worker** shortcut, then start again |
-| Uninstall left files behind | Old installer build | Use v2.6.0+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
+| Uninstall left files behind | Old installer build | Use v2.6.1+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
 
 **Test from HA terminal:**
 ```bash
@@ -238,3 +239,4 @@ this is fine, but on shared networks consider:
 1. Setting `WORKER_TOKEN` to a random string on both worker and Wizard
 2. Using Windows Firewall to restrict source IPs
 3. Binding to a specific interface (set `WORKER_HOST=192.168.1.100`)
+

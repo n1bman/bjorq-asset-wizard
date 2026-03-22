@@ -9,7 +9,7 @@
 
 [Setup]
 AppName=Bjorq 3D Worker
-AppVersion=2.6.0
+AppVersion=2.6.1
 AppPublisher=Bjorq
 AppPublisherURL=https://github.com/n1bman/bjorq-asset-wizard
 DefaultDirName={commonpf}\Bjorq3DWorker
@@ -27,6 +27,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "service"; Description: "Run Bjorq 3D Worker in the background and start it with Windows"; Flags: unchecked
+Name: "autobuildtools"; Description: "Automatically install Visual Studio Build Tools if missing"; Flags: checkedonce
 
 [Files]
 ; Worker Python files
@@ -54,7 +55,8 @@ Name: "{group}\Uninstall Bjorq 3D Worker"; Filename: "{uninstallexe}"
 
 [Run]
 ; Run install.ps1 via 64-bit PowerShell after setup extracts files
-Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -NoService"; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: runhidden waituntilterminated
+Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -NoService -AutoInstallBuildTools"; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: runhidden waituntilterminated; Tasks: autobuildtools
+Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -NoService"; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: runhidden waituntilterminated; Check: not WizardIsTaskSelected('autobuildtools')
 Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\start-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; Description: "Launch Bjorq 3D Worker now"; Flags: nowait postinstall skipifsilent unchecked
 Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\register-service.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; Description: "Enable background service and start with Windows"; Flags: nowait postinstall skipifsilent unchecked; Tasks: service
 

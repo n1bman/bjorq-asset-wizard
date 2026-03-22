@@ -19,7 +19,8 @@ param(
     [string]$InstallDir = "C:\ProgramData\Bjorq3DWorker",
     [int]$Port = 8080,
     [switch]$NoService,
-    [switch]$SkipWeights
+    [switch]$SkipWeights,
+    [switch]$AutoInstallBuildTools
 )
 
 $ProgressPreference = "SilentlyContinue"
@@ -30,7 +31,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.6.0"
+$WORKER_VERSION = "2.6.1"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -144,6 +145,37 @@ function Find-MsvcCompiler {
     return $null
 }
 
+function Install-BuildTools {
+    param([string]$LogFilePath)
+
+    $bootstrapperUrl = "https://aka.ms/vs/17/release/vs_BuildTools.exe"
+    $bootstrapperPath = Join-Path $env:TEMP "vs_BuildTools.exe"
+    $installPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools"
+
+    Write-Host "  Downloading Visual Studio Build Tools bootstrapper..." -ForegroundColor Yellow
+    Add-Content -Path $LogFilePath -Value "Downloading Build Tools from $bootstrapperUrl"
+    Invoke-WebRequest -Uri $bootstrapperUrl -OutFile $bootstrapperPath -UseBasicParsing
+
+    $args = @(
+        "--quiet",
+        "--wait",
+        "--norestart",
+        "--nocache",
+        "--installPath", $installPath,
+        "--add", "Microsoft.VisualStudio.Workload.NativeDesktop",
+        "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621",
+        "--includeRecommended"
+    )
+
+    Write-Host "  Installing Visual Studio Build Tools 2022 (this may take a while)..." -ForegroundColor Yellow
+    Add-Content -Path $LogFilePath -Value "Starting Build Tools install to $installPath"
+    $ok = Invoke-Tool -Exe $bootstrapperPath -Arguments $args
+
+    Remove-Item $bootstrapperPath -Force -ErrorAction SilentlyContinue
+    return $ok
+}
+
 function Test-NvidiaGpu {
     $nvSmi = Find-NvidiaSmi
     if (-not $nvSmi) { return $null }
@@ -228,7 +260,24 @@ catch {
 Write-Status -Step "Checking Visual Studio Build Tools" -Progress 7
 $clExe = Find-MsvcCompiler
 if (-not $clExe) {
-    Write-Fatal "Visual Studio Build Tools 2022 with 'Desktop development with C++' is required for TRELLIS.2 CUDA extensions on Windows. Install from https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022 and re-run this installer."
+    if ($AutoInstallBuildTools) {
+        Write-Status -Step "Installing Visual Studio Build Tools" -Progress 8
+        $buildToolsOk = $false
+        try {
+            $buildToolsOk = Install-BuildTools -LogFilePath $LogFile
+        }
+        catch {
+            Add-Content -Path $LogFile -Value "Build Tools install exception: $_"
+        }
+
+        $clExe = Find-MsvcCompiler
+        if (-not $buildToolsOk -or -not $clExe) {
+            Write-Fatal "Automatic Build Tools installation did not complete successfully. Open https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022, install 'Desktop development with C++', then re-run this installer."
+        }
+    }
+    else {
+        Write-Fatal "Visual Studio Build Tools 2022 with 'Desktop development with C++' is required for TRELLIS.2 CUDA extensions on Windows. Re-run the installer with the automatic Build Tools option enabled, or install it manually from https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022."
+    }
 }
 Write-Host "  MSVC: $clExe" -ForegroundColor Green
 
