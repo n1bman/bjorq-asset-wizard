@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.9.3] — 2026-03-23
+## [2.9.4] — 2026-03-23
 
 ### Fixed
 - Added proper support for bundled assets with `source: "imported"`, preventing the Browser catalog view from crashing when starter-library assets are rendered.
