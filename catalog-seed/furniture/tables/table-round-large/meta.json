@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "table-round-large",
+  "name": "Table Round Large",
+  "category": "furniture",
+  "subcategory": "tables",
+  "style": "imported-pack",
+  "model": "/furniture/tables/table-round-large/model.glb",
+  "thumbnail": "/furniture/tables/table-round-large/thumb.webp",
+  "dimensions": {
+    "width": 3.713,
+    "depth": 1.941,
+    "height": 1.121
+  },
+  "boundingBox": {
+    "min": [
+      -1.856684,
+      0.005098,
+      -0.970493
+    ],
+    "max": [
+      1.856683,
+      1.126293,
+      0.970495
+    ]
+  },
+  "center": [
+    0,
+    0.566,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 592,
+    "materials": 1,
+    "fileSizeKB": 22.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

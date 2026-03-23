@@ -50,6 +50,9 @@ COPY --from=builder /app/dist ./dist
 # Copy built frontend into public/ for static serving
 COPY --from=frontend /app/dist ./public
 
+# Copy bundled starter catalog
+COPY catalog-seed/ ./catalog-seed/
+
 # Install production deps only (sharp bundles its own libvips)
 COPY server/package.json server/package-lock.json* ./
 RUN npm ci --omit=dev || npm install --omit=dev
@@ -73,6 +76,7 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     STORAGE_PATH=/data/storage \
     CATALOG_PATH=/data/catalog \
+    BUNDLED_CATALOG_PATH=/app/catalog-seed \
     LOG_LEVEL=info \
     CORS_ORIGINS=*
 

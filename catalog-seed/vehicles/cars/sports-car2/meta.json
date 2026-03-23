@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "sports-car2",
+  "name": "Sports Car2",
+  "category": "vehicles",
+  "subcategory": "cars",
+  "style": "imported-pack",
+  "model": "/vehicles/cars/sports-car2/model.glb",
+  "thumbnail": "/vehicles/cars/sports-car2/thumb.webp",
+  "dimensions": {
+    "width": 1.872,
+    "depth": 3.927,
+    "height": 1.203
+  },
+  "boundingBox": {
+    "min": [
+      -0.935796,
+      -0.015738,
+      -2.028564
+    ],
+    "max": [
+      0.935795,
+      1.187317,
+      1.897969
+    ]
+  },
+  "center": [
+    0,
+    0.586,
+    -0.065
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 3148,
+    "materials": 1,
+    "fileSizeKB": 171
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

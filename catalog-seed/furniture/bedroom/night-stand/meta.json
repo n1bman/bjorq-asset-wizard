@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "night-stand",
+  "name": "Night Stand",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/night-stand/model.glb",
+  "thumbnail": "/furniture/bedroom/night-stand/thumb.webp",
+  "dimensions": {
+    "width": 0.588,
+    "depth": 0.507,
+    "height": 0.512
+  },
+  "boundingBox": {
+    "min": [
+      -0.293855,
+      -0.00234,
+      -0.253326
+    ],
+    "max": [
+      0.293855,
+      0.509399,
+      0.253326
+    ]
+  },
+  "center": [
+    0,
+    0.254,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2016,
+    "materials": 1,
+    "fileSizeKB": 93.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

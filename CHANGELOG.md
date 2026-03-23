@@ -1,5 +1,13 @@
-﻿# Changelog
+# Changelog
 
+## [2.8.1] — 2026-03-23
+
+### Fixed
+- Fixed the frontend CI/build pipeline by loading `lovable-tagger` lazily in development only and removing the UTF-8 BOM from `package.json`, which was breaking Vite/PostCSS in GitHub Actions.
+
+### Added
+- Bundled a starter 3D catalog directly into Wizard so the app can seed ready-to-use GLB assets with thumbnails and clean categories on first boot.
+- Added automatic first-boot catalog seeding for both the standalone Docker image and the Home Assistant add-on image.
 ## [2.8.0] — 2026-03-23
 
 ### Changed

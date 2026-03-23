@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "table-round-small2",
+  "name": "Table Round Small2",
+  "category": "furniture",
+  "subcategory": "tables",
+  "style": "imported-pack",
+  "model": "/furniture/tables/table-round-small2/model.glb",
+  "thumbnail": "/furniture/tables/table-round-small2/thumb.webp",
+  "dimensions": {
+    "width": 1.941,
+    "depth": 1.941,
+    "height": 1.208
+  },
+  "boundingBox": {
+    "min": [
+      -0.970494,
+      -0.063149,
+      -0.970494
+    ],
+    "max": [
+      0.970494,
+      1.144636,
+      0.970494
+    ]
+  },
+  "center": [
+    0,
+    0.541,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 744,
+    "materials": 1,
+    "fileSizeKB": 24.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

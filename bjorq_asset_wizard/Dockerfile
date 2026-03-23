@@ -39,6 +39,9 @@ RUN npx tsc
 # Move built frontend to public/ for static serving
 RUN mv frontend/dist public
 
+# Copy bundled starter catalog
+COPY catalog-seed/ /app/catalog-seed/
+
 # Copy HA entry point
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
@@ -49,7 +52,8 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     CORS_ORIGINS=* \
     STORAGE_PATH=/data/storage \
-    CATALOG_PATH=/data/catalog
+    CATALOG_PATH=/data/catalog \
+    BUNDLED_CATALOG_PATH=/app/catalog-seed
 
 EXPOSE 3500
 

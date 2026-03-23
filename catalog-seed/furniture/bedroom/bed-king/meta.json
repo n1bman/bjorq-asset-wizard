@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bed-king",
+  "name": "Bed King",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/bed-king/model.glb",
+  "thumbnail": "/furniture/bedroom/bed-king/thumb.webp",
+  "dimensions": {
+    "width": 3.064,
+    "depth": 3.953,
+    "height": 1.215
+  },
+  "boundingBox": {
+    "min": [
+      -1.532064,
+      0,
+      -1.976422
+    ],
+    "max": [
+      1.532064,
+      1.214582,
+      1.976422
+    ]
+  },
+  "center": [
+    0,
+    0.607,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 676,
+    "materials": 1,
+    "fileSizeKB": 24.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

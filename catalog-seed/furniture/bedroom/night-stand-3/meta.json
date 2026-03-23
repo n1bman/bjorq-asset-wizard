@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "night-stand-3",
+  "name": "Night Stand 3",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/night-stand-3/model.glb",
+  "thumbnail": "/furniture/bedroom/night-stand-3/thumb.webp",
+  "dimensions": {
+    "width": 0.952,
+    "depth": 0.952,
+    "height": 0.827
+  },
+  "boundingBox": {
+    "min": [
+      -0.476115,
+      0.001661,
+      -0.476115
+    ],
+    "max": [
+      0.476115,
+      0.828713,
+      0.476115
+    ]
+  },
+  "center": [
+    0,
+    0.415,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 272,
+    "materials": 1,
+    "fileSizeKB": 13.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

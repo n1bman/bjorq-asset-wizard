@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-desk",
+  "name": "Light Desk",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-desk/model.glb",
+  "thumbnail": "/lighting/fixtures/light-desk/thumb.webp",
+  "dimensions": {
+    "width": 0.252,
+    "depth": 0.453,
+    "height": 0.573
+  },
+  "boundingBox": {
+    "min": [
+      -0.125765,
+      0.000155,
+      -0.125765
+    ],
+    "max": [
+      0.125765,
+      0.573358,
+      0.32741
+    ]
+  },
+  "center": [
+    0,
+    0.287,
+    0.101
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 356,
+    "materials": 1,
+    "fileSizeKB": 12.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

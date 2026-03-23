@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "trashcan-small1",
+  "name": "Trashcan Small1",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/trashcan-small1/model.glb",
+  "thumbnail": "/furniture/storage/trashcan-small1/thumb.webp",
+  "dimensions": {
+    "width": 0.503,
+    "depth": 0.306,
+    "height": 0.712
+  },
+  "boundingBox": {
+    "min": [
+      -0.251514,
+      -0.00686,
+      -0.142222
+    ],
+    "max": [
+      0.251514,
+      0.705583,
+      0.163992
+    ]
+  },
+  "center": [
+    0,
+    0.349,
+    0.011
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 260,
+    "materials": 1,
+    "fileSizeKB": 11.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

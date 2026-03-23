@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-toilet-paper-pile",
+  "name": "Bathroom Toilet Paper Pile",
+  "category": "decor",
+  "subcategory": "accessories",
+  "style": "imported-pack",
+  "model": "/decor/accessories/bathroom-toilet-paper-pile/model.glb",
+  "thumbnail": "/decor/accessories/bathroom-toilet-paper-pile/thumb.webp",
+  "dimensions": {
+    "width": 0.334,
+    "depth": 0.35,
+    "height": 0.375
+  },
+  "boundingBox": {
+    "min": [
+      -0.167239,
+      0.002004,
+      -0.174906
+    ],
+    "max": [
+      0.167239,
+      0.376712,
+      0.174906
+    ]
+  },
+  "center": [
+    0,
+    0.189,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 384,
+    "materials": 1,
+    "fileSizeKB": 13.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

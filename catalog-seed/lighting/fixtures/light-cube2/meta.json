@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-cube2",
+  "name": "Light Cube2",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-cube2/model.glb",
+  "thumbnail": "/lighting/fixtures/light-cube2/thumb.webp",
+  "dimensions": {
+    "width": 0.554,
+    "depth": 0.641,
+    "height": 0.922
+  },
+  "boundingBox": {
+    "min": [
+      -0.277113,
+      -0.920774,
+      -0.320361
+    ],
+    "max": [
+      0.277113,
+      0.001518,
+      0.320361
+    ]
+  },
+  "center": [
+    0,
+    -0.46,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 444,
+    "materials": 1,
+    "fileSizeKB": 23.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

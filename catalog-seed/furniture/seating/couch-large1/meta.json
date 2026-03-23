@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "couch-large1",
+  "name": "Couch Large1",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/couch-large1/model.glb",
+  "thumbnail": "/furniture/seating/couch-large1/thumb.webp",
+  "dimensions": {
+    "width": 5.475,
+    "depth": 1.992,
+    "height": 2.106
+  },
+  "boundingBox": {
+    "min": [
+      -2.737745,
+      0,
+      -0.675152
+    ],
+    "max": [
+      2.737747,
+      2.10644,
+      1.317136
+    ]
+  },
+  "center": [
+    0,
+    1.053,
+    0.321
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 1460,
+    "materials": 1,
+    "fileSizeKB": 29.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

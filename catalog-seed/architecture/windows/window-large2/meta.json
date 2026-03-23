@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "window-large2",
+  "name": "Window Large2",
+  "category": "architecture",
+  "subcategory": "windows",
+  "style": "imported-pack",
+  "model": "/architecture/windows/window-large2/model.glb",
+  "thumbnail": "/architecture/windows/window-large2/thumb.webp",
+  "dimensions": {
+    "width": 1.832,
+    "depth": 0.141,
+    "height": 1.698
+  },
+  "boundingBox": {
+    "min": [
+      -0.916215,
+      0,
+      -0.070552
+    ],
+    "max": [
+      0.916215,
+      1.698453,
+      0.070552
+    ]
+  },
+  "center": [
+    0,
+    0.849,
+    0
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 372,
+    "materials": 1,
+    "fileSizeKB": 17.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

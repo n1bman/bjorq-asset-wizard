@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-towel",
+  "name": "Bathroom Towel",
+  "category": "decor",
+  "subcategory": "accessories",
+  "style": "imported-pack",
+  "model": "/decor/accessories/bathroom-towel/model.glb",
+  "thumbnail": "/decor/accessories/bathroom-towel/thumb.webp",
+  "dimensions": {
+    "width": 1.185,
+    "depth": 0.161,
+    "height": 0.654
+  },
+  "boundingBox": {
+    "min": [
+      -0.560881,
+      -0.621397,
+      -0.126615
+    ],
+    "max": [
+      0.623665,
+      0.032424,
+      0.034501
+    ]
+  },
+  "center": [
+    0.031,
+    -0.294,
+    -0.046
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 192,
+    "materials": 1,
+    "fileSizeKB": 10.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

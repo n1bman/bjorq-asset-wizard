@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-3drawers",
+  "name": "Kitchen 3Drawers",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-3drawers/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-3drawers/thumb.webp",
+  "dimensions": {
+    "width": 1.011,
+    "depth": 1.12,
+    "height": 1.625
+  },
+  "boundingBox": {
+    "min": [
+      -0.505406,
+      0,
+      -0.505406
+    ],
+    "max": [
+      0.505406,
+      1.624538,
+      0.615021
+    ]
+  },
+  "center": [
+    0,
+    0.812,
+    0.055
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 212,
+    "materials": 1,
+    "fileSizeKB": 11.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

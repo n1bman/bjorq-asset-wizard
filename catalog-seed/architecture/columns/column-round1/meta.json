@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "column-round1",
+  "name": "Column Round1",
+  "category": "architecture",
+  "subcategory": "columns",
+  "style": "imported-pack",
+  "model": "/architecture/columns/column-round1/model.glb",
+  "thumbnail": "/architecture/columns/column-round1/thumb.webp",
+  "dimensions": {
+    "width": 1.4,
+    "depth": 1.472,
+    "height": 1.773
+  },
+  "boundingBox": {
+    "min": [
+      -0.700021,
+      0,
+      -0.736042
+    ],
+    "max": [
+      0.700014,
+      1.772752,
+      0.736042
+    ]
+  },
+  "center": [
+    0,
+    0.886,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 332,
+    "materials": 1,
+    "fileSizeKB": 10.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

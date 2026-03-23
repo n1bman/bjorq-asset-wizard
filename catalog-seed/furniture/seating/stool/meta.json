@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "stool",
+  "name": "Stool",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/stool/model.glb",
+  "thumbnail": "/furniture/seating/stool/thumb.webp",
+  "dimensions": {
+    "width": 0.507,
+    "depth": 0.533,
+    "height": 0.577
+  },
+  "boundingBox": {
+    "min": [
+      -0.253624,
+      -0.006554,
+      -0.266677
+    ],
+    "max": [
+      0.253625,
+      0.57026,
+      0.266677
+    ]
+  },
+  "center": [
+    0,
+    0.282,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 524,
+    "materials": 1,
+    "fileSizeKB": 28.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

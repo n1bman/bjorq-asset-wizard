@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "fireplace",
+  "name": "Fireplace",
+  "category": "architecture",
+  "subcategory": "features",
+  "style": "imported-pack",
+  "model": "/architecture/features/fireplace/model.glb",
+  "thumbnail": "/architecture/features/fireplace/thumb.webp",
+  "dimensions": {
+    "width": 3.25,
+    "depth": 1.158,
+    "height": 2.561
+  },
+  "boundingBox": {
+    "min": [
+      -1.624901,
+      0,
+      -0.492432
+    ],
+    "max": [
+      1.624906,
+      2.561197,
+      0.665414
+    ]
+  },
+  "center": [
+    0,
+    1.281,
+    0.086
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 360,
+    "materials": 1,
+    "fileSizeKB": 17
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

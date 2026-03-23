@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "suv",
+  "name": "SUV",
+  "category": "vehicles",
+  "subcategory": "cars",
+  "style": "imported-pack",
+  "model": "/vehicles/cars/suv/model.glb",
+  "thumbnail": "/vehicles/cars/suv/thumb.webp",
+  "dimensions": {
+    "width": 2.111,
+    "depth": 4.209,
+    "height": 1.528
+  },
+  "boundingBox": {
+    "min": [
+      -1.055551,
+      -0.01809,
+      -2.104891
+    ],
+    "max": [
+      1.055551,
+      1.509761,
+      2.104458
+    ]
+  },
+  "center": [
+    0,
+    0.746,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 3294,
+    "materials": 1,
+    "fileSizeKB": 177.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

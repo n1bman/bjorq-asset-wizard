@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-mirror2",
+  "name": "Bathroom Mirror2",
+  "category": "decor",
+  "subcategory": "accessories",
+  "style": "imported-pack",
+  "model": "/decor/accessories/bathroom-mirror2/model.glb",
+  "thumbnail": "/decor/accessories/bathroom-mirror2/thumb.webp",
+  "dimensions": {
+    "width": 0.537,
+    "depth": 0.038,
+    "height": 0.774
+  },
+  "boundingBox": {
+    "min": [
+      -0.268581,
+      -0.387197,
+      -0.029548
+    ],
+    "max": [
+      0.268581,
+      0.387197,
+      0.008199
+    ]
+  },
+  "center": [
+    0,
+    0,
+    -0.011
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 92,
+    "materials": 1,
+    "fileSizeKB": 5.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

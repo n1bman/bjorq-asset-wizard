@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "door-double",
+  "name": "Door Double",
+  "category": "architecture",
+  "subcategory": "doors",
+  "style": "imported-pack",
+  "model": "/architecture/doors/door-double/model.glb",
+  "thumbnail": "/architecture/doors/door-double/thumb.webp",
+  "dimensions": {
+    "width": 3.483,
+    "depth": 0.43,
+    "height": 4.188
+  },
+  "boundingBox": {
+    "min": [
+      -1.742882,
+      0.004165,
+      -0.214363
+    ],
+    "max": [
+      1.739726,
+      4.192001,
+      0.215433
+    ]
+  },
+  "center": [
+    -0.002,
+    2.098,
+    0.001
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 1720,
+    "materials": 1,
+    "fileSizeKB": 61.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

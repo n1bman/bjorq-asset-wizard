@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-sink",
+  "name": "Bathroom Sink",
+  "category": "furniture",
+  "subcategory": "bathroom",
+  "style": "imported-pack",
+  "model": "/furniture/bathroom/bathroom-sink/model.glb",
+  "thumbnail": "/furniture/bathroom/bathroom-sink/thumb.webp",
+  "dimensions": {
+    "width": 1.389,
+    "depth": 0.815,
+    "height": 1.447
+  },
+  "boundingBox": {
+    "min": [
+      -0.69475,
+      0.15051,
+      -0.303632
+    ],
+    "max": [
+      0.69475,
+      1.59734,
+      0.511631
+    ]
+  },
+  "center": [
+    0,
+    0.874,
+    0.104
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 350,
+    "materials": 1,
+    "fileSizeKB": 12.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

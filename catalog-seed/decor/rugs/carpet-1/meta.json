@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "carpet-1",
+  "name": "Carpet 1",
+  "category": "decor",
+  "subcategory": "rugs",
+  "style": "imported-pack",
+  "model": "/decor/rugs/carpet-1/model.glb",
+  "thumbnail": "/decor/rugs/carpet-1/thumb.webp",
+  "dimensions": {
+    "width": 2.131,
+    "depth": 3.093,
+    "height": 0.037
+  },
+  "boundingBox": {
+    "min": [
+      -1.058195,
+      -0.000867,
+      -1.55597
+    ],
+    "max": [
+      1.073036,
+      0.035791,
+      1.53724
+    ]
+  },
+  "center": [
+    0.007,
+    0.017,
+    -0.009
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 108,
+    "materials": 1,
+    "fileSizeKB": 5.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

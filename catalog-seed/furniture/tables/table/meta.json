@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "table",
+  "name": "Table",
+  "category": "furniture",
+  "subcategory": "tables",
+  "style": "imported-pack",
+  "model": "/furniture/tables/table/model.glb",
+  "thumbnail": "/furniture/tables/table/thumb.webp",
+  "dimensions": {
+    "width": 1.418,
+    "depth": 2.78,
+    "height": 0.824
+  },
+  "boundingBox": {
+    "min": [
+      -0.709151,
+      0.000858,
+      -1.390113
+    ],
+    "max": [
+      0.709151,
+      0.825287,
+      1.390113
+    ]
+  },
+  "center": [
+    0,
+    0.413,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 1108,
+    "materials": 1,
+    "fileSizeKB": 45
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

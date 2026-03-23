@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "trashcan-cylindric",
+  "name": "Trashcan Cylindric",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/trashcan-cylindric/model.glb",
+  "thumbnail": "/furniture/storage/trashcan-cylindric/thumb.webp",
+  "dimensions": {
+    "width": 0.755,
+    "depth": 0.755,
+    "height": 1.074
+  },
+  "boundingBox": {
+    "min": [
+      -0.37735,
+      0,
+      -0.37735
+    ],
+    "max": [
+      0.37735,
+      1.074088,
+      0.37735
+    ]
+  },
+  "center": [
+    0,
+    0.537,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 380,
+    "materials": 1,
+    "fileSizeKB": 12.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

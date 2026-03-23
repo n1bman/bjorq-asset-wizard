@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "shelf-small1",
+  "name": "Shelf Small1",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/shelf-small1/model.glb",
+  "thumbnail": "/furniture/storage/shelf-small1/thumb.webp",
+  "dimensions": {
+    "width": 1.944,
+    "depth": 0.55,
+    "height": 0.577
+  },
+  "boundingBox": {
+    "min": [
+      -0.972164,
+      -0.021108,
+      -0.275193
+    ],
+    "max": [
+      0.972164,
+      0.55627,
+      0.275193
+    ]
+  },
+  "center": [
+    0,
+    0.268,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 132,
+    "materials": 1,
+    "fileSizeKB": 7.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

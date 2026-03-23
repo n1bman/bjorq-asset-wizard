@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "drawer-2",
+  "name": "Drawer 2",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/drawer-2/model.glb",
+  "thumbnail": "/furniture/storage/drawer-2/thumb.webp",
+  "dimensions": {
+    "width": 4.035,
+    "depth": 1.119,
+    "height": 1.305
+  },
+  "boundingBox": {
+    "min": [
+      -2.0176,
+      -0.009416,
+      -0.558588
+    ],
+    "max": [
+      2.017599,
+      1.295521,
+      0.560019
+    ]
+  },
+  "center": [
+    0,
+    0.643,
+    0.001
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 436,
+    "materials": 1,
+    "fileSizeKB": 14.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

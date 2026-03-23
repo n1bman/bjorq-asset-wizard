@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "chair-3",
+  "name": "Chair 3",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/chair-3/model.glb",
+  "thumbnail": "/furniture/seating/chair-3/thumb.webp",
+  "dimensions": {
+    "width": 0.762,
+    "depth": 0.838,
+    "height": 1.694
+  },
+  "boundingBox": {
+    "min": [
+      -0.380861,
+      -0.006554,
+      -0.456647
+    ],
+    "max": [
+      0.380861,
+      1.687484,
+      0.380861
+    ]
+  },
+  "center": [
+    0,
+    0.84,
+    -0.038
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 428,
+    "materials": 1,
+    "fileSizeKB": 20.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

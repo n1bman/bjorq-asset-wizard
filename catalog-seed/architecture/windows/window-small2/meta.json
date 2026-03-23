@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "window-small2",
+  "name": "Window Small2",
+  "category": "architecture",
+  "subcategory": "windows",
+  "style": "imported-pack",
+  "model": "/architecture/windows/window-small2/model.glb",
+  "thumbnail": "/architecture/windows/window-small2/thumb.webp",
+  "dimensions": {
+    "width": 0.928,
+    "depth": 0.141,
+    "height": 1.238
+  },
+  "boundingBox": {
+    "min": [
+      -0.464099,
+      0,
+      -0.070552
+    ],
+    "max": [
+      0.4641,
+      1.237951,
+      0.070552
+    ]
+  },
+  "center": [
+    0,
+    0.619,
+    0
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 132,
+    "materials": 1,
+    "fileSizeKB": 7.9
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

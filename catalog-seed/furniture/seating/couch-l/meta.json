@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "couch-l",
+  "name": "Couch L",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/couch-l/model.glb",
+  "thumbnail": "/furniture/seating/couch-l/thumb.webp",
+  "dimensions": {
+    "width": 5.614,
+    "depth": 4.327,
+    "height": 2.261
+  },
+  "boundingBox": {
+    "min": [
+      -3.299285,
+      -0.015454,
+      -1.380211
+    ],
+    "max": [
+      2.315124,
+      2.245869,
+      2.946761
+    ]
+  },
+  "center": [
+    -0.492,
+    1.115,
+    0.783
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 1428,
+    "materials": 1,
+    "fileSizeKB": 29.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

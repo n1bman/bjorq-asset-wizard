@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-bathtub",
+  "name": "Bathroom Bathtub",
+  "category": "furniture",
+  "subcategory": "bathroom",
+  "style": "imported-pack",
+  "model": "/furniture/bathroom/bathroom-bathtub/model.glb",
+  "thumbnail": "/furniture/bathroom/bathroom-bathtub/thumb.webp",
+  "dimensions": {
+    "width": 1.608,
+    "depth": 3.9,
+    "height": 1.26
+  },
+  "boundingBox": {
+    "min": [
+      -0.803755,
+      -0.007505,
+      -2.123951
+    ],
+    "max": [
+      0.803755,
+      1.252702,
+      1.775785
+    ]
+  },
+  "center": [
+    0,
+    0.623,
+    -0.174
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 248,
+    "materials": 1,
+    "fileSizeKB": 10.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

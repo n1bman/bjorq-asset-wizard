@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-cabinet2",
+  "name": "Kitchen Cabinet2",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-cabinet2/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-cabinet2/thumb.webp",
+  "dimensions": {
+    "width": 1.011,
+    "depth": 1.071,
+    "height": 1.567
+  },
+  "boundingBox": {
+    "min": [
+      -0.505406,
+      0.006807,
+      -0.505406
+    ],
+    "max": [
+      0.505406,
+      1.573929,
+      0.566059
+    ]
+  },
+  "center": [
+    0,
+    0.79,
+    0.03
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 68,
+    "materials": 1,
+    "fileSizeKB": 5.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bed-twin",
+  "name": "Bed Twin",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/bed-twin/model.glb",
+  "thumbnail": "/furniture/bedroom/bed-twin/thumb.webp",
+  "dimensions": {
+    "width": 2.061,
+    "depth": 4.259,
+    "height": 1.558
+  },
+  "boundingBox": {
+    "min": [
+      -1.029211,
+      -0.011821,
+      -1.529476
+    ],
+    "max": [
+      1.031675,
+      1.54571,
+      2.729057
+    ]
+  },
+  "center": [
+    0.001,
+    0.767,
+    0.6
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 3684,
+    "materials": 1,
+    "fileSizeKB": 192.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

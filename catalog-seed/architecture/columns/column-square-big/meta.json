@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "column-square-big",
+  "name": "Column Square Big",
+  "category": "architecture",
+  "subcategory": "columns",
+  "style": "imported-pack",
+  "model": "/architecture/columns/column-square-big/model.glb",
+  "thumbnail": "/architecture/columns/column-square-big/thumb.webp",
+  "dimensions": {
+    "width": 0.907,
+    "depth": 0.907,
+    "height": 4.159
+  },
+  "boundingBox": {
+    "min": [
+      -0.453634,
+      0,
+      -0.453634
+    ],
+    "max": [
+      0.453635,
+      4.158595,
+      0.453634
+    ]
+  },
+  "center": [
+    0,
+    2.079,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 180,
+    "materials": 1,
+    "fileSizeKB": 9.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

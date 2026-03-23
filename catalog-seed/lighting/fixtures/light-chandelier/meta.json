@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-chandelier",
+  "name": "Light Chandelier",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-chandelier/model.glb",
+  "thumbnail": "/lighting/fixtures/light-chandelier/thumb.webp",
+  "dimensions": {
+    "width": 0.813,
+    "depth": 0.813,
+    "height": 0.519
+  },
+  "boundingBox": {
+    "min": [
+      -0.406552,
+      -0.518816,
+      -0.406554
+    ],
+    "max": [
+      0.406555,
+      0,
+      0.406552
+    ]
+  },
+  "center": [
+    0,
+    -0.259,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 972,
+    "materials": 1,
+    "fileSizeKB": 24.5
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

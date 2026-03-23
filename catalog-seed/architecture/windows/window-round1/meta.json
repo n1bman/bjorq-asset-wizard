@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "window-round1",
+  "name": "Window Round1",
+  "category": "architecture",
+  "subcategory": "windows",
+  "style": "imported-pack",
+  "model": "/architecture/windows/window-round1/model.glb",
+  "thumbnail": "/architecture/windows/window-round1/thumb.webp",
+  "dimensions": {
+    "width": 0.906,
+    "depth": 0.113,
+    "height": 1.55
+  },
+  "boundingBox": {
+    "min": [
+      -0.453196,
+      0,
+      -0.056279
+    ],
+    "max": [
+      0.453196,
+      1.549801,
+      0.056279
+    ]
+  },
+  "center": [
+    0,
+    0.775,
+    0
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 122,
+    "materials": 1,
+    "fileSizeKB": 6.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-oven",
+  "name": "Kitchen Oven",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-oven/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-oven/thumb.webp",
+  "dimensions": {
+    "width": 1.011,
+    "depth": 1.12,
+    "height": 1.617
+  },
+  "boundingBox": {
+    "min": [
+      -0.505406,
+      0,
+      -0.505406
+    ],
+    "max": [
+      0.505406,
+      1.617188,
+      0.615021
+    ]
+  },
+  "center": [
+    0,
+    0.809,
+    0.055
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 524,
+    "materials": 1,
+    "fileSizeKB": 28.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

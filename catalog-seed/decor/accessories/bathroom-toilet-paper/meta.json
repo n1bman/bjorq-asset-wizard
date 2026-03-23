@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-toilet-paper",
+  "name": "Bathroom Toilet Paper",
+  "category": "decor",
+  "subcategory": "accessories",
+  "style": "imported-pack",
+  "model": "/decor/accessories/bathroom-toilet-paper/model.glb",
+  "thumbnail": "/decor/accessories/bathroom-toilet-paper/thumb.webp",
+  "dimensions": {
+    "width": 0.3,
+    "depth": 0.175,
+    "height": 0.344
+  },
+  "boundingBox": {
+    "min": [
+      -0.165776,
+      -0.098269,
+      -0.087438
+    ],
+    "max": [
+      0.134165,
+      0.246138,
+      0.087438
+    ]
+  },
+  "center": [
+    -0.016,
+    0.074,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 276,
+    "materials": 1,
+    "fileSizeKB": 12.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

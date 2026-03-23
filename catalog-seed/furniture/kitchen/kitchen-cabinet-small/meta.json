@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-cabinet-small",
+  "name": "Kitchen Cabinet Small",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-cabinet-small/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-cabinet-small/thumb.webp",
+  "dimensions": {
+    "width": 0.861,
+    "depth": 1.071,
+    "height": 0.947
+  },
+  "boundingBox": {
+    "min": [
+      -0.430616,
+      0,
+      -0.505406
+    ],
+    "max": [
+      0.430618,
+      0.947444,
+      0.566059
+    ]
+  },
+  "center": [
+    0,
+    0.474,
+    0.03
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 68,
+    "materials": 1,
+    "fileSizeKB": 5.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

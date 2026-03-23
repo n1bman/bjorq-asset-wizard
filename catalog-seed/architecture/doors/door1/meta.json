@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "door1",
+  "name": "Door1",
+  "category": "architecture",
+  "subcategory": "doors",
+  "style": "imported-pack",
+  "model": "/architecture/doors/door1/model.glb",
+  "thumbnail": "/architecture/doors/door1/thumb.webp",
+  "dimensions": {
+    "width": 1.594,
+    "depth": 0.32,
+    "height": 3.081
+  },
+  "boundingBox": {
+    "min": [
+      -0.811693,
+      0.015182,
+      -0.153995
+    ],
+    "max": [
+      0.782608,
+      3.096575,
+      0.165937
+    ]
+  },
+  "center": [
+    -0.015,
+    1.556,
+    0.006
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2216,
+    "materials": 1,
+    "fileSizeKB": 82.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

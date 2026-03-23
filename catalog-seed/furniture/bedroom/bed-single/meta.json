@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bed-single",
+  "name": "Bed Single",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/bed-single/model.glb",
+  "thumbnail": "/furniture/bedroom/bed-single/thumb.webp",
+  "dimensions": {
+    "width": 1.979,
+    "depth": 3.94,
+    "height": 1.355
+  },
+  "boundingBox": {
+    "min": [
+      -0.966569,
+      0,
+      -1.97
+    ],
+    "max": [
+      1.012576,
+      1.354575,
+      1.97
+    ]
+  },
+  "center": [
+    0.023,
+    0.677,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 536,
+    "materials": 1,
+    "fileSizeKB": 21
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

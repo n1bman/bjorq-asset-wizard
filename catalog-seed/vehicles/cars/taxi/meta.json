@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "taxi",
+  "name": "Taxi",
+  "category": "vehicles",
+  "subcategory": "cars",
+  "style": "imported-pack",
+  "model": "/vehicles/cars/taxi/model.glb",
+  "thumbnail": "/vehicles/cars/taxi/thumb.webp",
+  "dimensions": {
+    "width": 1.807,
+    "depth": 4.221,
+    "height": 1.31
+  },
+  "boundingBox": {
+    "min": [
+      -0.904123,
+      -0.010888,
+      -2.006755
+    ],
+    "max": [
+      0.903237,
+      1.299577,
+      2.213962
+    ]
+  },
+  "center": [
+    0,
+    0.644,
+    0.104
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 3278,
+    "materials": 1,
+    "fileSizeKB": 176.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

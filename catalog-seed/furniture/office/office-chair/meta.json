@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "office-chair",
+  "name": "Office Chair",
+  "category": "furniture",
+  "subcategory": "office",
+  "style": "imported-pack",
+  "model": "/furniture/office/office-chair/model.glb",
+  "thumbnail": "/furniture/office/office-chair/thumb.webp",
+  "dimensions": {
+    "width": 0.722,
+    "depth": 0.807,
+    "height": 1.128
+  },
+  "boundingBox": {
+    "min": [
+      -0.361205,
+      0.000091,
+      -0.441877
+    ],
+    "max": [
+      0.360465,
+      1.127653,
+      0.365328
+    ]
+  },
+  "center": [
+    0,
+    0.564,
+    -0.038
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2116,
+    "materials": 1,
+    "fileSizeKB": 107.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

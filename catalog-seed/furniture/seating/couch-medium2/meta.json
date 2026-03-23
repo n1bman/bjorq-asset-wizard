@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "couch-medium2",
+  "name": "Couch Medium2",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/couch-medium2/model.glb",
+  "thumbnail": "/furniture/seating/couch-medium2/thumb.webp",
+  "dimensions": {
+    "width": 4.519,
+    "depth": 1.999,
+    "height": 1.959
+  },
+  "boundingBox": {
+    "min": [
+      -2.259331,
+      0,
+      -0.945615
+    ],
+    "max": [
+      2.259331,
+      1.959343,
+      1.053863
+    ]
+  },
+  "center": [
+    0,
+    0.98,
+    0.054
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 924,
+    "materials": 1,
+    "fileSizeKB": 22.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

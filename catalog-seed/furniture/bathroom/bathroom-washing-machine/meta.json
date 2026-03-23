@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-washing-machine",
+  "name": "Bathroom Washing Machine",
+  "category": "furniture",
+  "subcategory": "bathroom",
+  "style": "imported-pack",
+  "model": "/furniture/bathroom/bathroom-washing-machine/model.glb",
+  "thumbnail": "/furniture/bathroom/bathroom-washing-machine/thumb.webp",
+  "dimensions": {
+    "width": 1.292,
+    "depth": 1.324,
+    "height": 1.47
+  },
+  "boundingBox": {
+    "min": [
+      -0.645957,
+      0,
+      -0.617655
+    ],
+    "max": [
+      0.645957,
+      1.470195,
+      0.706057
+    ]
+  },
+  "center": [
+    0,
+    0.735,
+    0.044
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 304,
+    "materials": 1,
+    "fileSizeKB": 15.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

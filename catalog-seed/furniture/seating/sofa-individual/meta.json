@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "sofa-individual",
+  "name": "Sofa individual",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/sofa-individual/model.glb",
+  "thumbnail": "/furniture/seating/sofa-individual/thumb.webp",
+  "dimensions": {
+    "width": 1.638,
+    "depth": 1.438,
+    "height": 1.36
+  },
+  "boundingBox": {
+    "min": [
+      -0.816593,
+      -0.008801,
+      -0.694361
+    ],
+    "max": [
+      0.821361,
+      1.351346,
+      0.743952
+    ]
+  },
+  "center": [
+    0.002,
+    0.671,
+    0.025
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2596,
+    "materials": 1,
+    "fileSizeKB": 126.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

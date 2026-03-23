@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-sink",
+  "name": "Kitchen Sink",
+  "category": "furniture",
+  "subcategory": "bathroom",
+  "style": "imported-pack",
+  "model": "/furniture/bathroom/kitchen-sink/model.glb",
+  "thumbnail": "/furniture/bathroom/kitchen-sink/thumb.webp",
+  "dimensions": {
+    "width": 1.011,
+    "depth": 1.12,
+    "height": 1.924
+  },
+  "boundingBox": {
+    "min": [
+      -0.505406,
+      0,
+      -0.505406
+    ],
+    "max": [
+      0.505406,
+      1.924396,
+      0.615021
+    ]
+  },
+  "center": [
+    0,
+    0.962,
+    0.055
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 444,
+    "materials": 1,
+    "fileSizeKB": 24.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

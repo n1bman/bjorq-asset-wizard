@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "shelf-2",
+  "name": "Shelf 2",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/shelf-2/model.glb",
+  "thumbnail": "/furniture/storage/shelf-2/thumb.webp",
+  "dimensions": {
+    "width": 1.119,
+    "depth": 0.756,
+    "height": 4.438
+  },
+  "boundingBox": {
+    "min": [
+      -0.559575,
+      0,
+      -0.377999
+    ],
+    "max": [
+      0.559573,
+      4.438079,
+      0.377999
+    ]
+  },
+  "center": [
+    0,
+    2.219,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 120,
+    "materials": 1,
+    "fileSizeKB": 7.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

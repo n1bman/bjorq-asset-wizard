@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "chair",
+  "name": "Chair",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/chair/model.glb",
+  "thumbnail": "/furniture/seating/chair/thumb.webp",
+  "dimensions": {
+    "width": 0.507,
+    "depth": 0.632,
+    "height": 1.066
+  },
+  "boundingBox": {
+    "min": [
+      -0.253624,
+      -0.006554,
+      -0.365468
+    ],
+    "max": [
+      0.253625,
+      1.059774,
+      0.266677
+    ]
+  },
+  "center": [
+    0,
+    0.527,
+    -0.049
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 736,
+    "materials": 1,
+    "fileSizeKB": 39.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

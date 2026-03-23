@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "door-8",
+  "name": "Door 8",
+  "category": "architecture",
+  "subcategory": "doors",
+  "style": "imported-pack",
+  "model": "/architecture/doors/door-8/model.glb",
+  "thumbnail": "/architecture/doors/door-8/thumb.webp",
+  "dimensions": {
+    "width": 1.74,
+    "depth": 0.442,
+    "height": 4.198
+  },
+  "boundingBox": {
+    "min": [
+      -1.739844,
+      0,
+      -0.217626
+    ],
+    "max": [
+      -0.000002,
+      4.197656,
+      0.224789
+    ]
+  },
+  "center": [
+    -0.87,
+    2.099,
+    0.004
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2568,
+    "materials": 1,
+    "fileSizeKB": 90.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

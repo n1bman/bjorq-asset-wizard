@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "short-closet",
+  "name": "Short Closet",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/short-closet/model.glb",
+  "thumbnail": "/furniture/bedroom/short-closet/thumb.webp",
+  "dimensions": {
+    "width": 1.553,
+    "depth": 0.907,
+    "height": 2.267
+  },
+  "boundingBox": {
+    "min": [
+      -0.775957,
+      -0.007873,
+      -0.430164
+    ],
+    "max": [
+      0.776546,
+      2.258823,
+      0.476592
+    ]
+  },
+  "center": [
+    0,
+    1.125,
+    0.023
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 4040,
+    "materials": 1,
+    "fileSizeKB": 206.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

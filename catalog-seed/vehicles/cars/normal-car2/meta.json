@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "normal-car2",
+  "name": "Normal Car2",
+  "category": "vehicles",
+  "subcategory": "cars",
+  "style": "imported-pack",
+  "model": "/vehicles/cars/normal-car2/model.glb",
+  "thumbnail": "/vehicles/cars/normal-car2/thumb.webp",
+  "dimensions": {
+    "width": 1.638,
+    "depth": 3.31,
+    "height": 1.146
+  },
+  "boundingBox": {
+    "min": [
+      -0.819224,
+      -0.028343,
+      -1.649289
+    ],
+    "max": [
+      0.819224,
+      1.117273,
+      1.660334
+    ]
+  },
+  "center": [
+    0,
+    0.544,
+    0.006
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 3124,
+    "materials": 1,
+    "fileSizeKB": 170.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

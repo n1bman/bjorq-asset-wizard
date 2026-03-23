@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-ceiling6",
+  "name": "Light Ceiling6",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-ceiling6/model.glb",
+  "thumbnail": "/lighting/fixtures/light-ceiling6/thumb.webp",
+  "dimensions": {
+    "width": 0.531,
+    "depth": 0.558,
+    "height": 0.129
+  },
+  "boundingBox": {
+    "min": [
+      -0.265543,
+      -0.126209,
+      -0.279208
+    ],
+    "max": [
+      0.265543,
+      0.002505,
+      0.279208
+    ]
+  },
+  "center": [
+    0,
+    -0.062,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 112,
+    "materials": 1,
+    "fileSizeKB": 5.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

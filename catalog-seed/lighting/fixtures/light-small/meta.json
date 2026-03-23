@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-small",
+  "name": "Light Small",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-small/model.glb",
+  "thumbnail": "/lighting/fixtures/light-small/thumb.webp",
+  "dimensions": {
+    "width": 0.155,
+    "depth": 0.163,
+    "height": 0.106
+  },
+  "boundingBox": {
+    "min": [
+      -0.077594,
+      -0.10988,
+      -0.081587
+    ],
+    "max": [
+      0.077594,
+      -0.003442,
+      0.081587
+    ]
+  },
+  "center": [
+    0,
+    -0.057,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 116,
+    "materials": 1,
+    "fileSizeKB": 5.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

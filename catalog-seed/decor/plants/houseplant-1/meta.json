@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "houseplant-1",
+  "name": "Houseplant 1",
+  "category": "decor",
+  "subcategory": "plants",
+  "style": "imported-pack",
+  "model": "/decor/plants/houseplant-1/model.glb",
+  "thumbnail": "/decor/plants/houseplant-1/thumb.webp",
+  "dimensions": {
+    "width": 0.769,
+    "depth": 0.694,
+    "height": 0.717
+  },
+  "boundingBox": {
+    "min": [
+      -0.2918,
+      0.001502,
+      -0.322762
+    ],
+    "max": [
+      0.477239,
+      0.71886,
+      0.371498
+    ]
+  },
+  "center": [
+    0.093,
+    0.36,
+    0.024
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 245,
+    "materials": 1,
+    "fileSizeKB": 10.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

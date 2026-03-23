@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "desk",
+  "name": "Desk",
+  "category": "furniture",
+  "subcategory": "office",
+  "style": "imported-pack",
+  "model": "/furniture/office/desk/model.glb",
+  "thumbnail": "/furniture/office/desk/thumb.webp",
+  "dimensions": {
+    "width": 1.822,
+    "depth": 0.847,
+    "height": 0.922
+  },
+  "boundingBox": {
+    "min": [
+      -0.911151,
+      -0.000702,
+      -0.452409
+    ],
+    "max": [
+      0.911151,
+      0.921797,
+      0.394218
+    ]
+  },
+  "center": [
+    0,
+    0.461,
+    -0.029
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2640,
+    "materials": 1,
+    "fileSizeKB": 112.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

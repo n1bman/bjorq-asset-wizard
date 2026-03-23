@@ -19,6 +19,7 @@ echo "Preparing bjorq_asset_wizard/ for HA add-on build..."
 # Clean previous staged files
 rm -rf "$SCRIPT_DIR/server"
 rm -rf "$SCRIPT_DIR/frontend"
+rm -rf "$SCRIPT_DIR/catalog-seed"
 
 # Stage server source
 mkdir -p "$SCRIPT_DIR/server"
@@ -41,6 +42,9 @@ cp "$REPO_ROOT/postcss.config.js" "$SCRIPT_DIR/frontend/"
 cp "$REPO_ROOT/components.json" "$SCRIPT_DIR/frontend/"
 cp -r "$REPO_ROOT/src" "$SCRIPT_DIR/frontend/src"
 cp -r "$REPO_ROOT/public" "$SCRIPT_DIR/frontend/public"
+
+# Stage bundled starter catalog
+cp -r "$REPO_ROOT/catalog-seed" "$SCRIPT_DIR/catalog-seed"
 
 echo "Done. Staged files in bjorq_asset_wizard/:"
 echo "  server/"

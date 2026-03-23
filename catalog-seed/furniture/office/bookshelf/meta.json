@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bookshelf",
+  "name": "Bookshelf",
+  "category": "furniture",
+  "subcategory": "office",
+  "style": "imported-pack",
+  "model": "/furniture/office/bookshelf/model.glb",
+  "thumbnail": "/furniture/office/bookshelf/thumb.webp",
+  "dimensions": {
+    "width": 2.318,
+    "depth": 0.756,
+    "height": 4.438
+  },
+  "boundingBox": {
+    "min": [
+      -1.159162,
+      -0.023517,
+      -0.377999
+    ],
+    "max": [
+      1.159162,
+      4.414563,
+      0.377999
+    ]
+  },
+  "center": [
+    0,
+    2.196,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 120,
+    "materials": 1,
+    "fileSizeKB": 7.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

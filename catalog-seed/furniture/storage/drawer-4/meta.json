@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "drawer-4",
+  "name": "Drawer 4",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/drawer-4/model.glb",
+  "thumbnail": "/furniture/storage/drawer-4/thumb.webp",
+  "dimensions": {
+    "width": 2.794,
+    "depth": 1.119,
+    "height": 2.07
+  },
+  "boundingBox": {
+    "min": [
+      -1.39703,
+      -0.007227,
+      -0.563162
+    ],
+    "max": [
+      1.39703,
+      2.06289,
+      0.555445
+    ]
+  },
+  "center": [
+    0,
+    1.028,
+    -0.004
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 464,
+    "materials": 1,
+    "fileSizeKB": 16.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

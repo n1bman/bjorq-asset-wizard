@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bookcase",
+  "name": "Bookcase",
+  "category": "furniture",
+  "subcategory": "office",
+  "style": "imported-pack",
+  "model": "/furniture/office/bookcase/model.glb",
+  "thumbnail": "/furniture/office/bookcase/thumb.webp",
+  "dimensions": {
+    "width": 1.842,
+    "depth": 0.664,
+    "height": 3.371
+  },
+  "boundingBox": {
+    "min": [
+      -0.916734,
+      -0.018219,
+      -0.286549
+    ],
+    "max": [
+      0.925202,
+      3.353085,
+      0.377856
+    ]
+  },
+  "center": [
+    0.004,
+    1.667,
+    0.046
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2928,
+    "materials": 1,
+    "fileSizeKB": 134.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

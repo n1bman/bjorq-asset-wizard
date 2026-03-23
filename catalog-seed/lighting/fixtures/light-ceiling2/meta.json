@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-ceiling2",
+  "name": "Light Ceiling2",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-ceiling2/model.glb",
+  "thumbnail": "/lighting/fixtures/light-ceiling2/thumb.webp",
+  "dimensions": {
+    "width": 0.361,
+    "depth": 0.357,
+    "height": 1.012
+  },
+  "boundingBox": {
+    "min": [
+      -0.180403,
+      -1.013215,
+      -0.182258
+    ],
+    "max": [
+      0.180403,
+      -0.001098,
+      0.174875
+    ]
+  },
+  "center": [
+    0,
+    -0.507,
+    -0.004
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 196,
+    "materials": 1,
+    "fileSizeKB": 8.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

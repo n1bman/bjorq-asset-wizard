@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "closet",
+  "name": "Closet",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/closet/model.glb",
+  "thumbnail": "/furniture/bedroom/closet/thumb.webp",
+  "dimensions": {
+    "width": 1.553,
+    "depth": 0.87,
+    "height": 2.978
+  },
+  "boundingBox": {
+    "min": [
+      -0.77694,
+      -0.007873,
+      -0.430209
+    ],
+    "max": [
+      0.775563,
+      2.969636,
+      0.439801
+    ]
+  },
+  "center": [
+    -0.001,
+    1.481,
+    0.005
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2988,
+    "materials": 1,
+    "fileSizeKB": 150.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "trashcan-green",
+  "name": "Trashcan Green",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/trashcan-green/model.glb",
+  "thumbnail": "/furniture/storage/trashcan-green/thumb.webp",
+  "dimensions": {
+    "width": 1.217,
+    "depth": 1.591,
+    "height": 2.211
+  },
+  "boundingBox": {
+    "min": [
+      -0.606879,
+      -0.000028,
+      -0.870923
+    ],
+    "max": [
+      0.610397,
+      2.211173,
+      0.72042
+    ]
+  },
+  "center": [
+    0.002,
+    1.106,
+    -0.075
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 739,
+    "materials": 1,
+    "fileSizeKB": 23.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

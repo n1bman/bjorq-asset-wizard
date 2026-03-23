@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-fridge",
+  "name": "Kitchen Fridge",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-fridge/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-fridge/thumb.webp",
+  "dimensions": {
+    "width": 1.298,
+    "depth": 1.302,
+    "height": 3.308
+  },
+  "boundingBox": {
+    "min": [
+      -0.648796,
+      0.007106,
+      -0.584298
+    ],
+    "max": [
+      0.648796,
+      3.31555,
+      0.717562
+    ]
+  },
+  "center": [
+    0,
+    1.661,
+    0.067
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 404,
+    "materials": 1,
+    "fileSizeKB": 16.5
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-shower1",
+  "name": "Bathroom Shower1",
+  "category": "furniture",
+  "subcategory": "bathroom",
+  "style": "imported-pack",
+  "model": "/furniture/bathroom/bathroom-shower1/model.glb",
+  "thumbnail": "/furniture/bathroom/bathroom-shower1/thumb.webp",
+  "dimensions": {
+    "width": 1.896,
+    "depth": 1.893,
+    "height": 3.548
+  },
+  "boundingBox": {
+    "min": [
+      -0.824186,
+      -0.095011,
+      -1.024748
+    ],
+    "max": [
+      1.071663,
+      3.453098,
+      0.868088
+    ]
+  },
+  "center": [
+    0.124,
+    1.679,
+    -0.078
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 652,
+    "materials": 1,
+    "fileSizeKB": 37.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "cop",
+  "name": "Cop",
+  "category": "vehicles",
+  "subcategory": "cars",
+  "style": "imported-pack",
+  "model": "/vehicles/cars/cop/model.glb",
+  "thumbnail": "/vehicles/cars/cop/thumb.webp",
+  "dimensions": {
+    "width": 1.778,
+    "depth": 3.73,
+    "height": 1.239
+  },
+  "boundingBox": {
+    "min": [
+      -0.888813,
+      -0.016261,
+      -1.867038
+    ],
+    "max": [
+      0.888813,
+      1.222489,
+      1.863452
+    ]
+  },
+  "center": [
+    0,
+    0.603,
+    -0.002
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 3232,
+    "materials": 1,
+    "fileSizeKB": 176.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

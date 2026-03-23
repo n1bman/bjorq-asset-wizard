@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "chair-2",
+  "name": "Chair 2",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/chair-2/model.glb",
+  "thumbnail": "/furniture/seating/chair-2/thumb.webp",
+  "dimensions": {
+    "width": 0.762,
+    "depth": 0.825,
+    "height": 1.689
+  },
+  "boundingBox": {
+    "min": [
+      -0.380861,
+      -0.003317,
+      -0.444573
+    ],
+    "max": [
+      0.380861,
+      1.686041,
+      0.380861
+    ]
+  },
+  "center": [
+    0,
+    0.841,
+    -0.032
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 352,
+    "materials": 1,
+    "fileSizeKB": 16.9
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

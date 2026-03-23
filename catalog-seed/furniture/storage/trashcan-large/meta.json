@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "trashcan-large",
+  "name": "Trashcan Large",
+  "category": "furniture",
+  "subcategory": "storage",
+  "style": "imported-pack",
+  "model": "/furniture/storage/trashcan-large/model.glb",
+  "thumbnail": "/furniture/storage/trashcan-large/thumb.webp",
+  "dimensions": {
+    "width": 1.223,
+    "depth": 1.223,
+    "height": 1.846
+  },
+  "boundingBox": {
+    "min": [
+      -0.611618,
+      -0.005004,
+      -0.611618
+    ],
+    "max": [
+      0.611618,
+      1.841284,
+      0.611619
+    ]
+  },
+  "center": [
+    0,
+    0.918,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 646,
+    "materials": 1,
+    "fileSizeKB": 20.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-2drawers",
+  "name": "Kitchen 2Drawers",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-2drawers/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-2drawers/thumb.webp",
+  "dimensions": {
+    "width": 1.011,
+    "depth": 1.12,
+    "height": 1.625
+  },
+  "boundingBox": {
+    "min": [
+      -0.505406,
+      0,
+      -0.505406
+    ],
+    "max": [
+      0.505406,
+      1.624538,
+      0.615021
+    ]
+  },
+  "center": [
+    0,
+    0.812,
+    0.055
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 148,
+    "materials": 1,
+    "fileSizeKB": 9.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

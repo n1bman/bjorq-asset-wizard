@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-floor1",
+  "name": "Light Floor1",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-floor1/model.glb",
+  "thumbnail": "/lighting/fixtures/light-floor1/thumb.webp",
+  "dimensions": {
+    "width": 0.281,
+    "depth": 0.295,
+    "height": 1.603
+  },
+  "boundingBox": {
+    "min": [
+      -0.140446,
+      0.014441,
+      -0.147674
+    ],
+    "max": [
+      0.140446,
+      1.617704,
+      0.147674
+    ]
+  },
+  "center": [
+    0,
+    0.816,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 226,
+    "materials": 1,
+    "fileSizeKB": 9.4
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

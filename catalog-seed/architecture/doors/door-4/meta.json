@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "door-4",
+  "name": "Door 4",
+  "category": "architecture",
+  "subcategory": "doors",
+  "style": "imported-pack",
+  "model": "/architecture/doors/door-4/model.glb",
+  "thumbnail": "/architecture/doors/door-4/thumb.webp",
+  "dimensions": {
+    "width": 1.74,
+    "depth": 0.421,
+    "height": 4.198
+  },
+  "boundingBox": {
+    "min": [
+      -1.739842,
+      0,
+      -0.210558
+    ],
+    "max": [
+      0,
+      4.197656,
+      0.210558
+    ]
+  },
+  "center": [
+    -0.87,
+    2.099,
+    0
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 920,
+    "materials": 1,
+    "fileSizeKB": 35.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

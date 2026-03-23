@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "knife",
+  "name": "Knife",
+  "category": "decor",
+  "subcategory": "tabletop",
+  "style": "imported-pack",
+  "model": "/decor/tabletop/knife/model.glb",
+  "thumbnail": "/decor/tabletop/knife/thumb.webp",
+  "dimensions": {
+    "width": 0.035,
+    "depth": 0.419,
+    "height": 0.007
+  },
+  "boundingBox": {
+    "min": [
+      -0.021855,
+      -0.004282,
+      -0.259893
+    ],
+    "max": [
+      0.012968,
+      0.002821,
+      0.159239
+    ]
+  },
+  "center": [
+    -0.004,
+    -0.001,
+    -0.05
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 112,
+    "materials": 1,
+    "fileSizeKB": 4.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

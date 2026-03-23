@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-1drawers",
+  "name": "Kitchen 1Drawers",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-1drawers/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-1drawers/thumb.webp",
+  "dimensions": {
+    "width": 1.011,
+    "depth": 1.12,
+    "height": 1.614
+  },
+  "boundingBox": {
+    "min": [
+      -0.505406,
+      0.006807,
+      -0.505406
+    ],
+    "max": [
+      0.505406,
+      1.620438,
+      0.615021
+    ]
+  },
+  "center": [
+    0,
+    0.814,
+    0.055
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 84,
+    "materials": 1,
+    "fileSizeKB": 6.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

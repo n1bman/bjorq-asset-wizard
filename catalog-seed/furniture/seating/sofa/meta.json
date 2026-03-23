@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "sofa",
+  "name": "Sofa",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/sofa/model.glb",
+  "thumbnail": "/furniture/seating/sofa/thumb.webp",
+  "dimensions": {
+    "width": 4.241,
+    "depth": 1.784,
+    "height": 1.508
+  },
+  "boundingBox": {
+    "min": [
+      -2.12052,
+      -0.00757,
+      -0.901035
+    ],
+    "max": [
+      2.12052,
+      1.500214,
+      0.88263
+    ]
+  },
+  "center": [
+    0,
+    0.746,
+    -0.009
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 2392,
+    "materials": 1,
+    "fileSizeKB": 115.5
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "column-square-small",
+  "name": "Column Square Small",
+  "category": "architecture",
+  "subcategory": "columns",
+  "style": "imported-pack",
+  "model": "/architecture/columns/column-square-small/model.glb",
+  "thumbnail": "/architecture/columns/column-square-small/thumb.webp",
+  "dimensions": {
+    "width": 0.907,
+    "depth": 0.907,
+    "height": 2.447
+  },
+  "boundingBox": {
+    "min": [
+      -0.453634,
+      0,
+      -0.453634
+    ],
+    "max": [
+      0.453634,
+      2.44702,
+      0.453634
+    ]
+  },
+  "center": [
+    0,
+    1.224,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 148,
+    "materials": 1,
+    "fileSizeKB": 8.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

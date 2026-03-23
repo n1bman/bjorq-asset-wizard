@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "door-3",
+  "name": "Door 3",
+  "category": "architecture",
+  "subcategory": "doors",
+  "style": "imported-pack",
+  "model": "/architecture/doors/door-3/model.glb",
+  "thumbnail": "/architecture/doors/door-3/thumb.webp",
+  "dimensions": {
+    "width": 1.736,
+    "depth": 0.416,
+    "height": 4.188
+  },
+  "boundingBox": {
+    "min": [
+      -1.735771,
+      0,
+      -0.207926
+    ],
+    "max": [
+      0,
+      4.187836,
+      0.207926
+    ]
+  },
+  "center": [
+    -0.868,
+    2.094,
+    0
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 856,
+    "materials": 1,
+    "fileSizeKB": 29.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "sofa2",
+  "name": "Sofa2",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/sofa2/model.glb",
+  "thumbnail": "/furniture/seating/sofa2/thumb.webp",
+  "dimensions": {
+    "width": 4.003,
+    "depth": 1.541,
+    "height": 1.452
+  },
+  "boundingBox": {
+    "min": [
+      -2.015837,
+      -0.038693,
+      -0.669427
+    ],
+    "max": [
+      1.98681,
+      1.413732,
+      0.871391
+    ]
+  },
+  "center": [
+    -0.015,
+    0.688,
+    0.101
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 3688,
+    "materials": 1,
+    "fileSizeKB": 189.2
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

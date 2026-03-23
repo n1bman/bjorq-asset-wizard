@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-stand2",
+  "name": "Light Stand2",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-stand2/model.glb",
+  "thumbnail": "/lighting/fixtures/light-stand2/thumb.webp",
+  "dimensions": {
+    "width": 0.678,
+    "depth": 0.678,
+    "height": 2.945
+  },
+  "boundingBox": {
+    "min": [
+      -0.338848,
+      0,
+      -0.338849
+    ],
+    "max": [
+      0.338848,
+      2.945015,
+      0.338847
+    ]
+  },
+  "center": [
+    0,
+    1.473,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 244,
+    "materials": 1,
+    "fileSizeKB": 9.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "kitchen-oven-large",
+  "name": "Kitchen Oven Large",
+  "category": "furniture",
+  "subcategory": "kitchen",
+  "style": "imported-pack",
+  "model": "/furniture/kitchen/kitchen-oven-large/model.glb",
+  "thumbnail": "/furniture/kitchen/kitchen-oven-large/thumb.webp",
+  "dimensions": {
+    "width": 1.171,
+    "depth": 1.07,
+    "height": 1.593
+  },
+  "boundingBox": {
+    "min": [
+      -0.58561,
+      0,
+      -0.513029
+    ],
+    "max": [
+      0.58561,
+      1.592607,
+      0.557335
+    ]
+  },
+  "center": [
+    0,
+    0.796,
+    0.022
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 528,
+    "materials": 1,
+    "fileSizeKB": 21.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-ceiling-single",
+  "name": "Light Ceiling Single",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-ceiling-single/model.glb",
+  "thumbnail": "/lighting/fixtures/light-ceiling-single/thumb.webp",
+  "dimensions": {
+    "width": 0.264,
+    "depth": 0.278,
+    "height": 0.478
+  },
+  "boundingBox": {
+    "min": [
+      -0.132116,
+      -0.476461,
+      -0.138915
+    ],
+    "max": [
+      0.132116,
+      0.001923,
+      0.138915
+    ]
+  },
+  "center": [
+    0,
+    -0.237,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 232,
+    "materials": 1,
+    "fileSizeKB": 9.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

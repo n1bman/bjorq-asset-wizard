@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "curtains-single",
+  "name": "Curtains Single",
+  "category": "decor",
+  "subcategory": "accessories",
+  "style": "imported-pack",
+  "model": "/decor/accessories/curtains-single/model.glb",
+  "thumbnail": "/decor/accessories/curtains-single/thumb.webp",
+  "dimensions": {
+    "width": 1.632,
+    "depth": 0.476,
+    "height": 4.344
+  },
+  "boundingBox": {
+    "min": [
+      -0.776457,
+      0,
+      -0.420771
+    ],
+    "max": [
+      0.855537,
+      4.34448,
+      0.055707
+    ]
+  },
+  "center": [
+    0.04,
+    2.172,
+    -0.183
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 208,
+    "materials": 1,
+    "fileSizeKB": 9.5
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

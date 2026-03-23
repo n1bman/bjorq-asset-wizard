@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bed-double",
+  "name": "Bed Double",
+  "category": "furniture",
+  "subcategory": "bedroom",
+  "style": "imported-pack",
+  "model": "/furniture/bedroom/bed-double/model.glb",
+  "thumbnail": "/furniture/bedroom/bed-double/thumb.webp",
+  "dimensions": {
+    "width": 2.826,
+    "depth": 4.259,
+    "height": 1.558
+  },
+  "boundingBox": {
+    "min": [
+      -2.125114,
+      -0.011821,
+      -1.425123
+    ],
+    "max": [
+      0.700751,
+      1.54571,
+      2.833411
+    ]
+  },
+  "center": [
+    -0.712,
+    0.767,
+    0.704
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 4712,
+    "materials": 1,
+    "fileSizeKB": 242.7
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

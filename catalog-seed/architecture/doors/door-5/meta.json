@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "door-5",
+  "name": "Door 5",
+  "category": "architecture",
+  "subcategory": "doors",
+  "style": "imported-pack",
+  "model": "/architecture/doors/door-5/model.glb",
+  "thumbnail": "/architecture/doors/door-5/thumb.webp",
+  "dimensions": {
+    "width": 1.74,
+    "depth": 0.421,
+    "height": 4.198
+  },
+  "boundingBox": {
+    "min": [
+      -1.73984,
+      0,
+      -0.210558
+    ],
+    "max": [
+      0.000002,
+      4.197657,
+      0.210558
+    ]
+  },
+  "center": [
+    -0.87,
+    2.099,
+    0
+  ],
+  "placement": "wall",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 1224,
+    "materials": 1,
+    "fileSizeKB": 48.9
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

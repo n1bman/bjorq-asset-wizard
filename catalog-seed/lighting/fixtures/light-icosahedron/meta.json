@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-icosahedron",
+  "name": "Light Icosahedron",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-icosahedron/model.glb",
+  "thumbnail": "/lighting/fixtures/light-icosahedron/thumb.webp",
+  "dimensions": {
+    "width": 0.502,
+    "depth": 0.479,
+    "height": 0.88
+  },
+  "boundingBox": {
+    "min": [
+      -0.251075,
+      -0.878276,
+      -0.239648
+    ],
+    "max": [
+      0.251075,
+      0.001518,
+      0.239648
+    ]
+  },
+  "center": [
+    0,
+    -0.438,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 1220,
+    "materials": 1,
+    "fileSizeKB": 59.8
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

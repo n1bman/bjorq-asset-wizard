@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bathroom-toilet2",
+  "name": "Bathroom Toilet2",
+  "category": "furniture",
+  "subcategory": "bathroom",
+  "style": "imported-pack",
+  "model": "/furniture/bathroom/bathroom-toilet2/model.glb",
+  "thumbnail": "/furniture/bathroom/bathroom-toilet2/thumb.webp",
+  "dimensions": {
+    "width": 1.111,
+    "depth": 1.54,
+    "height": 1.008
+  },
+  "boundingBox": {
+    "min": [
+      -0.55557,
+      -0.013109,
+      -0.747942
+    ],
+    "max": [
+      0.55557,
+      0.994658,
+      0.791879
+    ]
+  },
+  "center": [
+    0,
+    0.491,
+    0.022
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 334,
+    "materials": 1,
+    "fileSizeKB": 11.5
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

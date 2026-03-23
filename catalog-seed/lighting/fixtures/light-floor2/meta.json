@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "light-floor2",
+  "name": "Light Floor2",
+  "category": "lighting",
+  "subcategory": "fixtures",
+  "style": "imported-pack",
+  "model": "/lighting/fixtures/light-floor2/model.glb",
+  "thumbnail": "/lighting/fixtures/light-floor2/thumb.webp",
+  "dimensions": {
+    "width": 0.313,
+    "depth": 0.329,
+    "height": 0.757
+  },
+  "boundingBox": {
+    "min": [
+      -0.156644,
+      0,
+      -0.164707
+    ],
+    "max": [
+      0.156644,
+      0.756699,
+      0.164704
+    ]
+  },
+  "center": [
+    0,
+    0.378,
+    0
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 276,
+    "materials": 1,
+    "fileSizeKB": 9.6
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "chair-4",
+  "name": "Chair 4",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/chair-4/model.glb",
+  "thumbnail": "/furniture/seating/chair-4/thumb.webp",
+  "dimensions": {
+    "width": 0.762,
+    "depth": 0.825,
+    "height": 1.768
+  },
+  "boundingBox": {
+    "min": [
+      -0.380861,
+      -0.003317,
+      -0.444572
+    ],
+    "max": [
+      0.380861,
+      1.764456,
+      0.380862
+    ]
+  },
+  "center": [
+    0,
+    0.881,
+    -0.032
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 264,
+    "materials": 1,
+    "fileSizeKB": 13.1
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}

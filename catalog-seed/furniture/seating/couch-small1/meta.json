@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "id": "couch-small1",
+  "name": "Couch Small1",
+  "category": "furniture",
+  "subcategory": "seating",
+  "style": "imported-pack",
+  "model": "/furniture/seating/couch-small1/model.glb",
+  "thumbnail": "/furniture/seating/couch-small1/thumb.webp",
+  "dimensions": {
+    "width": 2.885,
+    "depth": 2.203,
+    "height": 1.91
+  },
+  "boundingBox": {
+    "min": [
+      -1.442735,
+      -0.013099,
+      -1.183491
+    ],
+    "max": [
+      1.442735,
+      1.89693,
+      1.019971
+    ]
+  },
+  "center": [
+    0,
+    0.942,
+    -0.082
+  ],
+  "placement": "floor",
+  "ha": {
+    "mappable": false,
+    "defaultDomain": null,
+    "defaultKind": null
+  },
+  "performance": {
+    "triangles": 852,
+    "materials": 1,
+    "fileSizeKB": 18.3
+  },
+  "source": "imported",
+  "ingestStatus": "ingested",
+  "optimizationStatus": "unoptimized",
+  "lifecycleStatus": "published",
+  "syncStatus": "pending",
+  "optimizedAt": null
+}
