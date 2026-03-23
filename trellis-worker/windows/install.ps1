@@ -32,7 +32,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.7.3"
+$WORKER_VERSION = "2.7.4"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -279,11 +279,34 @@ function Find-MsvcCompiler {
         return $cmd.Source
     } catch {}
 
+    $pf86 = [Environment]::GetFolderPath('ProgramFilesX86')
+    if (-not $pf86) {
+        $pf86 = ${env:ProgramFiles(x86)}
+    }
+
+    $directCandidates = @(
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC"),
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\Community\VC\Tools\MSVC"),
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC"),
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC"),
+        "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC"
+    )
+
+    foreach ($msvcRoot in $directCandidates) {
+        if (-not (Test-Path $msvcRoot)) { continue }
+        $versions = Get-ChildItem -Path $msvcRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending
+        foreach ($versionDir in $versions) {
+            $candidate = Join-Path $versionDir.FullName "bin\Hostx64\x64\cl.exe"
+            if (Test-Path $candidate) { return $candidate }
+        }
+    }
+
     $knownRoots = @(
-        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools",
-        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Community",
-        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Professional",
-        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise"
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\BuildTools"),
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\Community"),
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\Professional"),
+        (Join-Path $pf86 "Microsoft Visual Studio\2022\Enterprise"),
+        "C:\Program Files\Microsoft Visual Studio\18\Community"
     )
 
     foreach ($root in $knownRoots) {
@@ -295,7 +318,7 @@ function Find-MsvcCompiler {
         }
     }
 
-    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    $vswhere = Join-Path $pf86 "Microsoft Visual Studio\Installer\vswhere.exe"
     if (Test-Path $vswhere) {
         try {
             $installPaths = & $vswhere -all -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
@@ -488,6 +511,8 @@ if (-not $clExe) {
     }
 }
 Write-Host "  MSVC: $clExe" -ForegroundColor Green
+Add-Content -Path $LogFile -Value "MSVC detected at: $clExe"
+Append-UiLog -Message "MSVC detected at: $clExe"
 
 # ---------------------------------------------------------------------------
 # Step 1: Python runtime (micromamba primary, full Python fallback)
