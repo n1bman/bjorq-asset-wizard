@@ -1,4 +1,4 @@
-﻿#!/usr/bin/with-contenv bashio
+#!/usr/bin/with-contenv bashio
 # ============================================
 # Bjorq Asset Wizard â€” Home Assistant Entry Point
 # ============================================

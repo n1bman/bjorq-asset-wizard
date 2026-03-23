@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.9.1] — 2026-03-23
+
+### Fixed
+- Removed the UTF-8 BOM from `bjorq_asset_wizard/run.sh`, which prevented the Home Assistant add-on container from starting correctly.
+- Add-on startup now reaches the real bashio bootstrap path instead of failing immediately on the shebang line.
+
 ## [2.9.0] — 2026-03-23
 
 ### Added

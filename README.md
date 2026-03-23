@@ -4,7 +4,7 @@
 
 Wizard fokuserar nu på den stabila kärnan: ladda upp, analysera, optimera, katalogisera och publicera GLB/glTF-assets för Dashboard. All tidigare TRELLIS- och Photo → 3D-funktionalitet är borttagen från projektet.
 
-## Vad som finns i `v2.9.0`
+## Vad som finns i `v2.9.1`
 
 - Upload & Analyze för GLB/glTF
 - Optimize-pipeline för mesh och texturer

@@ -1,6 +1,6 @@
 {
   "name": "bjorq-asset-wizard-server",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "description": "Bjorq Asset Wizard â€” Backend service for 3D asset analysis, optimization, and catalog management",
   "type": "module",
   "main": "dist/index.js",
