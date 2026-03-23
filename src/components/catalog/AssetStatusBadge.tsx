@@ -13,6 +13,7 @@ const sourceConfig: Record<AssetSource, { label: string; className: string }> = 
 
 const syncConfig: Record<SyncStatus, { label: string; dot: string }> = {
   not_synced: { label: "Not synced", dot: "bg-muted-foreground" },
+  pending:    { label: "Pending",    dot: "bg-amber-300" },
   syncing:    { label: "Syncing",    dot: "bg-yellow-400" },
   synced:     { label: "Synced",     dot: "bg-emerald-400" },
   error:      { label: "Error",      dot: "bg-destructive" },
@@ -28,6 +29,7 @@ export function SourceBadge({ source }: { source?: AssetSource }) {
 export function SyncDot({ status }: { status?: SyncStatus }) {
   if (!status) return null;
   const cfg = syncConfig[status];
+  if (!cfg) return null;
   return (
     <span className="flex items-center gap-1 text-xs text-muted-foreground" title={cfg.label}>
       <span className={cn("h-2 w-2 rounded-full", cfg.dot)} />

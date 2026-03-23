@@ -8,7 +8,7 @@ export type AssetLifecycleStatus = "uploaded" | "analyzed" | "optimized" | "publ
 
 export type AssetSource = "uploaded" | "optimized" | "catalog" | "synced" | "wizard" | "imported";
 
-export type SyncStatus = "not_synced" | "syncing" | "synced" | "error";
+export type SyncStatus = "not_synced" | "pending" | "syncing" | "synced" | "error";
 
 export type IngestStatus = "not_ingested" | "ingesting" | "ingested" | "error";
 
