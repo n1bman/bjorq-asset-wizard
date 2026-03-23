@@ -32,7 +32,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.7.2"
+$WORKER_VERSION = "2.7.3"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -43,6 +43,7 @@ $script:StatusLabel = $null
 $script:DetailLabel = $null
 $script:ProgressBar = $null
 $script:LogTextBox = $null
+$script:InstallFailed = $false
 
 function Refresh-InstallUi {
     if ($script:InstallerForm) {
@@ -159,15 +160,57 @@ function Write-Status {
 
 function Write-Fatal {
     param([string]$Message)
+    $script:InstallFailed = $true
     Write-Status -Step "FAILED: $Message" -Progress -1 -Error $Message
     Write-Host "`n  ERROR: $Message" -ForegroundColor Red
     Write-Host "  See log: $LogFile" -ForegroundColor Yellow
     Append-UiLog -Message "ERROR: $Message"
     Append-UiLog -Message "See log: $LogFile"
+    Cleanup-FailedInstall -Reason $Message
     if ($InteractiveUi) {
         [System.Windows.Forms.MessageBox]::Show($Message, "Bjorq 3D Worker Setup Failed", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error) | Out-Null
     }
     exit 1
+}
+
+function Cleanup-FailedInstall {
+    param([string]$Reason)
+
+    Write-Host "  Rolling back partial installation..." -ForegroundColor Yellow
+    Add-Content -Path $LogFile -Value "Rolling back failed installation: $Reason"
+    Append-UiLog -Message "Rolling back partial installation..."
+
+    try {
+        $stopScript = Join-Path $PSScriptRoot "stop-worker.ps1"
+        if (Test-Path $stopScript) {
+            & powershell -ExecutionPolicy Bypass -File $stopScript -InstallDir $InstallDir -Port $Port -RemoveService 2>&1 |
+                ForEach-Object {
+                    $line = $_.ToString()
+                    Add-Content -Path $LogFile -Value $line
+                    Append-UiLog -Message $line
+                }
+        }
+    } catch {}
+
+    try {
+        $ruleName = "Bjorq 3D Worker (TCP $Port)"
+        Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue
+    } catch {}
+
+    try {
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        $failedLogCopy = Join-Path $env:TEMP "Bjorq3DWorker-install-failed-$timestamp.log"
+        Copy-Item $LogFile $failedLogCopy -Force -ErrorAction SilentlyContinue
+        Append-UiLog -Message "Saved failure log to $failedLogCopy"
+    } catch {}
+
+    if (Test-Path $InstallDir) {
+        try {
+            Remove-Item $InstallDir -Recurse -Force -ErrorAction SilentlyContinue
+        } catch {}
+    }
+
+    Append-UiLog -Message "Rollback complete. Partial worker files in $InstallDir were removed."
 }
 
 function Invoke-Tool {
@@ -255,12 +298,29 @@ function Find-MsvcCompiler {
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     if (Test-Path $vswhere) {
         try {
-            $installPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-            if ($installPath) {
-                $clExe = Get-ChildItem -Path $installPath -Recurse -Filter cl.exe -ErrorAction SilentlyContinue |
-                    Where-Object { $_.FullName -like "*Hostx64\\x64\\cl.exe" } |
-                    Select-Object -First 1
-                if ($clExe) { return $clExe.FullName }
+            $installPaths = & $vswhere -all -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+            foreach ($installPath in @($installPaths)) {
+                if ($installPath) {
+                    $clExe = Get-ChildItem -Path $installPath -Recurse -Filter cl.exe -ErrorAction SilentlyContinue |
+                        Where-Object { $_.FullName -like "*Hostx64\\x64\\cl.exe" } |
+                        Select-Object -First 1
+                    if ($clExe) { return $clExe.FullName }
+                }
+            }
+        } catch {}
+
+        try {
+            $instancesJson = & $vswhere -all -products * -format json
+            if ($instancesJson) {
+                $instances = $instancesJson | ConvertFrom-Json
+                foreach ($instance in @($instances)) {
+                    if ($instance.installationPath -and $instance.isComplete) {
+                        $clExe = Get-ChildItem -Path $instance.installationPath -Recurse -Filter cl.exe -ErrorAction SilentlyContinue |
+                            Where-Object { $_.FullName -like "*Hostx64\\x64\\cl.exe" } |
+                            Select-Object -First 1
+                        if ($clExe) { return $clExe.FullName }
+                    }
+                }
             }
         } catch {}
     }
@@ -269,12 +329,17 @@ function Find-MsvcCompiler {
 }
 
 function Wait-ForMsvcCompiler {
-    param([int]$TimeoutSeconds = 120)
+    param([int]$TimeoutSeconds = 900)
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $lastStatusUpdate = Get-Date
     do {
         $clExe = Find-MsvcCompiler
         if ($clExe) { return $clExe }
+        if (((Get-Date) - $lastStatusUpdate).TotalSeconds -ge 10) {
+            Write-Status -Step "Waiting for Visual Studio Build Tools to finish" -Progress 8
+            $lastStatusUpdate = Get-Date
+        }
         Start-Sleep -Seconds 2
     } while ((Get-Date) -lt $deadline)
 
@@ -409,7 +474,7 @@ if (-not $clExe) {
             Add-Content -Path $LogFile -Value "Build Tools install exception: $_"
         }
 
-        $clExe = Wait-ForMsvcCompiler -TimeoutSeconds 120
+        $clExe = Wait-ForMsvcCompiler -TimeoutSeconds 900
         if (-not $buildToolsOk -and $clExe) {
             Write-Host "  Build Tools installer returned a warning/non-zero exit code, but MSVC was detected afterwards. Continuing..." -ForegroundColor Yellow
             Add-Content -Path $LogFile -Value "Build Tools bootstrapper returned non-zero exit code, but cl.exe was detected at $clExe. Continuing."
