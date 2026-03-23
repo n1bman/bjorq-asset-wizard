@@ -32,7 +32,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.7.0"
+$WORKER_VERSION = "2.7.1"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -381,7 +381,11 @@ if (-not $clExe) {
         }
 
         $clExe = Find-MsvcCompiler
-        if (-not $buildToolsOk -or -not $clExe) {
+        if (-not $buildToolsOk -and $clExe) {
+            Write-Host "  Build Tools installer returned a warning/non-zero exit code, but MSVC was detected afterwards. Continuing..." -ForegroundColor Yellow
+            Add-Content -Path $LogFile -Value "Build Tools bootstrapper returned non-zero exit code, but cl.exe was detected at $clExe. Continuing."
+        }
+        if (-not $clExe) {
             Write-Fatal "Automatic Build Tools installation did not complete successfully. Open https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022, install 'Desktop development with C++', then re-run this installer."
         }
     }
