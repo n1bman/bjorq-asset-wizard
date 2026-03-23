@@ -8,6 +8,7 @@ const sourceConfig: Record<AssetSource, { label: string; className: string }> = 
   catalog:   { label: "Catalog",   className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
   synced:    { label: "Synced",    className: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
   wizard:    { label: "Wizard",    className: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30" },
+  imported:  { label: "Imported",  className: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
 };
 
 const syncConfig: Record<SyncStatus, { label: string; dot: string }> = {
@@ -20,6 +21,7 @@ const syncConfig: Record<SyncStatus, { label: string; dot: string }> = {
 export function SourceBadge({ source }: { source?: AssetSource }) {
   if (!source) return null;
   const cfg = sourceConfig[source];
+  if (!cfg) return null;
   return <Badge variant="outline" className={cn("text-xs", cfg.className)}>{cfg.label}</Badge>;
 }
 

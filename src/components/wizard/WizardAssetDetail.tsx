@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Box, Download, Triangle, Layers, HardDrive, Ruler } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
+import { getAssetThumbnailUrl } from "@/lib/asset-paths";
 
 interface Props {
   asset: AssetMetadata | null;
@@ -14,6 +16,9 @@ interface Props {
 
 export function WizardAssetDetail({ asset, open, onOpenChange }: Props) {
   if (!asset) return null;
+
+  const [imgError, setImgError] = useState(false);
+  const thumbnailUrl = asset.thumbnail ? getAssetThumbnailUrl(asset.id) : null;
 
   const handleImport = () => {
     toast.success(`"${asset.name}" imported to Bjorq catalog`, {
@@ -31,9 +36,17 @@ export function WizardAssetDetail({ asset, open, onOpenChange }: Props) {
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
-          {/* Thumbnail placeholder */}
           <div className="flex aspect-video items-center justify-center rounded-lg bg-muted">
-            <Box className="h-16 w-16 text-muted-foreground/30" />
+            {thumbnailUrl && !imgError ? (
+              <img
+                src={thumbnailUrl}
+                alt={asset.name}
+                className="h-full w-full rounded-lg object-contain"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <Box className="h-16 w-16 text-muted-foreground/30" />
+            )}
           </div>
 
           {/* Metadata */}

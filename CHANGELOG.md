@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.3] — 2026-03-23
+
+### Fixed
+- Added proper support for bundled assets with `source: "imported"`, preventing the Browser catalog view from crashing when starter-library assets are rendered.
+- Wired Wizard catalog cards and the Wizard asset detail view to the real thumbnail endpoints, so bundled starter assets now show preview images instead of only placeholder cubes.
+- Unified catalog thumbnail loading to use the ingress-safe asset thumbnail endpoint.
+
 ## [2.9.2] — 2026-03-23
 
 ### Fixed
@@ -25,18 +32,3 @@
 ### Changed
 - Wizard is now positioned as a stable asset pipeline and catalog server with an embedded starter library.
 - TRELLIS / Photo → 3D remains removed from the product surface.
-
-## [2.8.1] — 2026-03-23
-
-### Fixed
-- Fixed the frontend CI/build pipeline by loading `lovable-tagger` lazily in development only and removing the UTF-8 BOM from `package.json`, which was breaking Vite/PostCSS in GitHub Actions.
-
-### Added
-- Bundled a starter 3D catalog directly into Wizard so the app can seed ready-to-use GLB assets with thumbnails and clean categories on first boot.
-- Added automatic first-boot catalog seeding for both the standalone Docker image and the Home Assistant add-on image.
-
-## [2.8.0] — 2026-03-23
-
-### Changed
-- Removed all TRELLIS / Photo → 3D functionality from Wizard UI, backend, add-on config, and Windows worker packaging.
-- Cleaned docs so Wizard now documents only upload, analyze, optimize, catalog, and sync flows.

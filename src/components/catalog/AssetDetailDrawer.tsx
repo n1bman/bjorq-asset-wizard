@@ -24,12 +24,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useConnection } from "@/contexts/ConnectionContext";
 import { PreviewErrorBoundary } from "./PreviewErrorBoundary";
 import { AssetPreviewPanel } from "./AssetPreviewPanel";
-import { downloadAssetBlob } from "@/lib/asset-paths";
-import { apiClient } from "@/services/api-client";
+import { downloadAssetBlob, getAssetThumbnailUrl } from "@/lib/asset-paths";
 
 function ThumbnailPreview({ asset }: { asset: AssetMetadata }) {
   const [imgError, setImgError] = useState(false);
-  const url = `${apiClient.baseUrl}/catalog/files${asset.thumbnail}`;
+  const url = getAssetThumbnailUrl(asset.id);
 
   if (imgError) return <AssetPreviewPanel asset={asset} />;
 

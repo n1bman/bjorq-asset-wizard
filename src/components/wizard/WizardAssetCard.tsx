@@ -2,6 +2,8 @@ import type { AssetMetadata } from "@/types/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Box, Triangle } from "lucide-react";
+import { useState } from "react";
+import { getAssetThumbnailUrl } from "@/lib/asset-paths";
 
 interface Props {
   asset: AssetMetadata;
@@ -9,6 +11,9 @@ interface Props {
 }
 
 export function WizardAssetCard({ asset, onClick }: Props) {
+  const [imgError, setImgError] = useState(false);
+  const thumbnailUrl = asset.thumbnail ? getAssetThumbnailUrl(asset.id) : null;
+
   return (
     <Card
       className="cursor-pointer transition-colors hover:border-primary/40 hover:bg-accent/50"
@@ -16,7 +21,17 @@ export function WizardAssetCard({ asset, onClick }: Props) {
     >
       <CardContent className="p-3">
         <div className="mb-2 flex aspect-square items-center justify-center rounded bg-muted">
-          <Box className="h-10 w-10 text-muted-foreground/50" />
+          {thumbnailUrl && !imgError ? (
+            <img
+              src={thumbnailUrl}
+              alt={asset.name}
+              className="h-full w-full rounded object-cover"
+              loading="lazy"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <Box className="h-10 w-10 text-muted-foreground/50" />
+          )}
         </div>
         <p className="truncate text-sm font-medium text-foreground">{asset.name}</p>
         <div className="mt-1 flex items-center gap-1">

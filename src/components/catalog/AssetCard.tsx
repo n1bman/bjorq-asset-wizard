@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Box, HardDrive } from "lucide-react";
 import { SourceBadge, SyncDot } from "./AssetStatusBadge";
-import { apiClient } from "@/services/api-client";
+import { getAssetThumbnailUrl } from "@/lib/asset-paths";
 
 interface Props {
   asset: AssetMetadata;
@@ -15,9 +15,7 @@ export function AssetCard({ asset, onClick }: Props) {
   const [imgError, setImgError] = useState(false);
 
   // Resolve thumbnail URL via the catalog API endpoint
-  const thumbnailUrl = asset.thumbnail
-    ? `${apiClient.baseUrl}/catalog/files${asset.thumbnail}`
-    : null;
+  const thumbnailUrl = asset.thumbnail ? getAssetThumbnailUrl(asset.id) : null;
 
   return (
     <Card
