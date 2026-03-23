@@ -32,7 +32,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.7.4"
+$WORKER_VERSION = "2.7.5"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -270,6 +270,31 @@ function Find-NvidiaSmi {
     # 3. NVIDIA NVSMI
     $nvsmi = "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe"
     if (Test-Path $nvsmi) { return $nvsmi }
+    return $null
+}
+
+function Find-CudaHome {
+    try {
+        $nvccCmd = Get-Command nvcc.exe -ErrorAction Stop
+        if ($nvccCmd -and $nvccCmd.Source) {
+            return Split-Path (Split-Path $nvccCmd.Source -Parent) -Parent
+        }
+    } catch {}
+
+    $knownCudaRoots = @(
+        "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA",
+        "C:\CUDA"
+    )
+
+    foreach ($root in $knownCudaRoots) {
+        if (-not (Test-Path $root)) { continue }
+        $versions = Get-ChildItem -Path $root -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending
+        foreach ($versionDir in $versions) {
+            $candidate = Join-Path $versionDir.FullName "bin\nvcc.exe"
+            if (Test-Path $candidate) { return $versionDir.FullName }
+        }
+    }
+
     return $null
 }
 
@@ -684,7 +709,11 @@ Invoke-Tool -Exe $pipExe -Arguments @(
 )
 
 # utils3d from git
-Invoke-Tool -Exe $pipExe -Arguments @("install", "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4e43e41e0e0b75c4cdfea1de66bbab1f")
+$utils3dOk = Invoke-Tool -Exe $pipExe -Arguments @("install", "git+https://github.com/EasternJournalist/utils3d.git")
+if (-not $utils3dOk) {
+    Write-Host "  WARNING: utils3d install from Git failed, retrying from default branch archive..." -ForegroundColor Yellow
+    Invoke-Tool -Exe $pipExe -Arguments @("install", "https://github.com/EasternJournalist/utils3d/archive/refs/heads/main.zip")
+}
 
 # Install TRELLIS repo if pyproject.toml exists
 $pyproject = Join-Path $repoDir "pyproject.toml"
@@ -740,12 +769,26 @@ if (-not (Test-Path $oVoxelPyproject)) {
 # Ensure build helpers exist (cmake/ninja). MSVC Build Tools are still required for compilation.
 Invoke-Tool -Exe $pipExe -Arguments @("install", "cmake", "ninja")
 
+$cudaHome = Find-CudaHome
+if (-not $cudaHome) {
+    Write-Fatal "CUDA Toolkit was not found. Install the NVIDIA CUDA Toolkit and re-run this installer."
+}
+
+$env:CUDA_HOME = $cudaHome
+$env:CUDA_PATH = $cudaHome
+$cudaBin = Join-Path $cudaHome "bin"
+if (Test-Path $cudaBin -and ($env:PATH -notlike "*$cudaBin*")) {
+    $env:PATH = "$cudaBin;$env:PATH"
+}
+Add-Content -Path $LogFile -Value "CUDA_HOME set to: $cudaHome"
+Append-UiLog -Message "CUDA_HOME set to: $cudaHome"
+
 Push-Location $oVoxelDir
 Invoke-Tool `
     -Exe $pipExe `
-    -Arguments @("install", "-e", ".") `
+    -Arguments @("install", "--no-build-isolation", "-e", ".") `
     -Fatal `
-    -FatalMessage "Failed to build/install o-voxel (cumesh/flex_gemm). Install Visual Studio Build Tools 2022 (Desktop development with C++) and re-run this installer. See: https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022"
+    -FatalMessage "Failed to build/install o-voxel (cumesh/flex_gemm). Ensure CUDA Toolkit, Visual Studio Build Tools 2022 (Desktop development with C++), and the NVIDIA driver are installed, then re-run this installer."
 Pop-Location
 
 # Validate that required modules import
