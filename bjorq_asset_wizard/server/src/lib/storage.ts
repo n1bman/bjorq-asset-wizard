@@ -42,8 +42,22 @@ export function catalogPath(...segments: string[]): string {
 /** Returns true when the catalog root has no user-facing content yet. */
 export async function isCatalogEmpty(): Promise<boolean> {
   try {
-    const entries = await readdir(CATALOG_PATH);
-    return entries.filter(entry => entry !== "index.json").length === 0;
+    const entries = await readdir(CATALOG_PATH, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name !== "index.json") {
+        return false;
+      }
+
+      if (entry.isDirectory()) {
+        const children = await readdir(join(CATALOG_PATH, entry.name));
+        if (children.length > 0) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   } catch {
     return true;
   }

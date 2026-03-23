@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.9.2] — 2026-03-23
+
+### Fixed
+- Treat empty scaffold folders in `/data/catalog` as an empty catalog, so the bundled starter library now seeds correctly on first boot in the Home Assistant add-on.
+- Starter models, thumbnails, and metadata now appear even when `run.sh` has pre-created category folders before backend startup.
+
 ## [2.9.1] — 2026-03-23
 
 ### Fixed
