@@ -1,4 +1,4 @@
-# Bjorq Asset Wizard — Developer Handbook
+﻿# Bjorq Asset Wizard â€” Developer Handbook
 
 Practical reference for developing and extending the Bjorq Asset Wizard.
 
@@ -16,29 +16,29 @@ This is a monorepo containing both the frontend dashboard and backend service sc
 
 ```
 bjorq-asset-wizard/
-├── src/                        # Frontend (React + Vite)
-│   ├── pages/                  # Route-level page components
-│   ├── components/             # UI components by domain
-│   ├── contexts/               # React context providers
-│   ├── services/               # API client, service functions, mock data
-│   ├── hooks/                  # Custom React hooks
-│   ├── types/                  # TypeScript type definitions
-│   ├── lib/                    # Utilities
-│   └── assets/                 # Static assets (logo, etc.)
-├── server/                     # Backend (Node.js + Fastify) — scaffolded
-│   ├── src/
-│   │   ├── index.ts            # Fastify entry point
-│   │   ├── routes/             # Route handlers (stubs)
-│   │   └── lib/                # Storage helpers, utilities
-│   ├── package.json            # Backend dependencies
-│   ├── tsconfig.json           # Backend TypeScript config
-│   └── .env.example            # Environment variable reference
-├── .github/workflows/          # CI, Docker, release workflows
-├── bjorq_asset_wizard/          # Home Assistant add-on (self-contained)
-├── Dockerfile                  # Backend production container
-├── docker-compose.yml          # Local development
-├── package.json                # Frontend dependencies
-└── docs/                       # Documentation
+â”œâ”€â”€ src/                        # Frontend (React + Vite)
+â”‚   â”œâ”€â”€ pages/                  # Route-level page components
+â”‚   â”œâ”€â”€ components/             # UI components by domain
+â”‚   â”œâ”€â”€ contexts/               # React context providers
+â”‚   â”œâ”€â”€ services/               # API client, service functions, mock data
+â”‚   â”œâ”€â”€ hooks/                  # Custom React hooks
+â”‚   â”œâ”€â”€ types/                  # TypeScript type definitions
+â”‚   â”œâ”€â”€ lib/                    # Utilities
+â”‚   â””â”€â”€ assets/                 # Static assets (logo, etc.)
+â”œâ”€â”€ server/                     # Backend (Node.js + Fastify) â€” scaffolded
+â”‚   â”œâ”€â”€ src/
+â”‚   â”‚   â”œâ”€â”€ index.ts            # Fastify entry point
+â”‚   â”‚   â”œâ”€â”€ routes/             # Route handlers (stubs)
+â”‚   â”‚   â””â”€â”€ lib/                # Storage helpers, utilities
+â”‚   â”œâ”€â”€ package.json            # Backend dependencies
+â”‚   â”œâ”€â”€ tsconfig.json           # Backend TypeScript config
+â”‚   â””â”€â”€ .env.example            # Environment variable reference
+â”œâ”€â”€ .github/workflows/          # CI, Docker, release workflows
+â”œâ”€â”€ bjorq_asset_wizard/          # Home Assistant add-on (self-contained)
+â”œâ”€â”€ Dockerfile                  # Backend production container
+â”œâ”€â”€ docker-compose.yml          # Local development
+â”œâ”€â”€ package.json                # Frontend dependencies
+â””â”€â”€ docs/                       # Documentation
 ```
 
 ---
@@ -49,7 +49,6 @@ bjorq-asset-wizard/
 |------|-------|------|---------|
 | Upload & Analyze | `/` | `UploadAnalyze.tsx` | Upload a GLB/glTF file, view analysis results |
 | Optimize | `/optimize` | `Optimize.tsx` | Multi-step optimization pipeline |
-| Photo → 3D | `/generate` | `PhotoGenerate.tsx` | Generate stylized 3D assets from photos |
 | Catalog Browse | `/catalog` | `Catalog.tsx` | Browse cataloged assets with filters |
 | Asset Detail | `/catalog/:id` | `AssetDetail.tsx` | Full asset metadata and actions |
 | Catalog Ingest | `/ingest` | `CatalogIngest.tsx` | Add new assets to the catalog |
@@ -63,23 +62,23 @@ bjorq-asset-wizard/
 
 ### Three-layer design
 
-1. **`api-client.ts`** — Singleton `ApiClient` class
+1. **`api-client.ts`** â€” Singleton `ApiClient` class
    - Manages base URL (stored in `localStorage` as `bjorq_api_base_url`)
    - Default: `http://localhost:3500`
    - Provides `request<T>(path, opts)` with timeout and error handling
    - Provides `checkConnection()` for health checks
    - Emits connection status changes via `subscribe()`
 
-2. **`api.ts`** — Service functions
+2. **`api.ts`** â€” Service functions
    - Each function (e.g., `analyzeModel`, `getCatalogIndex`) wraps a call with `withFallback()`
    - `withFallback(apiFn, mockFn)` tries the real API first, falls back to mock data on network error
-   - Real API errors (non-zero status codes) are NOT masked — they propagate to the caller
+   - Real API errors (non-zero status codes) are NOT masked â€” they propagate to the caller
    - Only connection failures trigger the fallback
 
-3. **`mock-data.ts`** — Static mock responses
+3. **`mock-data.ts`** â€” Static mock responses
    - Realistic data matching the API type definitions
    - Used automatically when the backend is offline
-   - No special setup needed — just don't run the backend
+   - No special setup needed â€” just don't run the backend
 
 ### Adding a new endpoint
 
@@ -106,12 +105,12 @@ export async function getNew(): Promise<NewResponse> {
 
 Wraps the app and provides:
 
-- `isConnected` — whether the backend is reachable
-- `isMockMode` — whether the app is using fallback data
-- `status` — `"connected" | "disconnected" | "checking"`
-- `latency` — last measured response time
+- `isConnected` â€” whether the backend is reachable
+- `isMockMode` â€” whether the app is using fallback data
+- `status` â€” `"connected" | "disconnected" | "checking"`
+- `latency` â€” last measured response time
 
-The context checks the backend on mount and periodically. When disconnected, a banner appears in the header: "Backend offline — using demo data".
+The context checks the backend on mount and periodically. When disconnected, a banner appears in the header: "Backend offline â€” using demo data".
 
 ---
 
@@ -158,16 +157,16 @@ The backend lives in `server/` with its own `package.json`, `tsconfig.json`, and
 
 ```
 server/src/
-├── index.ts            # Fastify entry point — registers plugins and routes
-├── routes/
-│   ├── health.ts       # GET /health, GET /version (✅ implemented)
-│   ├── analyze.ts      # POST /analyze (stub — returns 501)
-│   ├── optimize.ts     # POST /optimize (stub — returns 501)
-│   ├── catalog.ts      # GET /catalog/index, POST /catalog/ingest, POST /catalog/reindex (stubs)
-│   ├── sync.ts         # POST /sync (stub)
-│   └── import.ts       # POST /import/direct, POST /import/convert (stubs)
-└── lib/
-    └── storage.ts      # Storage path helpers and directory initialization
+â”œâ”€â”€ index.ts            # Fastify entry point â€” registers plugins and routes
+â”œâ”€â”€ routes/
+â”‚   â”œâ”€â”€ health.ts       # GET /health, GET /version (âœ… implemented)
+â”‚   â”œâ”€â”€ analyze.ts      # POST /analyze (stub â€” returns 501)
+â”‚   â”œâ”€â”€ optimize.ts     # POST /optimize (stub â€” returns 501)
+â”‚   â”œâ”€â”€ catalog.ts      # GET /catalog/index, POST /catalog/ingest, POST /catalog/reindex (stubs)
+â”‚   â”œâ”€â”€ sync.ts         # POST /sync (stub)
+â”‚   â””â”€â”€ import.ts       # POST /import/direct, POST /import/convert (stubs)
+â””â”€â”€ lib/
+    â””â”€â”€ storage.ts      # Storage path helpers and directory initialization
 ```
 
 ### Getting started
@@ -204,25 +203,25 @@ docker compose up -d
 ### CI/CD
 
 GitHub Actions workflows in `.github/workflows/`:
-- `ci.yml` — Runs lint, typecheck, build, and test for both frontend and backend
-- `docker.yml` — Builds and pushes Docker image on version tags (v*)
-- `release.yml` — Manual workflow to create semver tags and GitHub releases
+- `ci.yml` â€” Runs lint, typecheck, build, and test for both frontend and backend
+- `docker.yml` â€” Builds and pushes Docker image on version tags (v*)
+- `release.yml` â€” Manual workflow to create semver tags and GitHub releases
 
 ### Home Assistant Add-on
 
 The `bjorq_asset_wizard/` directory contains the complete add-on package:
-- `config.yaml` — Add-on manifest with options schema
-- `build.yaml` — Architecture-specific base images for HA builder
-- `Dockerfile` — Multi-stage build (compiles TypeScript, bundles frontend)
-- `run.sh` — Entry point that maps HA options to environment variables
-- `DOCS.md` — User-facing documentation
-- `prepare-addon.sh` — Stages `server/` source into the add-on directory before build
+- `config.yaml` â€” Add-on manifest with options schema
+- `build.yaml` â€” Architecture-specific base images for HA builder
+- `Dockerfile` â€” Multi-stage build (compiles TypeScript, bundles frontend)
+- `run.sh` â€” Entry point that maps HA options to environment variables
+- `DOCS.md` â€” User-facing documentation
+- `prepare-addon.sh` â€” Stages `server/` source into the add-on directory before build
 
 The add-on uses the same Docker image with HA-specific storage paths (`/data/storage`, `/data/catalog`).
 
 #### Wizard vs Dashboard packaging
 
-The **Wizard** add-on builds locally from `Dockerfile` + `build.yaml` — HA's Supervisor compiles the image on the host. The **Dashboard** add-on uses a prebuilt `image:` field pointing to a container registry. Because Wizard is built locally, it is more sensitive to HA's repository cache: the Supervisor may keep using a stale snapshot of `config.yaml` and `Dockerfile` even after the GitHub repo is updated. See "Troubleshooting: HA Shows Wrong Version" below for the required refresh steps.
+The **Wizard** add-on builds locally from `Dockerfile` + `build.yaml` â€” HA's Supervisor compiles the image on the host. The **Dashboard** add-on uses a prebuilt `image:` field pointing to a container registry. Because Wizard is built locally, it is more sensitive to HA's repository cache: the Supervisor may keep using a stale snapshot of `config.yaml` and `Dockerfile` even after the GitHub repo is updated. See "Troubleshooting: HA Shows Wrong Version" below for the required refresh steps.
 
 ---
 
@@ -272,8 +271,8 @@ Filter logs by job: `cat wizard.log | grep '"jobId":"abc-123"'`
 
 ### Error handling
 
-- Route errors → caught by `setErrorHandler`, logged with full stack trace
-- Uncaught exceptions / unhandled rejections → logged as `fatal`, process exits
+- Route errors â†’ caught by `setErrorHandler`, logged with full stack trace
+- Uncaught exceptions / unhandled rejections â†’ logged as `fatal`, process exits
 
 ---
 
@@ -281,19 +280,19 @@ Filter logs by job: `cat wizard.log | grep '"jobId":"abc-123"'`
 
 ### Do
 
-- Use semantic Tailwind tokens from `index.css` (e.g., `text-foreground`, `bg-muted`) — never hardcode colors
-- Add new API endpoints through the three-layer pattern (types → mock → service function)
-- Keep components small and focused — one responsibility per file
+- Use semantic Tailwind tokens from `index.css` (e.g., `text-foreground`, `bg-muted`) â€” never hardcode colors
+- Add new API endpoints through the three-layer pattern (types â†’ mock â†’ service function)
+- Keep components small and focused â€” one responsibility per file
 - Use the `useApi` hook for simple fetch-on-mount patterns
 - Add loading, error, and empty states to all data-dependent views
 
 ### Don't
 
-- Don't modify `src/components/ui/` files directly — these are shadcn/ui components managed by the CLI
-- Don't remove the `withFallback` pattern — it ensures the app works offline
-- Don't hardcode the backend URL — always use `apiClient.baseUrl`
-- Don't add backend logic to the frontend — this is a pure client-side app
-- Don't change the catalog structure (`model.glb`, `thumb.webp`, `meta.json`) — it's a shared contract with the backend
+- Don't modify `src/components/ui/` files directly â€” these are shadcn/ui components managed by the CLI
+- Don't remove the `withFallback` pattern â€” it ensures the app works offline
+- Don't hardcode the backend URL â€” always use `apiClient.baseUrl`
+- Don't add backend logic to the frontend â€” this is a pure client-side app
+- Don't change the catalog structure (`model.glb`, `thumb.webp`, `meta.json`) â€” it's a shared contract with the backend
 
 ---
 
@@ -301,11 +300,11 @@ Filter logs by job: `cat wizard.log | grep '"jobId":"abc-123"'`
 
 ### Direct Import (implemented)
 
-User uploads a GLB/glTF file → analysis → optimization → catalog ingest. This is the standard flow and works end-to-end (with mock data when offline).
+User uploads a GLB/glTF file â†’ analysis â†’ optimization â†’ catalog ingest. This is the standard flow and works end-to-end (with mock data when offline).
 
 ### Conversion Import (UI prepared, backend pending)
 
-User uploads a larger project file (SketchUp, IFC, OBJ, FBX) → backend converts to GLB → standard pipeline. The UI shows a "coming soon" panel for this path. The `POST /import/convert` endpoint stub exists in both `api.ts` and `server/src/routes/import.ts` but requires the backend implementation.
+User uploads a larger project file (SketchUp, IFC, OBJ, FBX) â†’ backend converts to GLB â†’ standard pipeline. The UI shows a "coming soon" panel for this path. The `POST /import/convert` endpoint stub exists in both `api.ts` and `server/src/routes/import.ts` but requires the backend implementation.
 
 ---
 
@@ -313,18 +312,19 @@ User uploads a larger project file (SketchUp, IFC, OBJ, FBX) → backend convert
 
 If Home Assistant still shows an old version or reports "dockerfile is missing", the Supervisor is reading a stale cached snapshot:
 
-1. **Settings → Add-ons → Add-on Store** → ⋮ → **Repositories** → remove the repo URL
+1. **Settings â†’ Add-ons â†’ Add-on Store** â†’ â‹® â†’ **Repositories** â†’ remove the repo URL
 2. Click **Reload** in the Add-on Store
 3. Re-add the repository URL
 4. Verify the correct version appears before installing
-5. If still stale: **Settings → System → Restart** (Supervisor or Core)
+5. If still stale: **Settings â†’ System â†’ Restart** (Supervisor or Core)
 
 ---
 
 ## What Should NOT Be Changed
 
-- **Catalog format** — `model.glb` / `thumb.webp` / `meta.json` structure is a contract between frontend and backend
-- **API client architecture** — the three-layer pattern (client → service → mock) is intentional
-- **Route structure** — page routes map to sidebar navigation and should stay stable
-- **shadcn/ui components** — modify via variants and composition, not by editing the base files
-- **ConnectionContext pattern** — the auto-detection and fallback behavior is core to the offline-first UX
+- **Catalog format** â€” `model.glb` / `thumb.webp` / `meta.json` structure is a contract between frontend and backend
+- **API client architecture** â€” the three-layer pattern (client â†’ service â†’ mock) is intentional
+- **Route structure** â€” page routes map to sidebar navigation and should stay stable
+- **shadcn/ui components** â€” modify via variants and composition, not by editing the base files
+- **ConnectionContext pattern** â€” the auto-detection and fallback behavior is core to the offline-first UX
+

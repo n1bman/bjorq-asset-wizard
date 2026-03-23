@@ -1,25 +1,25 @@
-/**
- * Bjorq Asset Wizard — Backend Entry Point
+﻿/**
+ * Bjorq Asset Wizard â€” Backend Entry Point
  *
  * Fastify server providing the API for 3D asset analysis,
  * optimization, catalog management, and (future) dashboard sync.
  *
  * Implemented:
- *   /health, /version — system status
- *   /analyze — GLB model analysis
- *   /optimize — full optimization pipeline
- *   /catalog/index — browse persisted catalog
- *   /catalog/ingest — save optimized assets to catalog
- *   /catalog/reindex — rebuild catalog manifest
- *   /catalog/asset/:id/thumbnail — serve asset thumbnail
- *   /catalog/diagnostics — catalog health diagnostics
- *   /jobs/* — static file serving for job outputs
- *   /catalog/files/* — static file serving for catalog assets
- *   SPA frontend — served from public/ with index.html fallback
+ *   /health, /version â€” system status
+ *   /analyze â€” GLB model analysis
+ *   /optimize â€” full optimization pipeline
+ *   /catalog/index â€” browse persisted catalog
+ *   /catalog/ingest â€” save optimized assets to catalog
+ *   /catalog/reindex â€” rebuild catalog manifest
+ *   /catalog/asset/:id/thumbnail â€” serve asset thumbnail
+ *   /catalog/diagnostics â€” catalog health diagnostics
+ *   /jobs/* â€” static file serving for job outputs
+ *   /catalog/files/* â€” static file serving for catalog assets
+ *   SPA frontend â€” served from public/ with index.html fallback
  *
  * Stubs (501):
- *   /sync — dashboard sync (coming next)
- *   /import/* — conversion-based import (future)
+ *   /sync â€” dashboard sync (coming next)
+ *   /import/* â€” conversion-based import (future)
  */
 
 import Fastify, { FastifyError } from "fastify";
@@ -38,11 +38,9 @@ import { optimizeRoutes } from "./routes/optimize.js";
 import { catalogRoutes } from "./routes/catalog.js";
 import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
-import { generateRoutes } from "./routes/generate.js";
-import { trellisRoutes } from "./routes/trellis.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "2.7.5";
+const VERSION = "2.8.0";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
@@ -56,7 +54,7 @@ async function start() {
   const server = Fastify({
     logger: createLoggerConfig(),
     bodyLimit: MAX_FILE_SIZE,
-    requestTimeout: 300_000, // 5 min — supports large file uploads
+    requestTimeout: 300_000, // 5 min â€” supports large file uploads
   });
 
   // --- Global error handler ---
@@ -95,7 +93,7 @@ async function start() {
   });
 
   // --- Plugins ---
-  // --- CORS (safe fallback — never crashes) ---
+  // --- CORS (safe fallback â€” never crashes) ---
   const corsOrigin = process.env.CORS_ORIGINS;
   let originOption: boolean | string[] = true;
   if (corsOrigin && corsOrigin !== "*") {
@@ -120,7 +118,7 @@ async function start() {
       const ver = execSync(`${dep} --version`, { timeout: 5000 }).toString().trim();
       server.log.info({ dep, version: ver }, `Runtime dependency OK: ${dep}`);
     } catch {
-      server.log.warn({ dep }, `Runtime dependency MISSING: ${dep} — engine install will fail`);
+      server.log.warn({ dep }, `Runtime dependency MISSING: ${dep} â€” engine install will fail`);
     }
   }
 
@@ -179,8 +177,6 @@ async function start() {
   await server.register(catalogRoutes);
   await server.register(syncRoutes);
   await server.register(importRoutes);
-  await server.register(generateRoutes);
-  await server.register(trellisRoutes);
 
   // --- SPA frontend serving ---
   // Check if public/index.html exists (frontend was built into the image)
@@ -189,7 +185,7 @@ async function start() {
     await access(join(PUBLIC_PATH, "index.html"));
     hasFrontend = true;
   } catch {
-    // No frontend build — API-only mode
+    // No frontend build â€” API-only mode
   }
 
   if (hasFrontend) {
@@ -202,7 +198,7 @@ async function start() {
       wildcard: false,
     });
 
-    // SPA fallback — serve index.html for all non-API, non-file routes
+    // SPA fallback â€” serve index.html for all non-API, non-file routes
     server.setNotFoundHandler(async (request, reply) => {
       if (
         request.url.startsWith("/health") ||
@@ -214,9 +210,7 @@ async function start() {
         request.url.startsWith("/import") ||
         request.url.startsWith("/jobs/") ||
         request.url.startsWith("/libraries") ||
-        request.url.startsWith("/assets/") ||
-        request.url.startsWith("/generate") ||
-        request.url.startsWith("/trellis")
+        request.url.startsWith("/assets/")
       ) {
         return reply.code(404).send({ success: false, error: "Not found" });
       }
@@ -224,7 +218,7 @@ async function start() {
       return reply.sendFile("index.html", PUBLIC_PATH);
     });
   } else {
-    // No frontend — serve JSON root route for API-only mode
+    // No frontend â€” serve JSON root route for API-only mode
     server.get("/", async () => ({
       service: "bjorq-asset-wizard",
       status: "running",
@@ -244,11 +238,11 @@ async function start() {
 
   // --- Uncaught errors ---
   process.on("uncaughtException", (err) => {
-    server.log.fatal({ err }, "Uncaught exception — shutting down");
+    server.log.fatal({ err }, "Uncaught exception â€” shutting down");
     process.exit(1);
   });
   process.on("unhandledRejection", (reason) => {
-    server.log.fatal({ err: reason }, "Unhandled rejection — shutting down");
+    server.log.fatal({ err: reason }, "Unhandled rejection â€” shutting down");
     process.exit(1);
   });
 
@@ -272,3 +266,7 @@ async function start() {
 }
 
 start();
+
+
+
+

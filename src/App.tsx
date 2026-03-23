@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
+﻿import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,7 +13,6 @@ import CatalogIngest from "@/pages/CatalogIngest";
 import SystemStatus from "@/pages/SystemStatus";
 import NotFound from "@/pages/NotFound";
 import WizardIntegration from "@/pages/WizardIntegration";
-import PhotoGenerate from "@/pages/PhotoGenerate";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +39,6 @@ const App = () => (
               <Route path="/ingest" element={<CatalogIngest />} />
               <Route path="/system" element={<SystemStatus />} />
               <Route path="/wizard" element={<WizardIntegration />} />
-              <Route path="/generate" element={<PhotoGenerate />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
