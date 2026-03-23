@@ -15,9 +15,9 @@ interface Props {
 }
 
 export function WizardAssetDetail({ asset, open, onOpenChange }: Props) {
+  const [imgError, setImgError] = useState(false);
   if (!asset) return null;
 
-  const [imgError, setImgError] = useState(false);
   const thumbnailUrl = asset.thumbnail ? getAssetThumbnailUrl(asset.id) : null;
 
   const handleImport = () => {
