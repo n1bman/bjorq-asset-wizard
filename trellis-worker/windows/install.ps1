@@ -20,7 +20,8 @@ param(
     [int]$Port = 8080,
     [switch]$NoService,
     [switch]$SkipWeights,
-    [switch]$AutoInstallBuildTools
+    [switch]$AutoInstallBuildTools,
+    [switch]$InteractiveUi
 )
 
 $ProgressPreference = "SilentlyContinue"
@@ -31,11 +32,104 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.6.1"
+$WORKER_VERSION = "2.7.0"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
 $PythonPathFile = Join-Path $InstallDir "python-path.txt"
+
+$script:InstallerForm = $null
+$script:StatusLabel = $null
+$script:DetailLabel = $null
+$script:ProgressBar = $null
+$script:LogTextBox = $null
+
+function Refresh-InstallUi {
+    if ($script:InstallerForm) {
+        $script:InstallerForm.Refresh()
+        [System.Windows.Forms.Application]::DoEvents()
+    }
+}
+
+function Append-UiLog {
+    param([string]$Message)
+    if ($script:LogTextBox -and $Message) {
+        $script:LogTextBox.AppendText($Message + [Environment]::NewLine)
+        $script:LogTextBox.SelectionStart = $script:LogTextBox.TextLength
+        $script:LogTextBox.ScrollToCaret()
+        Refresh-InstallUi
+    }
+}
+
+function Initialize-InstallUi {
+    if (-not $InteractiveUi) { return }
+
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+
+    $script:InstallerForm = New-Object System.Windows.Forms.Form
+    $script:InstallerForm.Text = "Bjorq 3D Worker Setup"
+    $script:InstallerForm.Size = New-Object System.Drawing.Size(880, 640)
+    $script:InstallerForm.StartPosition = "CenterScreen"
+    $script:InstallerForm.TopMost = $true
+
+    $titleLabel = New-Object System.Windows.Forms.Label
+    $titleLabel.Text = "Installing Bjorq 3D Worker"
+    $titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
+    $titleLabel.AutoSize = $true
+    $titleLabel.Location = New-Object System.Drawing.Point(20, 20)
+    $script:InstallerForm.Controls.Add($titleLabel)
+
+    $subtitleLabel = New-Object System.Windows.Forms.Label
+    $subtitleLabel.Text = "This window shows the real installation progress, requirements, and logs."
+    $subtitleLabel.AutoSize = $true
+    $subtitleLabel.Location = New-Object System.Drawing.Point(22, 56)
+    $script:InstallerForm.Controls.Add($subtitleLabel)
+
+    $script:StatusLabel = New-Object System.Windows.Forms.Label
+    $script:StatusLabel.Text = "Preparing installation..."
+    $script:StatusLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $script:StatusLabel.AutoSize = $true
+    $script:StatusLabel.Location = New-Object System.Drawing.Point(22, 96)
+    $script:InstallerForm.Controls.Add($script:StatusLabel)
+
+    $script:DetailLabel = New-Object System.Windows.Forms.Label
+    $script:DetailLabel.Text = "Install folder: $InstallDir"
+    $script:DetailLabel.AutoSize = $true
+    $script:DetailLabel.Location = New-Object System.Drawing.Point(22, 122)
+    $script:InstallerForm.Controls.Add($script:DetailLabel)
+
+    $script:ProgressBar = New-Object System.Windows.Forms.ProgressBar
+    $script:ProgressBar.Location = New-Object System.Drawing.Point(22, 152)
+    $script:ProgressBar.Size = New-Object System.Drawing.Size(820, 26)
+    $script:ProgressBar.Minimum = 0
+    $script:ProgressBar.Maximum = 100
+    $script:InstallerForm.Controls.Add($script:ProgressBar)
+
+    $requirementsLabel = New-Object System.Windows.Forms.Label
+    $requirementsLabel.Text = "Installer checks GPU, disk, Git, Build Tools, Python runtime, TRELLIS.2, weights, firewall, and launcher setup."
+    $requirementsLabel.AutoSize = $true
+    $requirementsLabel.Location = New-Object System.Drawing.Point(22, 190)
+    $script:InstallerForm.Controls.Add($requirementsLabel)
+
+    $script:LogTextBox = New-Object System.Windows.Forms.TextBox
+    $script:LogTextBox.Location = New-Object System.Drawing.Point(22, 224)
+    $script:LogTextBox.Size = New-Object System.Drawing.Size(820, 340)
+    $script:LogTextBox.Multiline = $true
+    $script:LogTextBox.ScrollBars = "Vertical"
+    $script:LogTextBox.ReadOnly = $true
+    $script:LogTextBox.Font = New-Object System.Drawing.Font("Consolas", 9)
+    $script:InstallerForm.Controls.Add($script:LogTextBox)
+
+    $footerLabel = New-Object System.Windows.Forms.Label
+    $footerLabel.Text = "Note: Windows SmartScreen warnings disappear only after Authenticode code signing."
+    $footerLabel.AutoSize = $true
+    $footerLabel.Location = New-Object System.Drawing.Point(22, 578)
+    $script:InstallerForm.Controls.Add($footerLabel)
+
+    $script:InstallerForm.Show()
+    Refresh-InstallUi
+}
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -54,6 +148,13 @@ function Write-Status {
     $msg = "[$Progress%] $Step"
     Write-Host $msg -ForegroundColor Cyan
     Add-Content -Path $LogFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $msg"
+    if ($script:StatusLabel) { $script:StatusLabel.Text = $Step }
+    if ($script:DetailLabel) { $script:DetailLabel.Text = "Install folder: $InstallDir   |   Progress: $Progress%" }
+    if ($script:ProgressBar) {
+        $safeProgress = [Math]::Max(0, [Math]::Min(100, $Progress))
+        $script:ProgressBar.Value = $safeProgress
+    }
+    Append-UiLog -Message $msg
 }
 
 function Write-Fatal {
@@ -61,6 +162,11 @@ function Write-Fatal {
     Write-Status -Step "FAILED: $Message" -Progress -1 -Error $Message
     Write-Host "`n  ERROR: $Message" -ForegroundColor Red
     Write-Host "  See log: $LogFile" -ForegroundColor Yellow
+    Append-UiLog -Message "ERROR: $Message"
+    Append-UiLog -Message "See log: $LogFile"
+    if ($InteractiveUi) {
+        [System.Windows.Forms.MessageBox]::Show($Message, "Bjorq 3D Worker Setup Failed", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error) | Out-Null
+    }
     exit 1
 }
 
@@ -83,6 +189,7 @@ function Invoke-Tool {
         & $Exe @Arguments 2>&1 | ForEach-Object {
             $line = $_.ToString()
             Add-Content -Path $LogFile -Value $line
+            Append-UiLog -Message $line
             # Show stdout but suppress noisy pip stderr warnings
             if ($_ -is [System.Management.Automation.ErrorRecord]) {
                 # stderr — log only, don't display unless it's important
@@ -209,6 +316,9 @@ Write-Host "  Install directory: $InstallDir`n"
 New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $InstallDir "jobs") -Force | Out-Null
 "" | Set-Content $LogFile
+Initialize-InstallUi
+Append-UiLog -Message "Bjorq 3D Worker Installer v$WORKER_VERSION"
+Append-UiLog -Message "Install directory: $InstallDir"
 
 # Check disk space (warning only)
 try {
@@ -652,6 +762,15 @@ Write-Host "  Start worker: $launchBat"
 Write-Host "  Stop worker:  $(Join-Path $PSScriptRoot 'stop-worker.ps1')"
 Write-Host "  Dashboard:    http://localhost:$Port/ui"
 Write-Host "  Worker URL:   http://<this-pc-ip>:$Port`n"
+Append-UiLog -Message ""
+Append-UiLog -Message "Installation complete."
+Append-UiLog -Message "Runtime: $runtimeStrategy"
+Append-UiLog -Message "Dashboard: http://localhost:$Port/ui"
+Append-UiLog -Message "Worker URL from HA: http://<this-pc-ip>:$Port"
+if ($script:StatusLabel) { $script:StatusLabel.Text = "Installation complete" }
+if ($script:DetailLabel) { $script:DetailLabel.Text = "You can now open Bjorq 3D Worker Manager from the Start menu." }
+if ($script:ProgressBar) { $script:ProgressBar.Value = 100 }
+Refresh-InstallUi
 if (-not $NoService) {
     Write-Host "  Background service: enabled (starts with Windows)" -ForegroundColor Yellow
 }

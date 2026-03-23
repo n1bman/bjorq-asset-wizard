@@ -9,7 +9,7 @@
 
 [Setup]
 AppName=Bjorq 3D Worker
-AppVersion=2.6.1
+AppVersion=2.7.0
 AppPublisher=Bjorq
 AppPublisherURL=https://github.com/n1bman/bjorq-asset-wizard
 DefaultDirName={commonpf}\Bjorq3DWorker
@@ -19,7 +19,6 @@ OutputBaseFilename=Bjorq3DWorkerSetup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=admin
-UninstallDisplayIcon={app}\worker.py
 WizardStyle=modern
 
 [Languages]
@@ -41,12 +40,14 @@ Source: "install.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "start-worker.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "stop-worker.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "register-service.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "worker-manager.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "healthcheck.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "cleanup.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 
 [Icons]
 ; Use {sysnative} to ensure 64-bit PowerShell even on 32-bit Inno Setup process
-Name: "{group}\Start Bjorq 3D Worker"; Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\start-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; WorkingDir: "{app}"; Comment: "Start the 3D generation worker"
+Name: "{group}\Bjorq 3D Worker"; Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -STA -WindowStyle Hidden -File ""{app}\scripts\worker-manager.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; WorkingDir: "{app}"; Comment: "Open the Bjorq 3D Worker manager"
+Name: "{group}\Start Bjorq 3D Worker Console"; Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\start-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; WorkingDir: "{app}"; Comment: "Start the 3D generation worker"
 Name: "{group}\Stop Bjorq 3D Worker"; Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\stop-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; WorkingDir: "{app}"; Comment: "Stop the worker and background service"
 Name: "{group}\Enable Background Service"; Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\register-service.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; WorkingDir: "{app}"; Comment: "Install the worker as a Windows service"
 Name: "{group}\Disable Background Service"; Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\stop-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -RemoveService"; WorkingDir: "{app}"; Comment: "Remove the Windows service and stop the worker"
@@ -55,9 +56,9 @@ Name: "{group}\Uninstall Bjorq 3D Worker"; Filename: "{uninstallexe}"
 
 [Run]
 ; Run install.ps1 via 64-bit PowerShell after setup extracts files
-Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -NoService -AutoInstallBuildTools"; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: runhidden waituntilterminated; Tasks: autobuildtools
-Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -NoService"; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: runhidden waituntilterminated; Check: not WizardIsTaskSelected('autobuildtools')
-Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\start-worker.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; Description: "Launch Bjorq 3D Worker now"; Flags: nowait postinstall skipifsilent unchecked
+Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -STA -WindowStyle Hidden -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -NoService -AutoInstallBuildTools -InteractiveUi"; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: waituntilterminated; Tasks: autobuildtools
+Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -STA -WindowStyle Hidden -File ""{app}\scripts\install.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"" -NoService -InteractiveUi"; StatusMsg: "Installing TRELLIS.2 environment (this may take 15-30 minutes)..."; Flags: waituntilterminated; Check: not WizardIsTaskSelected('autobuildtools')
+Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -STA -WindowStyle Hidden -File ""{app}\scripts\worker-manager.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; Description: "Launch Bjorq 3D Worker manager now"; Flags: nowait postinstall skipifsilent unchecked
 Filename: "{sysnative}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoExit -File ""{app}\scripts\register-service.ps1"" -InstallDir ""{commonappdata}\Bjorq3DWorker"""; Description: "Enable background service and start with Windows"; Flags: nowait postinstall skipifsilent unchecked; Tasks: service
 
 [UninstallRun]
