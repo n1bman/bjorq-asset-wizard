@@ -31,7 +31,7 @@ import { fileURLToPath } from "node:url";
 import { access, readdir } from "node:fs/promises";
 import { execSync } from "node:child_process";
 import { createLoggerConfig } from "./lib/logger.js";
-import { initStorage, seedCatalogIfEmpty } from "./lib/storage.js";
+import { initStorage, refreshBundledThumbnails, seedCatalogIfEmpty } from "./lib/storage.js";
 import { healthRoutes } from "./routes/health.js";
 import { analyzeRoutes } from "./routes/analyze.js";
 import { optimizeRoutes } from "./routes/optimize.js";
@@ -40,7 +40,7 @@ import { syncRoutes } from "./routes/sync.js";
 import { importRoutes } from "./routes/import.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "2.9.5";
+const VERSION = "2.9.6";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;
@@ -116,6 +116,10 @@ async function start() {
   const seededCatalog = await seedCatalogIfEmpty(BUNDLED_CATALOG_PATH);
   if (seededCatalog) {
     server.log.info({ source: BUNDLED_CATALOG_PATH, target: CATALOG_PATH_RESOLVED }, "Seeded bundled starter catalog");
+  }
+  const refreshedThumbs = await refreshBundledThumbnails(BUNDLED_CATALOG_PATH);
+  if (refreshedThumbs > 0) {
+    server.log.info({ source: BUNDLED_CATALOG_PATH, target: CATALOG_PATH_RESOLVED, count: refreshedThumbs }, "Refreshed bundled starter thumbnails");
   }
 
   // --- Runtime dependency check ---

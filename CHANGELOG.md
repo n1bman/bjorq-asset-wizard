@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.6] — 2026-03-23
+
+### Added
+- Added a Playwright-based thumbnail generator that renders real preview images from the bundled GLB starter library instead of placeholder cards.
+
+### Changed
+- Backend startup now refreshes bundled starter thumbnails into the live catalog, so existing Home Assistant installs upgrade to the new rendered previews automatically.
+
 ## [2.9.5] â€” 2026-03-23
 
 ### Fixed

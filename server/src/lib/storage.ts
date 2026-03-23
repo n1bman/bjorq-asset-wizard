@@ -84,3 +84,42 @@ export async function seedCatalogIfEmpty(seedPath?: string): Promise<boolean> {
     return false;
   }
 }
+
+/** Refresh bundled thumbnails for starter assets already present in the live catalog. */
+export async function refreshBundledThumbnails(seedPath?: string): Promise<number> {
+  if (!seedPath) return 0;
+  const sourceRoot = seedPath;
+
+  let updated = 0;
+
+  async function walk(relativeDir = ""): Promise<void> {
+    const sourceDir = join(sourceRoot, relativeDir);
+    const entries = await readdir(sourceDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const relativePath = join(relativeDir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(relativePath);
+        continue;
+      }
+
+      if (entry.isFile() && entry.name === "thumb.webp") {
+        const sourceFile = join(sourceRoot, relativePath);
+        const targetFile = join(CATALOG_PATH, relativePath);
+        try {
+          await cp(sourceFile, targetFile, { force: true });
+          updated += 1;
+        } catch {
+          // Ignore missing targets — only refresh assets that already exist in the live catalog.
+        }
+      }
+    }
+  }
+
+  try {
+    await walk();
+    return updated;
+  } catch {
+    return 0;
+  }
+}
