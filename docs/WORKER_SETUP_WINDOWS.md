@@ -1,6 +1,6 @@
-# Bjorq 3D Worker Ã¢â‚¬â€ Windows Setup Guide
+# Bjorq 3D Worker ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Windows Setup Guide
 
-Complete zero-to-done guide for running Photo Ã¢â€ â€™ 3D from the Bjorq Asset Wizard.
+Complete zero-to-done guide for running Photo ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 3D from the Bjorq Asset Wizard.
 
 ## Overview
 
@@ -9,18 +9,18 @@ The Wizard add-on runs inside Home Assistant (Linux container) which has
 the NVIDIA GPU for fast TRELLIS.2 inference.
 
 ```text
-Ã¢â€Å’Ã¢â€â‚¬ Windows Host Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â
-Ã¢â€â€š                                             Ã¢â€â€š
-Ã¢â€â€š  Ã¢â€Å’Ã¢â€â‚¬Ã¢â€â‚¬ VirtualBox Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â     Ã¢â€â€š
-Ã¢â€â€š  Ã¢â€â€š  Home Assistant OS                 Ã¢â€â€š     Ã¢â€â€š
-Ã¢â€â€š  Ã¢â€â€š  Ã¢â€â€Ã¢â€â‚¬ Bjorq Asset Wizard add-on     Ã¢â€â€šÃ¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â¼Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€“Âº http://<host>:8080
-Ã¢â€â€š  Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ     Ã¢â€â€š
-Ã¢â€â€š                                             Ã¢â€â€š
-Ã¢â€â€š  Ã¢â€Å’Ã¢â€â‚¬Ã¢â€â‚¬ Bjorq 3D Worker Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â     Ã¢â€â€š
-Ã¢â€â€š  Ã¢â€â€š  Port 8080 (0.0.0.0)             Ã¢â€â€š     Ã¢â€â€š
-Ã¢â€â€š  Ã¢â€â€š  TRELLIS.2 + NVIDIA GPU           Ã¢â€â€š     Ã¢â€â€š
-Ã¢â€â€š  Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ     Ã¢â€â€š
-Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ
+ÃƒÂ¢Ã¢â‚¬ÂÃ…â€™ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Windows Host ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ‚Â
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡                                             ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ…â€™ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ VirtualBox ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ‚Â     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  Home Assistant OS                 ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Bjorq Asset Wizard add-on     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ‚Â¼ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬â€œÃ‚Âº http://<host>:8080
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ‹Å“     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡                                             ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ…â€™ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Bjorq 3D Worker ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ‚Â     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  Port 8080 (0.0.0.0)             ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  TRELLIS.2 + NVIDIA GPU           ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡  ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ‹Å“     ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
+ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ‹Å“
 ```
 
 ## Prerequisites
@@ -40,16 +40,16 @@ the NVIDIA GPU for fast TRELLIS.2 inference.
 > If CUDA extensions fail to build (cumesh/flex_gemm), install **Visual Studio Build Tools 2022**
 > and re-run the installer.
 
-## Step 1 Ã¢â‚¬â€ Download the Installer
+## Step 1 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Download the Installer
 
 Download **Bjorq3DWorkerSetup.exe** from the
 [latest GitHub Release](https://github.com/n1bman/bjorq-asset-wizard/releases/latest).
 
-## Step 2 Ã¢â‚¬â€ Run the Installer
+## Step 2 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Run the Installer
 
-1. Right-click Ã¢â€ â€™ **Run as Administrator**
+1. Right-click ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ **Run as Administrator**
 2. If Windows SmartScreen shows "Unknown publisher":
-   - Click **"More info"** Ã¢â€ â€™ **"Run anyway"**
+   - Click **"More info"** ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ **"Run anyway"**
    - (See [SmartScreen notes](#smartscreen-warning) below)
 3. The installer will automatically:
    - Download and set up **micromamba** with Python 3.11 (no system Python needed)
@@ -57,15 +57,15 @@ Download **Bjorq3DWorkerSetup.exe** from the
    - Clone the TRELLIS.2 repository
    - Install PyTorch with CUDA GPU support
    - Install all Python dependencies
-   - Download model weights (~15 GB Ã¢â‚¬â€ resumable if interrupted)
+   - Download model weights (~15 GB ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â resumable if interrupted)
    - Prepare a visible **Start Bjorq 3D Worker** shortcut
    - Optionally enable a **background Windows Service** if you check that box
 
-> **Installation takes 15Ã¢â‚¬â€œ30 minutes** depending on download speed.
+> **Installation takes 15ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“30 minutes** depending on download speed.
 > Progress is shown in a dedicated installer window with live step-by-step logs.
 > By default, the worker does **not** auto-start with Windows.`r`n> After installation, open **Bjorq 3D Worker Manager** from the Start menu for Start/Stop/Repair/Dashboard actions.
 
-## Step 3 Ã¢â‚¬â€ Verify the Worker
+## Step 3 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Verify the Worker
 
 Open a browser on your Windows PC and visit:
 
@@ -77,7 +77,7 @@ You should see a JSON response like:
 ```json
 {
   "ok": true,
-  "version": "2.7.1",
+  "version": "2.7.2",
   "gpu": true,
   "vramGB": 24,
   "driver": "560.94",
@@ -97,9 +97,9 @@ The worker dashboard is available at: `http://localhost:8080/ui`
 - Only enable **background service** if you want the worker to start automatically with Windows.
 - If the service is enabled, do not also start the visible console worker at the same time.
 
-## Step 4 Ã¢â‚¬â€ Configure the Wizard Add-on
+## Step 4 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Configure the Wizard Add-on
 
-In Home Assistant Ã¢â€ â€™ **Settings** Ã¢â€ â€™ **Add-ons** Ã¢â€ â€™ **Bjorq Asset Wizard** Ã¢â€ â€™ **Configuration**:
+In Home Assistant ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ **Settings** ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ **Add-ons** ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ **Bjorq Asset Wizard** ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ **Configuration**:
 
 ```yaml
 trellis_mode: external
@@ -109,12 +109,12 @@ trellis_worker_token: ""                        # optional
 
 Save and **restart the add-on**.
 
-## Step 5 Ã¢â‚¬â€œ Test Connection
+## Step 5 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Test Connection
 
-In the Wizard UI, go to **Photo Ã¢â€ â€™ 3D**. You should see:
+In the Wizard UI, go to **Photo ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 3D**. You should see:
 
-- Ã¢Å“â€¦ **"Worker connected"** with GPU info if everything is working
-- Ã¢ÂÅ’ **"Worker not connected"** with error details if something is wrong Ã¢â‚¬â€ see [Troubleshooting](#troubleshooting)
+- ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ **"Worker connected"** with GPU info if everything is working
+- ÃƒÂ¢Ã‚ÂÃ…â€™ **"Worker not connected"** with error details if something is wrong ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â see [Troubleshooting](#troubleshooting)
 
 Use the **"Test Connection"** button to verify connectivity.
 
@@ -132,14 +132,14 @@ So the Bjorq worker currently supports **one image per generation**. We should n
 
 ### Bridged Adapter (recommended)
 
-1. VirtualBox Ã¢â€ â€™ VM Settings Ã¢â€ â€™ Network Ã¢â€ â€™ Adapter 1:
+1. VirtualBox ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ VM Settings ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Network ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Adapter 1:
    - Attached to: **Bridged Adapter**
    - Select your physical network adapter
 2. Both the VM and Windows are on the same LAN
-3. Find your Windows IP: run `ipconfig` Ã¢â€ â€™ look for your LAN adapter's IPv4
+3. Find your Windows IP: run `ipconfig` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ look for your LAN adapter's IPv4
 4. Worker URL: `http://<windows-ip>:8080`
 
-**Example**: Windows IP is `192.168.1.100` Ã¢â€ â€™
+**Example**: Windows IP is `192.168.1.100` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢
 ```
 trellis_worker_url: "http://192.168.1.100:8080"
 ```
@@ -150,14 +150,14 @@ trellis_worker_url: "http://192.168.1.100:8080"
 2. From inside the VM, the Windows host is always at **10.0.2.2**
 3. Worker URL: `http://10.0.2.2:8080`
 
-> With NAT, no port forwarding is needed Ã¢â‚¬â€ the VM initiates the connection.
+> With NAT, no port forwarding is needed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the VM initiates the connection.
 > But you **must** allow port 8080 through Windows Firewall (see below).
 
 ### Host-only Adapter
 
-1. VirtualBox Ã¢â€ â€™ File Ã¢â€ â€™ Host Network Manager Ã¢â€ â€™ Create
+1. VirtualBox ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ File ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Host Network Manager ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Create
 2. Note the IP (usually `192.168.56.1`)
-3. VM Settings Ã¢â€ â€™ Network Ã¢â€ â€™ Adapter 2 Ã¢â€ â€™ Host-only Adapter
+3. VM Settings ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Network ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Adapter 2 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Host-only Adapter
 4. Worker URL: `http://192.168.56.1:8080`
 
 ## Windows Firewall
@@ -170,7 +170,7 @@ connections from the VM.
 New-NetFirewallRule -DisplayName "Bjorq 3D Worker" -Direction Inbound -Protocol TCP -LocalPort 8080 -Action Allow
 ```
 
-Or via GUI: Windows Defender Firewall Ã¢â€ â€™ Advanced Ã¢â€ â€™ Inbound Rules Ã¢â€ â€™ New Rule Ã¢â€ â€™ Port Ã¢â€ â€™ TCP Ã¢â€ â€™ 8080 Ã¢â€ â€™ Allow.
+Or via GUI: Windows Defender Firewall ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Advanced ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Inbound Rules ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ New Rule ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Port ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ TCP ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 8080 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Allow.
 
 ## Option B: Manual Setup
 
@@ -209,11 +209,11 @@ python worker.py
 | "Connection timed out" | Wrong IP or firewall | Verify IP (see networking above), open port 8080 in Windows Firewall |
 | "HTTP 401" | Token mismatch | Ensure `trellis_worker_token` matches `WORKER_TOKEN` env on worker |
 | "No GPU detected" | Missing NVIDIA driver | Install from [nvidia.com](https://www.nvidia.com/Download/index.aspx), restart worker |
-| Weights download fails | Disk space or network | Need ~15 GB free; download is resumable Ã¢â‚¬â€ just re-run installer |
+| Weights download fails | Disk space or network | Need ~15 GB free; download is resumable ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â just re-run installer |
 | Generation fails / OOM | Insufficient VRAM | Close other GPU apps; 12+ GB VRAM recommended |
 | Service won't start | NSSM issue | Check `C:\ProgramData\Bjorq3DWorker\service-stderr.log` |
 | Port 8080 already in use | Worker/service already running | Use the **Stop Bjorq 3D Worker** shortcut, then start again |
-| Uninstall left files behind | Old installer build | Use v2.7.1+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
+| Uninstall left files behind | Old installer build | Use v2.7.2+ so uninstall also cleans `C:\ProgramData\Bjorq3DWorker` |
 
 **Test from HA terminal:**
 ```bash
@@ -225,10 +225,10 @@ curl -s http://10.0.2.2:8080/status | jq .
 When running the installer, Windows SmartScreen may show **"Windows protected
 your PC"** with "Unknown publisher". This is expected for unsigned builds.
 
-- Click **"More info"** Ã¢â€ â€™ **"Run anyway"**.
+- Click **"More info"** ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ **"Run anyway"**.
 - To eliminate this warning, the project maintainer can add an Authenticode
   code-signing certificate. Set `CODE_SIGN_PFX_BASE64` and
-  `CODE_SIGN_PFX_PASSWORD` as GitHub repository secrets Ã¢â‚¬â€ the CI workflow
+  `CODE_SIGN_PFX_PASSWORD` as GitHub repository secrets ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the CI workflow
   will sign the `.exe` automatically.
 
 ## Security

@@ -42,7 +42,7 @@ import { generateRoutes } from "./routes/generate.js";
 import { trellisRoutes } from "./routes/trellis.js";
 import { startJobCleanup } from "./services/cleanup/job-cleaner.js";
 
-const VERSION = "2.7.1";
+const VERSION = "2.7.2";
 const PORT = Number(process.env.PORT) || 3500;
 const HOST = process.env.HOST || "0.0.0.0";
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE_MB || 100) * 1024 * 1024;

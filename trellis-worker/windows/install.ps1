@@ -32,7 +32,7 @@ $MICROMAMBA_URL_LATEST = "https://github.com/mamba-org/micromamba-releases/relea
 $PYTHON_VERSION = "3.11.9"
 $PYTHON_INSTALLER_URL = "https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-amd64.exe"
 $TRELLIS_REPO_URL = "https://github.com/microsoft/TRELLIS.2.git"
-$WORKER_VERSION = "2.7.1"
+$WORKER_VERSION = "2.7.2"
 
 $StatusFile = Join-Path $InstallDir "status.json"
 $LogFile = Join-Path $InstallDir "install.log"
@@ -236,6 +236,22 @@ function Find-MsvcCompiler {
         return $cmd.Source
     } catch {}
 
+    $knownRoots = @(
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools",
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Community",
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Professional",
+        "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise"
+    )
+
+    foreach ($root in $knownRoots) {
+        if (Test-Path $root) {
+            $knownCl = Get-ChildItem -Path $root -Recurse -Filter cl.exe -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -like "*Hostx64\\x64\\cl.exe" } |
+                Select-Object -First 1
+            if ($knownCl) { return $knownCl.FullName }
+        }
+    }
+
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     if (Test-Path $vswhere) {
         try {
@@ -248,6 +264,19 @@ function Find-MsvcCompiler {
             }
         } catch {}
     }
+
+    return $null
+}
+
+function Wait-ForMsvcCompiler {
+    param([int]$TimeoutSeconds = 120)
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $clExe = Find-MsvcCompiler
+        if ($clExe) { return $clExe }
+        Start-Sleep -Seconds 2
+    } while ((Get-Date) -lt $deadline)
 
     return $null
 }
@@ -380,7 +409,7 @@ if (-not $clExe) {
             Add-Content -Path $LogFile -Value "Build Tools install exception: $_"
         }
 
-        $clExe = Find-MsvcCompiler
+        $clExe = Wait-ForMsvcCompiler -TimeoutSeconds 120
         if (-not $buildToolsOk -and $clExe) {
             Write-Host "  Build Tools installer returned a warning/non-zero exit code, but MSVC was detected afterwards. Continuing..." -ForegroundColor Yellow
             Add-Content -Path $LogFile -Value "Build Tools bootstrapper returned non-zero exit code, but cl.exe was detected at $clExe. Continuing."
